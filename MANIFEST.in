@@ -1,0 +1,5 @@
+include data/*
+recursive-include data/unparsed_factor_data *
+recursive-include data/unparsed_ontology_data *
+recursive-include data/parsed_factor_data *
+recursive-include data/parsed_ontology_data *
