@@ -18,4 +18,4 @@ GEOMetaX/
 
 ## Installation
 ```sh
-pip install git+https://github.com/yourusername/my_pip_module.git
+pip install git+https://github.com/nickpiccaro/GEOMetaX.git
