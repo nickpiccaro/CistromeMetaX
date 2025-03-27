@@ -15,7 +15,7 @@ setup(
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "fetch_data=my_pip_module.downloader:main",
+            "fetch_data=GEOMetaX.downloader:main",
         ],
     },
 )
