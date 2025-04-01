@@ -1,21 +1,19 @@
 from setuptools import setup, find_packages
 import os
 
-# Ensure data directories exist
-os.makedirs("data/unparsed_factor_data", exist_ok=True)
-os.makedirs("data/unparsed_ontology_data", exist_ok=True)
-os.makedirs("data/parsed_factor_data", exist_ok=True)
-os.makedirs("data/parsed_ontology_data", exist_ok=True)
-
 setup(
-    name="my_pip_module",
-    version="0.1",
+    name="GEOMetaX",
+    version="0.1.0",
     packages=find_packages(),
-    install_requires=["requests"],
+    install_requires=[
+        "requests",
+        "pandas"
+    ],
     include_package_data=True,
+    package_data={"GEOMetaX": ["data/**/*"]},
     entry_points={
         "console_scripts": [
-            "fetch_data=GEOMetaX.downloader:main",
-        ],
+            "install_data=GEOMetaX.downloader:install_data",
+        ]
     },
 )
