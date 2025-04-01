@@ -26,3 +26,30 @@ GEOMetaX/
 ## Installation
 ```bash
 pip install git+https://github.com/nickpiccaro/GEOMetaX.git
+```
+
+1. Create a virtual environment using Python 3:
+
+    ```bash
+    python3 -m venv myenvapi
+    ```
+
+2. Activate the virtual environment:
+   
+    - **Bash:**
+    
+    ```bash
+    source myenvapi/Scripts/activate
+    ```
+
+    - **PowerShell:**
+    
+    ```powershell
+    .\myenvapi\Scripts\Activate
+    ```
+
+3. Install dependencies using pip:
+
+    ```bash
+    pip install -r requirements.txt
+    ```

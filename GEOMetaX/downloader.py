@@ -62,6 +62,7 @@ def fetch_chromatin_remodelers_and_synonyms(output_csv):
 
 def install_data():
     """Downloads data when the module is installed."""
+    print("GEOMetaX | Installing data...")
     data_dir = get_data_dir()
     os.makedirs(data_dir / "unparsed_factor_data", exist_ok=True)
     os.makedirs(data_dir / "unparsed_ontology_data", exist_ok=True)

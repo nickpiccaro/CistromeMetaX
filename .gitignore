@@ -1,0 +1,21 @@
+# Ignore data directories
+GEOMetaX/data/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environments
+venv/
+env/
+myenvapi/
+
+# Ignore build artifacts
+build/
+dist/
+*.egg-info/
+
+# Ignore logs
+logs/
+*.log
