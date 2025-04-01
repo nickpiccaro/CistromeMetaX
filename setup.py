@@ -7,6 +7,7 @@ class PostInstallCommand(install):
     def run(self):
         install.run(self)  # Run the standard install process
         from GEOMetaX.downloader import install_data  # Import inside to avoid issues
+        print("Running post-installation tasks...")
         install_data()  # Run the function after installation
 
 setup(
