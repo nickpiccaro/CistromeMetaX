@@ -1,5 +1,13 @@
 from setuptools import setup, find_packages
+from setuptools.command.install import install
 import os
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+    def run(self):
+        install.run(self)  # Run the standard install process
+        from GEOMetaX.downloader import install_data  # Import inside to avoid issues
+        install_data()  # Run the function after installation
 
 setup(
     name="GEOMetaX",
@@ -16,4 +24,5 @@ setup(
             "install_data=GEOMetaX.downloader:install_data",
         ]
     },
+    cmdclass={"install": PostInstallCommand},  # Custom post-install command
 )
