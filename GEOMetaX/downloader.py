@@ -11,17 +11,22 @@ def get_data_dir():
 
 
 def download_file(url, folder, filename):
-    response = requests.get(url)
-    if response.status_code == 200:
-        file_path = folder / filename
-        with open(file_path, "wb") as file:
-            file.write(response.content)
-        print(f"Downloaded and saved {filename} in {folder}")
-    else:
-        print(f"Failed to download {url} (Status code: {response.status_code})")
+    """Downloads a file from a given URL and saves it in the specified folder."""
+    file_path = folder / filename
+    try:
+        response = requests.get(url, allow_redirects=True)  # Allow redirects in case of issues
+        if response.status_code == 200:
+            with open(file_path, "wb") as file:
+                file.write(response.content)
+            print(f"Downloaded and saved {filename} in {folder}")
+        else:
+            print(f"Failed to download {url} (Status code: {response.status_code})")
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading {url}: {e}")
 
 
 def fetch_chromatin_remodelers_and_synonyms(output_csv):
+    """Fetches chromatin remodelers and their synonyms from the Harmonizome API."""
     base_url = "https://maayanlab.cloud/Harmonizome"
     chromatin_remodelers_url = f"{base_url}/api/1.0/gene_set/chromatin+remodeling/GO+Biological+Process+Annotations+2023"
     
@@ -61,7 +66,7 @@ def fetch_chromatin_remodelers_and_synonyms(output_csv):
 
 
 def install_data():
-    """Downloads data when the module is installed."""
+    """Downloads required data and organizes it into directories."""
     print("GEOMetaX | Installing data...")
     data_dir = get_data_dir()
     os.makedirs(data_dir / "unparsed_factor_data", exist_ok=True)
@@ -70,9 +75,11 @@ def install_data():
     os.makedirs(data_dir / "parsed_ontology_data", exist_ok=True)
 
     factor_urls = [
+        "https://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz",
         "https://guolab.wchscu.cn/AnimalTFDB4_static/download/TF_list_final/Homo_sapiens_TF",
     ]
-    factor_filenames = ["Homo_sapiens_TF.csv"]
+    factor_filenames = ["gene_info.gz", "Homo_sapiens_TF.csv"]
+
     ontology_urls = [
         "https://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt",
         "https://github.com/EBISPOT/efo/releases/download/current/efo.owl",
@@ -80,11 +87,14 @@ def install_data():
     ]
     ontology_filenames = ["cellosaurus.txt", "efo.owl", "uberon-full.json"]
 
+    # Download factor-related data
     for url, filename in zip(factor_urls, factor_filenames):
         download_file(url, data_dir / "unparsed_factor_data", filename)
     
+    # Fetch chromatin remodelers and their synonyms
     fetch_chromatin_remodelers_and_synonyms(data_dir / "parsed_factor_data/chromatin_remodelers.csv")
     
+    # Download ontology data
     for url, filename in zip(ontology_urls, ontology_filenames):
         download_file(url, data_dir / "unparsed_ontology_data", filename)
 
