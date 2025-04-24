@@ -26,7 +26,38 @@ GEOMetaX/
 ## Installation
 ```bash
 pip install git+https://github.com/nickpiccaro/GEOMetaX.git
-```
+
+
+
+## Running Functionality
+### 🧠 Programmatic Use (Python)
+
+You can call the `meta_extract_one_sample` function directly in any Python script:
+
+```python
+from GEOMetaX.parser_extractor import meta_extract_one_sample
+
+gsm_file_path = "path/to/GSM12345.xml"
+gse_file_paths = ["path/to/GSE1234.xml", "path/to/GSE5678.xml"]
+
+result = meta_extract_one_sample(gsm_file_path, gse_file_paths)
+
+print(result)
+
+
+
+### Command Line Use
+```bash
+geoMX-extract_one_sample_file "path/to/GSM12345.xml" "path/to/GSE1234.xml" "path/to/GSE5678.xml"
+
+
+
+
+
+
+
+
+
 
 1. Create a virtual environment using Python 3:
 
