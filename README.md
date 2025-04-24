@@ -53,3 +53,7 @@ pip install git+https://github.com/nickpiccaro/GEOMetaX.git
     ```bash
     pip install -r requirements.txt
     ```
+
+
+
+I can git commit and download all the parsed_data, I can make a condition where only if data is missing do we need to run the download and process functionality. Or if we want to update data to be most current.

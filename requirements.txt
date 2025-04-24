@@ -1,3 +1,11 @@
 requests
 setuptools
 wheel
+rdflib
+pandas
+rapidfuzz
+langchain_experimental
+langchain_openai
+langchain-community
+langchain
+sys

@@ -1,6 +1,6 @@
 # Ignore data directories
-GEOMetaX/data/
-
+GEOMetaX/data/unparsed_factor_data/
+GEOMetaX/data/unparsed_ontology_data/
 # Ignore Python cache
 __pycache__/
 *.pyc
@@ -10,6 +10,7 @@ __pycache__/
 venv/
 env/
 myenvapi/
+.env
 
 # Ignore build artifacts
 build/
