@@ -8,4 +8,3 @@ langchain_experimental
 langchain_openai
 langchain-community
 langchain
-sys

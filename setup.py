@@ -11,8 +11,7 @@ setup(
         "langchain",
         "langchain_openai",
         "langchain-community",
-        "langchain_experimental",
-        "sys"
+        "langchain_experimental"
     ],
     include_package_data=True,
     package_data={"GEOMetaX": ["data/**/*"]},
