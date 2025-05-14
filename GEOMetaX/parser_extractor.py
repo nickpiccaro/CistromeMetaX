@@ -3,6 +3,7 @@ import pandas as pd
 import re
 import xml.etree.ElementTree as ET
 import json
+import ast
 import os
 from pathlib import Path
 from rapidfuzz import fuzz
@@ -1325,7 +1326,6 @@ def gene_picker(GENE_factors, gsm_xml_string, gse_xml_strings):
         raise
 
 def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, genes_df, TF_df, chromatin_df):
-    #SCRUB HAVE DBS LOADED IN ALLREADY, READING IS WHAT TAKES TIME
     """
     Validates and identifies the binding protein (transcription factor, chromatin remodeler, histone modification, or gene) 
     based on the provided factor and GSM metadata. The function first checks for transcription factors, 
@@ -1526,6 +1526,7 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
         
     return verified_object
 
+### Factor Extraction Functionality ###
 def meta_extract_one_sample(gsm_file_path, gse_file_paths):
     # Get GSE XML files
     gse_files = []
@@ -1561,7 +1562,7 @@ def meta_extract_one_sample(gsm_file_path, gse_file_paths):
         print(f"Error extracting target protein from metadata | {e}")
 
 ### Extract Ontologies ###
-def extract_structured_ontology(gsm_string):
+def extract_structured_ontology(gsm_xml_string, gse_xml_strings):
     """
     #SCRUB Populate
     """
@@ -1573,26 +1574,9 @@ def extract_structured_ontology(gsm_string):
         disease: str = Field(description="The disease or pathological condition associated with the cell line or tissue, validated against the Experimental Factor Ontology (EFO) and Uberon Ontology. This should describe the disease context, such as 'breast cancer', 'Alzheimer's disease', or 'type 2 diabetes'.")
         
     # Construct paths to GSM and GSE directories
-    gsm_path = os.path.join('metadata', gsm_string, 'GSM')
-    gse_path = os.path.join('metadata', gsm_string, 'GSE')
-    
-    # Get GSM XML file
-    gsm_xml_file = os.path.join(gsm_path, f'{gsm_string}.xml')
-    if not os.path.exists(gsm_xml_file):
-        raise FileNotFoundError(f"GSM XML file '{gsm_xml_file}' not found.")
-    
-    # Get GSE XML files
-    gse_files = [f for f in os.listdir(gse_path) if f.endswith('.xml')]
-    gse_prompts = []
-    for gse_file in gse_files:
-        gse_xml_file = os.path.join(gse_path, gse_file)
-        if not os.path.exists(gse_xml_file):
-            raise FileNotFoundError(f"GSE XML file '{gse_xml_file}' not found.")
-        gse_prompt = simplify_gse_xml_file(gse_xml_file)
-        gse_prompts.append(gse_prompt)
-    gse_prompts = "\n\n".join(gse_prompts)
     # Simplify GSM XML file
-    xml_prompt = simplify_gsm_xml_file(gsm_xml_file)
+    xml_prompt = gsm_xml_string
+    gse_prompts = "\n\n".join(gse_xml_strings)
 
     GUIDELINES_PROMPT = (
     """
@@ -1841,23 +1825,21 @@ def extract_structured_ontology(gsm_string):
     except Exception as e:
         raise
 
-def validate_ontology(extracted_obj, cellosaurus_index, efo_index, uberon_index, remove_words=False):
+def validate_ontology(extracted_obj, cellosaurus_index, efo_index, uberon_index, remove_words=False, validated=None):
     """Validates ontology terms and returns a new object with all matching ontology metadata."""
-    validated = {}
-    
-    # Helper function to ensure values are always lists
+    if validated is None:
+        validated = {}
     def ensure_list(value):
         if isinstance(value, list):
             return value
         return [value] if isinstance(value, dict) else []
-    
-    # Validate cell_line with Cellosaurus first, then EFO, then Uberon
-    if extracted_obj.get("cell_line") != "N/A":
+
+    if extracted_obj.get("cell_line") != "N/A" and validated.get("cell_line") is None:
         cell_line_key = process_string(extracted_obj.get("cell_line"), remove=remove_words)
         if cell_line_key:
             matches = []
             if cell_line_key in cellosaurus_index:
-                matches.extend(cellosaurus_index[cell_line_key])  # Append the entire list from the index
+                matches.extend(cellosaurus_index[cell_line_key])
             if cell_line_key in efo_index:
                 for match in ensure_list(efo_index[cell_line_key]):
                     matches.append({
@@ -1875,20 +1857,17 @@ def validate_ontology(extracted_obj, cellosaurus_index, efo_index, uberon_index,
             validated["cell_line"] = matches if matches else None
         else:
             validated["cell_line"] = None
-    else:
-        validated["cell_line"] = None
-    
-    # Validate cell_type, tissue, and disease with EFO first, then Uberon
+
     for key in ["cell_type", "tissue", "disease"]:
-        if extracted_obj.get(key) == "N/A":  # Skip verification if "N/A" before normalization
-            validated[key] = None
+        if extracted_obj.get(key) == "N/A" or validated.get(key) is not None:
+            validated.setdefault(key, None)
             continue
 
         term_key = process_string(extracted_obj.get(key), remove=remove_words)
         if not term_key:
             validated[key] = None
             continue
-        
+
         matches = []
         if term_key in efo_index:
             for match in ensure_list(efo_index[term_key]):
@@ -1904,38 +1883,35 @@ def validate_ontology(extracted_obj, cellosaurus_index, efo_index, uberon_index,
                     "term": extracted_obj[key],
                     "term_identity": key
                 })
-        
+
         validated[key] = matches if matches else None
 
     return validated
 
-def validate_ontology_fuzzy(extracted_obj, cellosaurus_index, efo_index, uberon_index):
+def validate_ontology_fuzzy(extracted_obj, cellosaurus_index, efo_index, uberon_index, validated=None):
     """Validates ontology terms using fuzzy matching and returns structured ontology metadata."""
-    validated = {}
-    
+    if validated is None:
+        validated = {}
+
     def ensure_list(value):
         if isinstance(value, list):
             return value
         return [value] if isinstance(value, dict) else []
-    
+
     def fuzzy_match(term, index):
-        """Finds the best fuzzy match for a term in an index and returns structured metadata."""
         matches = []
-        max_score = 0.85  # Minimum similarity threshold
-        
+        max_score = 0.85
         for key, values in index.items():
-            score = fuzz.token_sort_ratio(term, key) / 100  # Normalize to 0-1 scale
+            score = fuzz.token_sort_ratio(term, key) / 100
             if score >= max_score:
                 if score > max_score:
-                    matches = values  # Replace with new best matches
+                    matches = values
                     max_score = score
                 elif score == max_score:
-                    matches.extend(values)  # Collect ties
-        
+                    matches.extend(values)
         return matches if matches else None
-    
-    # Validate cell_line with Cellosaurus first, then EFO, then Uberon
-    if extracted_obj.get("cell_line") != "N/A":
+
+    if extracted_obj.get("cell_line") != "N/A" and validated.get("cell_line") is None:
         cell_line_key = clean_input_fuzzy(extracted_obj.get("cell_line"))
         if cell_line_key:
             matches = []
@@ -1961,20 +1937,17 @@ def validate_ontology_fuzzy(extracted_obj, cellosaurus_index, efo_index, uberon_
             validated["cell_line"] = matches if matches else None
         else:
             validated["cell_line"] = None
-    else:
-        validated["cell_line"] = None
-    
-    # Validate cell_type, tissue, and disease with EFO first, then Uberon
+
     for key in ["cell_type", "tissue", "disease"]:
-        if extracted_obj.get(key) == "N/A":
-            validated[key] = None
+        if extracted_obj.get(key) == "N/A" or validated.get(key) is not None:
+            validated.setdefault(key, None)
             continue
-        
+
         term_key = clean_input_fuzzy(extracted_obj.get(key))
         if not term_key:
             validated[key] = None
             continue
-        
+
         matches = []
         efo_matches = fuzzy_match(term_key, efo_index)
         if efo_matches:
@@ -1992,54 +1965,63 @@ def validate_ontology_fuzzy(extracted_obj, cellosaurus_index, efo_index, uberon_
                     "term": extracted_obj[key],
                     "term_identity": key
                 })
-        
+
         validated[key] = matches if matches else None
-    
     return validated
 
-def process_ontologies(extracted_object):
-    #SCRUB FIX TO LOAD IN AND THEN TEST UBERON NEEDS TO BE FIXED
-    # also build fuzzy match search using rapidfuzz
-    # first compare with no words removed, then remove words from search but not from index, then  from removed index with words removed and without them, then do a fuzzy match on spaced out words
-    # output a file with no spaces removed rewrite code for this
-    data_dir = get_data_dir()
-    parsed_ontology_dir = data_dir / "parsed_ontology_data"
-    
-    # only load if
-    try:
-        with open(parsed_ontology_dir / "cellosaurus.json", "r", encoding='utf-8') as file:
-            cellosaurus_index = json.load(file)
-        with open(parsed_ontology_dir / "cellosaurus_fuzzy.json", "r", encoding='utf-8') as file:
-            cellosaurus_fuzzy_index = json.load(file)
-        with open(parsed_ontology_dir / "efo.json", "r", encoding='utf-8') as file:
-            efo_index = json.load(file)
-        with open(parsed_ontology_dir / "efo_fuzzy.json", "r", encoding='utf-8') as file:
-            efo_fuzzy_index = json.load(file)
-        with open(parsed_ontology_dir / "uberon.json", "r", encoding='utf-8') as file:
-            uberon_index = json.load(file)
-        with open(parsed_ontology_dir / "uberon_fuzzy.json", "r", encoding='utf-8') as file:
-            uberon_fuzzy_index = json.load(file)
+def process_ontology(
+    extracted_object,
+    cellosaurus_index, efo_index, uberon_index,
+    cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+    cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
+):
+    """
+    Process ontology with strict, reduced, and fuzzy matching in staged order:
+    1. Full index without word removal.
+    2. Full index with word removal (search only).
+    3. Reduced index without word removal.
+    4. Reduced index with word removal (search only).
+    5. Fuzzy match on remaining unmatched non-N/A fields.
+    """
+    ont_object = extracted_object.get("ontologies", {}).get("extracted_ontologies", {})
+    validated_object = {}
 
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading files: {e}")
-        return None
+    # Step 1: Try full index, no word removal
+    validated_object = validate_ontology(
+        ont_object, cellosaurus_index, efo_index, uberon_index,
+        remove_words=False, validated=validated_object
+    )
 
-    return_json = []
+    # Step 2: Try full index, with word removal (search only)
+    validated_object = validate_ontology(
+        ont_object, cellosaurus_index, efo_index, uberon_index,
+        remove_words=True, validated=validated_object
+    )
 
-    ont_object = extracted_object.get("ontologies", {}).get("extracted_ontologies", "N/A")
-    
-    validated_object = validate_ontology(ont_object, cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index, remove_words=False)
-    if validated_object is None:
-        validated_object = validate_ontology(ont_object, cellosaurus_index, efo_index, uberon_index, remove_words=True)
-    if validated_object is None:
-        validated_object = validate_ontology_fuzzy(ont_object, cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index)
+    # Step 3: Try reduced index, no word removal
+    validated_object = validate_ontology(
+        ont_object, cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+        remove_words=False, validated=validated_object
+    )
+
+    # Step 4: Try reduced index, with word removal
+    validated_object = validate_ontology(
+        ont_object, cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+        remove_words=True, validated=validated_object
+    )
+
+    # Step 5: Fuzzy match only on fields still unmatched and not N/A
+    validated_object = validate_ontology_fuzzy(
+        ont_object, cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index,
+        validated=validated_object
+    )
 
     validated_object["geo"] = extracted_object.get("geo", "N/A")
     validated_object["extracted"] = ont_object
 
     return validated_object
 
-def generate_alternate_names(ontology, ontology_fails):
+def generate_alternate_names(ontology):
     """
     Generates alternative names for a cell ontology term that did not return an exact match from the databases.
 
@@ -2047,7 +2029,6 @@ def generate_alternate_names(ontology, ontology_fails):
 
     Args:
         ontology (str): The original cell ontology term that did not match.
-        ontology_fails (list): A list of names that have already been tried and did not match.
 
     Returns:
         str: A string containing three alternative names for the input cell ontology, formatted as a list.
@@ -2059,8 +2040,6 @@ def generate_alternate_names(ontology, ontology_fails):
 
     Your job is to receive an input cell ontology that did not return an exact match from the Cellosaurus, Experimental Factor Ontology (EFO), or Uberon databases. \n
     Using your knowledge of these databases and their naming conventions, suggest alternative names for the input ontology to improve matching. \n\n
-
-    The following names were already tried and did not match. DO NOT USE THESE NAMES: {} \n\n
 
     Follow these rules to generate the alternatives: \n\n
 
@@ -2088,7 +2067,7 @@ def generate_alternate_names(ontology, ontology_fails):
     Now find alternative names for this cell ontology: {}\n
     """
     )
-    formatted_prompt = INPUT_PROMPT.format(", ".join(ontology_fails), ontology)
+    formatted_prompt = INPUT_PROMPT.format(ontology)
     setup_messages = ChatPromptTemplate.from_messages(
         [
             HumanMessage(
@@ -2102,22 +2081,141 @@ def generate_alternate_names(ontology, ontology_fails):
         chat_message = setup_messages.format_messages()
         llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
         res = llm.invoke(chat_message)
-        res_content = res.content
-        return res_content
+        actual_array = ast.literal_eval(res.content)
+        return actual_array
     except Exception as e:
         raise
 
+def verify_ontology(
+    input_ontology,
+    cellosaurus_index, efo_index, uberon_index,
+    cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+    cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
+):
+    """
+    Verifies and resolves missing ontology terms using process_ontology and generate_alternate_names.
+    """
+
+    def is_incomplete(validated):
+        return any(value is None for key, value in validated.items() if key not in ("geo", "extracted"))
+
+    # Initial attempt
+    validated = process_ontology(
+        input_ontology,
+        cellosaurus_index, efo_index, uberon_index,
+        cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+        cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
+    )
+    if not is_incomplete(validated):
+        return validated
+
+    completed_output = validated
+    extracted = validated.get("extracted", {})
+    geo = validated.get("geo")
+
+    for key in ["cell_line", "cell_type", "tissue", "disease"]:
+        extracted_value = extracted.get(key)
+        verified_value = validated.get(key)
+
+        if extracted_value and extracted_value != "N/A" and verified_value is None:
+            alt_names = generate_alternate_names(extracted_value)  # e.g. ["alt1", "alt2", "alt3"]
+            for alt_name in alt_names:
+                # Build new input with only the current ontology term being tested
+                new_input = {
+                    "ontologies": {
+                        "extracted_ontologies": {
+                            "cell_line": "N/A",
+                            "cell_type": "N/A",
+                            "tissue": "N/A",
+                            "disease": "N/A"
+                        }
+                    },
+                    "geo": geo
+                }
+                new_input["ontologies"]["extracted_ontologies"][key] = alt_name
+
+                # Try processing this isolated alternative
+                result = process_ontology(
+                            new_input,
+                            cellosaurus_index, efo_index, uberon_index,
+                            cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+                            cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
+                        )
+
+                if result.get(key):
+                    # Merge only the successful key's result
+                    completed_output[key] = result[key]
+                    break  # Stop after first match
+
+    return completed_output
 
 
+### Ontology Extraction Functionality###
+def test_verify_ontology():
+    data_dir = get_data_dir()
+    parsed_ontology_dir = data_dir / "parsed_ontology_data"
+    # Load all relevant ontology indexes
+    try:
+        with open(parsed_ontology_dir / "cellosaurus.json", "r", encoding='utf-8') as file:
+            cellosaurus = json.load(file)
+        with open(parsed_ontology_dir / "cellosaurus_reduce.json", "r", encoding='utf-8') as file:
+            cellosaurus_reduce = json.load(file)
+        with open(parsed_ontology_dir / "cellosaurus_fuzzy.json", "r", encoding='utf-8') as file:
+            cellosaurus_fuzzy = json.load(file)
+
+        with open(parsed_ontology_dir / "efo.json", "r", encoding='utf-8') as file:
+            efo = json.load(file)
+        with open(parsed_ontology_dir / "efo_reduce.json", "r", encoding='utf-8') as file:
+            efo_reduce = json.load(file)
+        with open(parsed_ontology_dir / "efo_fuzzy.json", "r", encoding='utf-8') as file:
+            efo_fuzzy = json.load(file)
+
+        with open(parsed_ontology_dir / "uberon.json", "r", encoding='utf-8') as file:
+            uberon = json.load(file)
+        with open(parsed_ontology_dir / "uberon_reduce.json", "r", encoding='utf-8') as file:
+            uberon_reduce = json.load(file)
+        with open(parsed_ontology_dir / "uberon_fuzzy.json", "r", encoding='utf-8') as file:
+            uberon_fuzzy = json.load(file)
+
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading files: {e}")
+        return None
+
+    # Sample input to test
+    test_input = {
+        "ontologies": {
+            "extracted_ontologies": {
+                "cell_line": "cd8k150k",
+                "cell_type": "ept3al",
+                "tissue": "breast",
+                "disease": "breast cancer"
+            }
+        },
+        "geo": "GSM000000"
+    }
+
+    # Run verify_ontology
+    validate_ontology = verify_ontology(
+        test_input,
+        cellosaurus, efo, uberon,
+        cellosaurus_reduce, efo_reduce, uberon_reduce,
+        cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy
+    )
+    with open("output_file.json", "w", encoding='utf-8') as f:
+        json.dump(validate_ontology, f, indent=4, ensure_ascii=False)
+    # Print the results for inspection
+    print("Verified Ontology Output:")
+    for key, val in validate_ontology.items():
+        print(f"{key}: {val}")
+
+test_verify_ontology()
 ### TODO SCRUB MAKE EVERYTHING FIT AND CREATE FUNCTIONS TO CALL THAT ACCOMPLISH WHAT WE WANT
 # XML FROM LOCAL
 # XML FROM GEO later 
 # Extract All later 
 # Extract Ontologies
-# Extract Factors
 # Change factor validation to use text to text matching like ontology validation
 # Make it so all files load in from parsed data
 # give it a test
 # focus on extraction first
 # then validation
-# also histone solution 

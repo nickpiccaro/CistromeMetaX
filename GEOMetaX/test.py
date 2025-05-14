@@ -1,5 +1,3 @@
 from rapidfuzz import fuzz
 
-print(fuzz.ratio("thisisatest", "thisisanewtest"))
-
-print(fuzz.ratio("testathisis", "thisisanewtest"))
+print(fuzz.token_sort_ratio("epithelial", "epitheial"))
