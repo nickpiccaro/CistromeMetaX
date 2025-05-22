@@ -2145,12 +2145,7 @@ def extract_verify_ontology(gsm_file_path, gsm_xml_string, gse_xml_strings,
 
 ### Ontology Extraction Functionality###
 def meta_extract_ontology(gsm_file_path, gse_file_paths):
-    # Sample GSM file path
-    gsm_file_path = "GSM5048518/GSM/GSM5048518.xml"
-    gse_file_paths = [
-        "GSM5048518/GSE/GSE165709.xml",
-        "GSM5048518/GSE/GSE165709.xml"
-    ]
+
     # Get GSE XML files
     gse_files = []
     for gse_file in gse_file_paths:
