@@ -404,87 +404,87 @@ def process_data():
         error_occured = True
         print(f"Error processing Cellosaurus: {e}")
 
-    # # Process EFO OWL
-    # try:
-    #     efo_input = unparsed_ontology_dir / "efo.owl"
-    #     efo_output = parsed_ontology_dir / "efo.json"
-    #     efo_output_reduce = parsed_ontology_dir / "efo_reduce.json"
-    #     efo_output_fuzzy = parsed_ontology_dir / "efo_fuzzy.json"
-    #     if efo_input.exists():
-    #         process_efo_owl(efo_input, efo_output, efo_output_reduce, efo_output_fuzzy)
-    # except Exception as e:
-    #     error_occured = True
-    #     print(f"Error processing EFO OWL: {e}")
+    # Process EFO OWL
+    try:
+        efo_input = unparsed_ontology_dir / "efo.owl"
+        efo_output = parsed_ontology_dir / "efo.json"
+        efo_output_reduce = parsed_ontology_dir / "efo_reduce.json"
+        efo_output_fuzzy = parsed_ontology_dir / "efo_fuzzy.json"
+        if efo_input.exists():
+            process_efo_owl(efo_input, efo_output, efo_output_reduce, efo_output_fuzzy)
+    except Exception as e:
+        error_occured = True
+        print(f"Error processing EFO OWL: {e}")
 
-    # # Process Uberon
-    # try:
-    #     uberon_input = unparsed_ontology_dir / "uberon-full.json"
-    #     uberon_output = parsed_ontology_dir / "uberon.json"
-    #     uberon_output_reduce = parsed_ontology_dir / "uberon_reduce.json"
-    #     uberon_output_fuzzy = parsed_ontology_dir / "uberon_fuzzy.json"
-    #     if uberon_input.exists():
-    #         process_uberon_file(uberon_input, uberon_output, uberon_output_reduce, uberon_output_fuzzy)
-    # except Exception as e:
-    #     error_occured = True
-    #     print(f"Error processing Uberon: {e}")
+    # Process Uberon
+    try:
+        uberon_input = unparsed_ontology_dir / "uberon-full.json"
+        uberon_output = parsed_ontology_dir / "uberon.json"
+        uberon_output_reduce = parsed_ontology_dir / "uberon_reduce.json"
+        uberon_output_fuzzy = parsed_ontology_dir / "uberon_fuzzy.json"
+        if uberon_input.exists():
+            process_uberon_file(uberon_input, uberon_output, uberon_output_reduce, uberon_output_fuzzy)
+    except Exception as e:
+        error_occured = True
+        print(f"Error processing Uberon: {e}")
 
-    # # Convert gene_info.gz to CSV
-    # try:
-    #     # Paths
-    #     gene_gz = unparsed_factor_dir / "gene_info.gz"
-    #     gene_csv = parsed_factor_dir / "gene_info.csv"
-    #     gene_ids_path = Path("GEOMetaX") / "gene_ids.npy"
+    # Convert gene_info.gz to CSV
+    try:
+        # Paths
+        gene_gz = unparsed_factor_dir / "gene_info.gz"
+        gene_csv = parsed_factor_dir / "gene_info.csv"
+        gene_ids_path = Path("GEOMetaX") / "gene_ids.npy"
 
-    #     if gene_gz.exists() and gene_ids_path.exists():
-    #         # Load valid GeneIDs into a set for fast lookup
-    #         valid_gene_ids = set(map(str, np.load(gene_ids_path)))  # Cast to str in case of type mismatch
+        if gene_gz.exists() and gene_ids_path.exists():
+            # Load valid GeneIDs into a set for fast lookup
+            valid_gene_ids = set(map(str, np.load(gene_ids_path)))  # Cast to str in case of type mismatch
 
-    #         with gzip.open(gene_gz, 'rt') as infile, open(gene_csv, 'w', newline='') as outfile:
-    #             reader = csv.DictReader(infile, delimiter='\t')
-    #             writer = csv.DictWriter(outfile, fieldnames=reader.fieldnames)
-    #             writer.writeheader()
+            with gzip.open(gene_gz, 'rt') as infile, open(gene_csv, 'w', newline='') as outfile:
+                reader = csv.DictReader(infile, delimiter='\t')
+                writer = csv.DictWriter(outfile, fieldnames=reader.fieldnames)
+                writer.writeheader()
 
-    #             match_count = 0
-    #             for row in reader:
-    #                 if row['GeneID'] in valid_gene_ids:
-    #                     writer.writerow(row)
-    #                     match_count += 1
+                match_count = 0
+                for row in reader:
+                    if row['GeneID'] in valid_gene_ids:
+                        writer.writerow(row)
+                        match_count += 1
 
-    #         print(f"Saved filtered gene_info.csv with {match_count} rows to {gene_csv}")
-    #     else:
-    #         print("Missing gene_info.gz or gene_ids.npy")
+            print(f"Saved filtered gene_info.csv with {match_count} rows to {gene_csv}")
+        else:
+            print("Missing gene_info.gz or gene_ids.npy")
 
-    # except Exception as e:
-    #     error_occured = True
-    #     print(f"Error filtering and converting gene_info.gz to CSV: {e}")
+    except Exception as e:
+        error_occured = True
+        print(f"Error filtering and converting gene_info.gz to CSV: {e}")
 
-    # try:
-    #     TF_input = unparsed_factor_dir / "Homo_sapiens_TF.csv"
-    #     TF_output = parsed_factor_dir
-    #     if TF_input.exists():
-    #         move_file(TF_input, TF_output)
-    # except Exception as e:
-    #     error_occured = True
-    #     print(f"Error processing Homo_sapiens_TF: {e}")
+    try:
+        TF_input = unparsed_factor_dir / "Homo_sapiens_TF.csv"
+        TF_output = parsed_factor_dir
+        if TF_input.exists():
+            move_file(TF_input, TF_output)
+    except Exception as e:
+        error_occured = True
+        print(f"Error processing Homo_sapiens_TF: {e}")
 
-    # try:
-    #     CR_input = unparsed_factor_dir / "Homo_sapiens_CR.csv"
-    #     CR_output = parsed_factor_dir
-    #     if CR_input.exists():
-    #         move_file(CR_input, CR_output)
-    # except Exception as e:
-    #     error_occured = True
-    #     print(f"Error processing Homo_sapiens_CR: {e}")
+    try:
+        CR_input = unparsed_factor_dir / "Homo_sapiens_CR.csv"
+        CR_output = parsed_factor_dir
+        if CR_input.exists():
+            move_file(CR_input, CR_output)
+    except Exception as e:
+        error_occured = True
+        print(f"Error processing Homo_sapiens_CR: {e}")
 
-    # if not error_occured:
-    #     try:
-    #         delete_folder(unparsed_factor_dir)
-    #     except Exception as e:
-    #         print(f"Error deleting Unparsed Factor Directory: {e}")
-    #     try:
-    #         delete_folder(unparsed_ontology_dir)
-    #     except Exception as e:
-    #         print(f"Error deleting Unparsed Ontology Directory: {e}")
+    if not error_occured:
+        try:
+            delete_folder(unparsed_factor_dir)
+        except Exception as e:
+            print(f"Error deleting Unparsed Factor Directory: {e}")
+        try:
+            delete_folder(unparsed_ontology_dir)
+        except Exception as e:
+            print(f"Error deleting Unparsed Ontology Directory: {e}")
     print("GEOMetaX | Data processing complete.")
 
 

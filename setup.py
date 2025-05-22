@@ -9,6 +9,7 @@ setup(
         "rdflib",
         "pandas",
         "rapidfuzz",
+        "pydantic",
         "langchain",
         "langchain_openai",
         "langchain-community",
@@ -18,7 +19,8 @@ setup(
     package_data={"GEOMetaX": ["data/**/*"]},
     entry_points={
         "console_scripts": [
-            "geoMX-extract_one_sample_file=GEOMetaX.cli:main",
+            "geoMX-factor_extract_one=GEOMetaX.cli:one_factor",
+            "geoMX-ontology_extract_one=GEOMetaX.cli:one_ontology",
         ],
     },
 )

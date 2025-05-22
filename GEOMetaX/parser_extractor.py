@@ -1527,7 +1527,7 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
     return verified_object
 
 ### Factor Extraction Functionality ###
-def meta_extract_one_sample(gsm_file_path, gse_file_paths):
+def meta_extract_factor(gsm_file_path, gse_file_paths):
     # Get GSE XML files
     gse_files = []
     for gse_file in gse_file_paths:
@@ -1548,7 +1548,6 @@ def meta_extract_one_sample(gsm_file_path, gse_file_paths):
         genes_df = pd.read_csv(parsed_factor_dir / "gene_info.csv", encoding='utf-8')
         TF_df = pd.read_csv(parsed_factor_dir / "Homo_sapiens_TF.csv", sep="\t", encoding='utf-8')
         chromatin_df = pd.read_csv(parsed_factor_dir / "Homo_sapiens_CR.csv", encoding='utf-8')
-
     except FileNotFoundError as e:
         print(f"File not found: {e}")
         return None
@@ -1834,31 +1833,7 @@ def validate_ontology(extracted_obj, cellosaurus_index, efo_index, uberon_index,
             return value
         return [value] if isinstance(value, dict) else []
 
-    if extracted_obj.get("cell_line") != "N/A" and validated.get("cell_line") is None:
-        cell_line_key = process_string(extracted_obj.get("cell_line"), remove=remove_words)
-        if cell_line_key:
-            matches = []
-            if cell_line_key in cellosaurus_index:
-                matches.extend(cellosaurus_index[cell_line_key])
-            if cell_line_key in efo_index:
-                for match in ensure_list(efo_index[cell_line_key]):
-                    matches.append({
-                        **match,
-                        "term": extracted_obj["cell_line"],
-                        "term_identity": "cell_line"
-                    })
-            if cell_line_key in uberon_index:
-                for match in ensure_list(uberon_index[cell_line_key]):
-                    matches.append({
-                        **match,
-                        "term": extracted_obj["cell_line"],
-                        "term_identity": "cell_line"
-                    })
-            validated["cell_line"] = matches if matches else None
-        else:
-            validated["cell_line"] = None
-
-    for key in ["cell_type", "tissue", "disease"]:
+    for key in ["cell_line", "cell_type", "tissue", "disease"]:
         if extracted_obj.get(key) == "N/A" or validated.get(key) is not None:
             validated.setdefault(key, None)
             continue
@@ -1911,34 +1886,7 @@ def validate_ontology_fuzzy(extracted_obj, cellosaurus_index, efo_index, uberon_
                     matches.extend(values)
         return matches if matches else None
 
-    if extracted_obj.get("cell_line") != "N/A" and validated.get("cell_line") is None:
-        cell_line_key = clean_input_fuzzy(extracted_obj.get("cell_line"))
-        if cell_line_key:
-            matches = []
-            cellosaurus_matches = fuzzy_match(cell_line_key, cellosaurus_index)
-            if cellosaurus_matches:
-                matches.extend(cellosaurus_matches)
-            efo_matches = fuzzy_match(cell_line_key, efo_index)
-            if efo_matches:
-                for match in ensure_list(efo_matches):
-                    matches.append({
-                        **match,
-                        "term": extracted_obj["cell_line"],
-                        "term_identity": "cell_line"
-                    })
-            uberon_matches = fuzzy_match(cell_line_key, uberon_index)
-            if uberon_matches:
-                for match in ensure_list(uberon_matches):
-                    matches.append({
-                        **match,
-                        "term": extracted_obj["cell_line"],
-                        "term_identity": "cell_line"
-                    })
-            validated["cell_line"] = matches if matches else None
-        else:
-            validated["cell_line"] = None
-
-    for key in ["cell_type", "tissue", "disease"]:
+    for key in ["cell_line", "cell_type", "tissue", "disease"]:
         if extracted_obj.get(key) == "N/A" or validated.get(key) is not None:
             validated.setdefault(key, None)
             continue
@@ -2149,12 +2097,74 @@ def verify_ontology(
 
     return completed_output
 
+def extract_verify_ontology(gsm_file_path, gsm_xml_string, gse_xml_strings,
+                            cellosaurus_index, efo_index, uberon_index,
+                            cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+                            cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index):
+    """
+    Extracts and verifies ontology terms from GSM and GSE XML strings.
+    """
+    try:
+        structured_object = extract_structured_ontology(gsm_xml_string, gse_xml_strings)
+        print(f"Extracted Ontology: {extracted_object}")
+    except Exception as e:
+        print(f"An error occurred Extracting Ontology: {e}")    
+
+    extracted_object = {
+        "cell_line": structured_object.cell_line,
+        "cell_type": structured_object.cell_type,
+        "tissue": structured_object.tissue,
+        "disease": structured_object.disease
+    }
+
+    match = re.search(r'([^/\\]+)\.xml$', gsm_file_path)
+
+    if match:
+        geo = match.group(1)
+    else:
+        geo = "N/A"
+
+    ret_object = {
+        "ontologies": {
+            "extracted_ontologies": extracted_object
+        },
+        "geo": geo
+    }
+    
+    try:
+        validated_object = verify_ontology( 
+            ret_object,
+            cellosaurus_index, efo_index, uberon_index,
+            cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+            cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
+        )
+    except Exception as e:
+        print(f"An error occured verifying the ontologies: {e}")
+   
+    return validated_object
 
 ### Ontology Extraction Functionality###
-def test_verify_ontology():
+def meta_extract_ontology(gsm_file_path, gse_file_paths):
+    # Sample GSM file path
+    gsm_file_path = "GSM5048518/GSM/GSM5048518.xml"
+    gse_file_paths = [
+        "GSM5048518/GSE/GSE165709.xml",
+        "GSM5048518/GSE/GSE165709.xml"
+    ]
+    # Get GSE XML files
+    gse_files = []
+    for gse_file in gse_file_paths:
+        if not os.path.exists(gse_file):
+            raise FileNotFoundError(f"GSE XML file '{gse_file}' not found.")
+        gse_prompt = simplify_gse_xml_file(gse_file)
+        gse_files.append(gse_prompt)
+    gse_files = "\n\n".join(gse_files)
+    
+    # Simplify GSM XML file
+    gsm_file = simplify_gsm_xml_file(gsm_file_path)
+
     data_dir = get_data_dir()
     parsed_ontology_dir = data_dir / "parsed_ontology_data"
-    # Load all relevant ontology indexes
     try:
         with open(parsed_ontology_dir / "cellosaurus.json", "r", encoding='utf-8') as file:
             cellosaurus = json.load(file)
@@ -2181,41 +2191,11 @@ def test_verify_ontology():
         print(f"Error loading files: {e}")
         return None
 
-    # Sample input to test
-    test_input = {
-        "ontologies": {
-            "extracted_ontologies": {
-                "cell_line": "cd8k150k",
-                "cell_type": "ept3al",
-                "tissue": "breast",
-                "disease": "breast cancer"
-            }
-        },
-        "geo": "GSM000000"
-    }
+    try: 
+        return extract_verify_ontology(gsm_file_path, gsm_file, gse_files,
+                            cellosaurus, efo, uberon,
+                            cellosaurus_reduce, efo_reduce, uberon_reduce,
+                            cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy)
+    except Exception as e:
+        print(f"An error occured verifying the ontologies: {e}")
 
-    # Run verify_ontology
-    validate_ontology = verify_ontology(
-        test_input,
-        cellosaurus, efo, uberon,
-        cellosaurus_reduce, efo_reduce, uberon_reduce,
-        cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy
-    )
-    with open("output_file.json", "w", encoding='utf-8') as f:
-        json.dump(validate_ontology, f, indent=4, ensure_ascii=False)
-    # Print the results for inspection
-    print("Verified Ontology Output:")
-    for key, val in validate_ontology.items():
-        print(f"{key}: {val}")
-
-test_verify_ontology()
-### TODO SCRUB MAKE EVERYTHING FIT AND CREATE FUNCTIONS TO CALL THAT ACCOMPLISH WHAT WE WANT
-# XML FROM LOCAL
-# XML FROM GEO later 
-# Extract All later 
-# Extract Ontologies
-# Change factor validation to use text to text matching like ontology validation
-# Make it so all files load in from parsed data
-# give it a test
-# focus on extraction first
-# then validation
