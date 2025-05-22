@@ -1533,12 +1533,20 @@ def meta_extract_factor(gsm_file_path, gse_file_paths):
     for gse_file in gse_file_paths:
         if not os.path.exists(gse_file):
             raise FileNotFoundError(f"GSE XML file '{gse_file}' not found.")
-        gse_prompt = simplify_gse_xml_file(gse_file)
+        try:
+            gse_prompt = simplify_gse_xml_file(gse_file)
+        except Exception as e:
+            print(f"Error simplifying GSE XML file '{gse_file}': {e}")
+            continue
         gse_files.append(gse_prompt)
     gse_files = "\n\n".join(gse_files)
     
     # Simplify GSM XML file
-    gsm_file = simplify_gsm_xml_file(gsm_file_path)
+    try:
+        gsm_file = simplify_gsm_xml_file(gsm_file_path)
+    except Exception as e:
+        print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
+        return None
 
     # Load Validation Data
     data_dir = get_data_dir()
@@ -2145,18 +2153,25 @@ def extract_verify_ontology(gsm_file_path, gsm_xml_string, gse_xml_strings,
 
 ### Ontology Extraction Functionality###
 def meta_extract_ontology(gsm_file_path, gse_file_paths):
-
-    # Get GSE XML files
+# Get GSE XML files
     gse_files = []
     for gse_file in gse_file_paths:
         if not os.path.exists(gse_file):
             raise FileNotFoundError(f"GSE XML file '{gse_file}' not found.")
-        gse_prompt = simplify_gse_xml_file(gse_file)
+        try:
+            gse_prompt = simplify_gse_xml_file(gse_file)
+        except Exception as e:
+            print(f"Error simplifying GSE XML file '{gse_file}': {e}")
+            continue
         gse_files.append(gse_prompt)
     gse_files = "\n\n".join(gse_files)
     
     # Simplify GSM XML file
-    gsm_file = simplify_gsm_xml_file(gsm_file_path)
+    try:
+        gsm_file = simplify_gsm_xml_file(gsm_file_path)
+    except Exception as e:
+        print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
+        return None
 
     data_dir = get_data_dir()
     parsed_ontology_dir = data_dir / "parsed_ontology_data"
