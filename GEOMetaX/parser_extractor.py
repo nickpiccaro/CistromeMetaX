@@ -65,48 +65,6 @@ def remove_words(text):
         text = text.replace(word, "")
     return text.strip()
 
-def collapse_similar_labels(results):
-    """
-    Groups similar labels from the input list of dictionaries by consolidating 
-    their attributes into sets to ensure uniqueness, and converts the sets to lists.
-
-    Args:
-        results (list): A list of dictionaries, each containing label information 
-                        and associated attributes (e.g., database, identity).
-
-    Returns:
-        list: A list of consolidated label dictionaries with unique attributes.
-    """
-    collapsed = {}
-
-    for item in results:
-        label = item["label"]
-
-        if label not in collapsed:
-            collapsed[label] = {
-                "label": label,
-                "match_found": True,
-                "similarity_score": 1.0,
-                "database": set(),
-                "identity": set(),
-                "matched": set(),
-                "ontology_id": set()
-            }
-
-        collapsed[label]["database"].add(item["database"])
-        collapsed[label]["identity"].add(item["identity"])
-        collapsed[label]["matched"].add(item["matched"])
-        collapsed[label]["ontology_id"].add(item["ontology_id"])
-
-    # Convert sets to lists for final output
-    for label, data in collapsed.items():
-        data["database"] = list(data["database"])
-        data["identity"] = list(data["identity"])
-        data["matched"] = list(data["matched"])
-        data["ontology_id"] = list(data["ontology_id"])
-
-    return list(collapsed.values())
-
 def process_string(s, remove=False):
         if not s:  # Handles None and empty string cases
             return None
@@ -163,43 +121,42 @@ def remove_invalid_characters_from_file(file_path):
         print("Invalid XML structure after removing invalid characters.")
         return None
 
-def collapse_ontology_terms(term_list):
-        grouped = {}
+def collapse_ontology_terms(entries):
+    grouped = {}
 
-        for item in term_list:
-            key = item["official_term"]
-            if key not in grouped:
-                grouped[key] = {
-                    "official_term": key,
-                    "ontology_accession": set(),
-                    "ontology_type": set(),
-                    "term": set(),
-                    "term_identity": set()
-                }
+    # Group entries by official_term
+    for entry in entries:
+        key = entry['official_term']
+        if key not in grouped:
+            grouped[key] = []
+        grouped[key].append(entry)
 
-            grouped[key]["ontology_accession"].add(item["ontology_accession"])
-            grouped[key]["ontology_type"].add(item["ontology_type"])
-            grouped[key]["term"].add(item["term"])
-            grouped[key]["term_identity"].add(item["term_identity"])
+    collapsed_entries = []
 
-        collapsed = []
-        for data in grouped.values():
-            entry = {
-                "official_term": data["official_term"],
-                "ontology_accession": list(data["ontology_accession"]),
-                "ontology_type": list(data["ontology_type"]),
-                "term": list(data["term"]),
-                "term_identity": list(data["term_identity"]),
-            }
+    for official_term, group in grouped.items():
+        collapsed_entry = {'official_term': official_term}
 
-            # Simplify singleton lists
-            for k in ["ontology_accession", "ontology_type", "term", "term_identity"]:
-                if len(entry[k]) == 1:
-                    entry[k] = entry[k][0]
+        # Collect all possible keys other than official_term
+        keys = set()
+        for item in group:
+            keys.update(item.keys())
+        keys.discard('official_term')
 
-            collapsed.append(entry)
+        for key in keys:
+            values = []
+            for item in group:
+                if key in item and item[key] is not None:
+                    values.append(item[key])
+            unique_values = list(set(values))
 
-        return collapsed
+            if len(unique_values) == 1:
+                collapsed_entry[key] = unique_values[0]
+            else:
+                collapsed_entry[key] = unique_values
+
+        collapsed_entries.append(collapsed_entry)
+
+    return collapsed_entries
 
 def simplify_gsm_xml_file(xml_file):
     """
