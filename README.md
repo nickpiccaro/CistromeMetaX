@@ -3,6 +3,14 @@
 A Python package and command-line tool that leverages large language models (LLMs) to parse, extract, and verify metadata from GEO MetaData XML files (from the NCBI Gene Expression Omnibus). It extracts crucial experimental factor and ontology information in formats useful for downstream tools such as the [Cistrome Data Browser](https://db3.cistrome.org/browser/). GEOMetaX aims to reduce the need for time-consuming and expensive manual metadata curation.
 
 ---
+# NAME IDEAS
+- CistromeGEOX
+- CistromeParser
+- GEOMetaX
+- CistromeGEOlator
+- GEOParseAI
+- GEO2Cistrome
+
 
 ## Table of Contents
 
