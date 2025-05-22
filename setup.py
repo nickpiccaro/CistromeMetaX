@@ -21,6 +21,8 @@ setup(
         "console_scripts": [
             "geoMX-factor_extract_one=GEOMetaX.cli:one_factor",
             "geoMX-ontology_extract_one=GEOMetaX.cli:one_ontology",
+            "geoMX-factor_extract_multiple=GEOMetaX.cli:many_factor",
+            "geoMX-ontology_extract_multiple=GEOMetaX.cli:many_ontology",
         ],
     },
 )
