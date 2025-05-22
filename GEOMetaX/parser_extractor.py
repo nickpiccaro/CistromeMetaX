@@ -2177,8 +2177,12 @@ def verify_ontology(
                     break  # Stop after first match
     
     for key in ["cell_line", "cell_type", "tissue", "disease"]:
-        if isinstance(completed_output.get(key), list):
-            completed_output[key] = collapse_ontology_terms(completed_output[key])                
+        value = completed_output.get(key)
+        if isinstance(value, list):
+            completed_output[key] = collapse_ontology_terms(value)
+        elif isinstance(value, dict):
+            # Normalize single dict to a list and collapse anyway
+            completed_output[key] = collapse_ontology_terms([value])               
     
     return completed_output
 
