@@ -1,6 +1,3 @@
----
-
-```markdown
 # GEOMetaX
 
 A Python package and command-line tool that leverages large language models (LLMs) to parse, extract, and verify metadata from GEO MetaData XML files (from the NCBI Gene Expression Omnibus). It extracts crucial experimental factor and ontology information in formats useful for downstream tools such as the [Cistrome Data Browser](https://db3.cistrome.org/browser/). GEOMetaX aims to reduce the need for time-consuming and expensive manual metadata curation.
@@ -40,7 +37,7 @@ This package utilizes the OpenAI GPT models under the hood. It performs semantic
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.6+
 - OpenAI API Key
 - Virtual environment (recommended)
 
@@ -119,25 +116,33 @@ geoMX-extract_all JSON_FILE
 - `geoMX-extract_all JSON_FILE`  
   Extracts both factors and ontology terms from multiple files via JSON.
 
+#### Example Usage
+```bash
+geoMX-factor_extract_one "path/to/GSM353611.xml" "path/to/GSE14097.xml" "path/to/GSE14092.xml"
+```
+
+```bash
+geoMX-ontology_extract_multiple "path/to/many_GSMs.json"
+```
 ##### JSON Input Format for CLI (for `*_multiple` or `extract_all` commands)
 
 ```json
 [
     {
-        "gsm_file_path": "metadata/GSM353611/GSM/GSM353611.xml",
+        "gsm_file_path": "path/to/GSM353611.xml",
         "gse_file_paths": [
-            "metadata/GSM353611/GSE/GSE14097.xml",
-            "metadata/GSM353611/GSE/GSE14092.xml"
+            "path/to/GSE14097.xml",
+            "path/to/GSE14092.xml"
         ]
     },
     {
-        "gsm_file_path": "metadata/GSM353617/GSM/GSM353617.xml",
+        "gsm_file_path": "path/to/GSM353617.xml",
         "gse_file_paths": []
     },
     {
-        "gsm_file_path": "metadata/GSM448027/GSM/GSM448027.xml",
+        "gsm_file_path": "path/to/GSM448027.xml",
         "gse_file_paths": [
-            "metadata/GSM448027/GSE/GSE17937.xml"
+            "path/to/GSE17937.xml"
         ]
     }
 ]
@@ -184,18 +189,16 @@ print(result)
 
 ### Added
 
-- Initial CLI and Python interface for ontology/factor extraction
-- Support for batch JSON-based parsing
+- (5/22/25) Initial CLI and Python interface for ontology/factor extraction
+- (5/22/25) Support for batch JSON-based parsing
 
 ---
 
 ## Future Goals
 
-- Add unit tests and validation suite
-- Support multi-threaded batch processing
 - Expand LLM support to other providers (e.g., Claude, Mistral)
-- Add error logging and debug mode
-- Provide standard export formats (e.g., CSV, TSV)
+- Support async batch processing
+- General validation/debugging
 
 ---
 
@@ -204,12 +207,17 @@ print(result)
 - [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)
 - [Cistrome Data Browser](https://db3.cistrome.org/browser/)
 - [OpenAI GPT Models](https://platform.openai.com/docs)
-
+- [NCBI Gene](https://www.ncbi.nlm.nih.gov/gene/) Gene/Target Protein Validation
+- [Harmonize 3.0](https://maayanlab.cloud/Harmonizome) Chromatin Remodelers Validation Data
+- [AnimalTFDB v4.0](https://guolab.wchscu.cn/AnimalTFDB4//#/) Animal Transcription Factor Database
+- [Cellosaurus](https://www.cellosaurus.org/) Cell line Database
+- [EFO](https://github.com/EBISPOT/efo/?tab=readme-ov-file) Ontology Database
+- [Uberon](https://obophenotype.github.io/uberon/) Ontology Database
 ---
 
 ## Support
 
-For issues, please open a ticket on [GitHub Issues](https://github.com/nickpiccaro/GEOMetaX/issues) or reach out via email at nickpiccaro [at] gmail [dot] com.
+For issues, please reach out via email at nickpiccaro [at] gmail [dot] com.
 
 ---
 ```
