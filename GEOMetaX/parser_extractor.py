@@ -163,6 +163,44 @@ def remove_invalid_characters_from_file(file_path):
         print("Invalid XML structure after removing invalid characters.")
         return None
 
+def collapse_ontology_terms(term_list):
+        grouped = {}
+
+        for item in term_list:
+            key = item["official_term"]
+            if key not in grouped:
+                grouped[key] = {
+                    "official_term": key,
+                    "ontology_accession": set(),
+                    "ontology_type": set(),
+                    "term": set(),
+                    "term_identity": set()
+                }
+
+            grouped[key]["ontology_accession"].add(item["ontology_accession"])
+            grouped[key]["ontology_type"].add(item["ontology_type"])
+            grouped[key]["term"].add(item["term"])
+            grouped[key]["term_identity"].add(item["term_identity"])
+
+        collapsed = []
+        for data in grouped.values():
+            entry = {
+                "official_term": data["official_term"],
+                "ontology_accession": list(data["ontology_accession"]),
+                "ontology_type": list(data["ontology_type"]),
+                "term": list(data["term"]),
+                "term_identity": list(data["term_identity"]),
+            }
+
+            # Simplify singleton lists
+            for k in ["ontology_accession", "ontology_type", "term", "term_identity"]:
+                if len(entry[k]) == 1:
+                    entry[k] = entry[k][0]
+
+            collapsed.append(entry)
+
+        return collapsed
+
 def simplify_gsm_xml_file(xml_file):
     """
     Simplifies and extracts relevant data from a GSM XML file by excluding 
@@ -2051,7 +2089,7 @@ def verify_ontology(
 
     def is_incomplete(validated):
         return any(value is None for key, value in validated.items() if key not in ("geo", "extracted"))
-
+    
     # Initial attempt
     validated = process_ontology(
         input_ontology,
@@ -2099,7 +2137,11 @@ def verify_ontology(
                     # Merge only the successful key's result
                     completed_output[key] = result[key]
                     break  # Stop after first match
-
+    
+    for key in ["cell_line", "cell_type", "tissue", "disease"]:
+        if isinstance(completed_output.get(key), list):
+            completed_output[key] = collapse_ontology_terms(completed_output[key])                
+    
     return completed_output
 
 def extract_verify_ontology(gsm_file_path, gsm_xml_string, gse_xml_strings,
