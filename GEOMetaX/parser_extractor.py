@@ -262,6 +262,8 @@ def simplify_gse_xml_file(xml_file):
 
     # Find the Series element
     series = root.find("ns:Series", ns)
+    if series is None:
+        return "Error: <Series> element not found in XML."
 
     # Elements to exclude
     exclude_elements = {"Status", "Contributor-Ref", "Sample-Ref", "Relation", "Supplementary-Data"}
@@ -272,7 +274,7 @@ def simplify_gse_xml_file(xml_file):
     # Iterate over the Series children
     for child in series:
         tag = child.tag.split("}")[-1]  # Remove namespace prefix
-        
+
         # Skip excluded tags
         if tag in exclude_elements:
             continue
@@ -285,13 +287,8 @@ def simplify_gse_xml_file(xml_file):
             extracted_data[tag] = value
 
     # Build the final output
-    output_lines = []
-    for key, value in extracted_data.items():
-        output_lines.append(value)
-    
-    # Join lines with newline character
-    output = "\n".join(output_lines)
-    return output
+    output_lines = [value for key, value in extracted_data.items()]
+    return "\n".join(output_lines)
 
 ### Factor Extraction ###
 def is_control(gsm_xml_string):
@@ -2114,16 +2111,16 @@ def extract_verify_ontology(gsm_file_path, gsm_xml_string, gse_xml_strings,
     """
     try:
         structured_object = extract_structured_ontology(gsm_xml_string, gse_xml_strings)
-        print(f"Extracted Ontology: {extracted_object}")
-    except Exception as e:
-        print(f"An error occurred Extracting Ontology: {e}")    
-
-    extracted_object = {
+        extracted_object = {
         "cell_line": structured_object.cell_line,
         "cell_type": structured_object.cell_type,
         "tissue": structured_object.tissue,
         "disease": structured_object.disease
     }
+    except Exception as e:
+        print(f"An error occurred Extracting Ontology: {e}")    
+        return None
+    
 
     match = re.search(r'([^/\\]+)\.xml$', gsm_file_path)
 
