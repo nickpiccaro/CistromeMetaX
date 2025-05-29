@@ -1652,7 +1652,7 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_pat
         try:
             gsm_file = simplify_gsm_xml_file(gsm_file_path)
         except Exception as e:
-            print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
+            print(f"{gsm_id} | Error simplifying GSM XML file '{gsm_file_path}': {e}")
             continue
 
         # Extract factor
@@ -2332,7 +2332,7 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
                 try:
                     gse_prompts.append(simplify_gse_xml_file(gse_file_path))
                 except Exception as e:
-                    print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
+                    print(f"{gsm_id} | Error simplifying GSE XML file '{gse_file_path}': {e}")
                     continue
 
             gse_text = "\n\n".join(gse_prompts)
@@ -2343,7 +2343,7 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
         try:
             gsm_text = simplify_gsm_xml_file(gsm_file_path)
         except Exception as e:
-            print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
+            print(f"{gsm_id} | Error simplifying GSM XML file '{gsm_file_path}': {e}")
             continue
 
         # Extract ontology
@@ -2446,7 +2446,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
         try:
             gsm_text = simplify_gsm_xml_file(gsm_file_path)
         except Exception as e:
-            print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
+            print(f"{gsm_id} | Error simplifying GSM XML file '{gsm_file_path}': {e}")
             continue
         
         # Get associated GSE IDs and their file paths
@@ -2463,7 +2463,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
                 try:
                     gse_prompts.append(simplify_gse_xml_file(gse_file_path))
                 except Exception as e:
-                    print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
+                    print(f"{gsm_id} | Error simplifying GSE XML file '{gse_file_path}': {e}")
                     continue
 
             gse_text = "\n\n".join(gse_prompts)

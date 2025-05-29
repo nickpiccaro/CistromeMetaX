@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<MINiML
+   xmlns="http://www.ncbi.nlm.nih.gov/geo/info/MINiML"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.ncbi.nlm.nih.gov/geo/info/MINiML http://www.ncbi.nlm.nih.gov/geo/info/MINiML.xsd"
+   version="0.5.0" >
+
+  <Contributor iid="contrib1">
+    <Person><First>Tarjei</First><Middle>S</Middle><Last>Mikkelsen</Last></Person>
+    <Organization>Broad Institute</Organization>
+    <Address>
+      <Line>7 Cambridge Center</Line>
+      <City>Cambridge</City>
+      <State>MA</State>
+      <Zip-Code>02142</Zip-Code>
+      <Country>USA</Country>
+    </Address>
+  </Contributor>
+
+  <Database iid="GEO">
+    <Name>Gene Expression Omnibus (GEO)</Name>
+    <Public-ID>GEO</Public-ID>
+    <Organization>NCBI NLM NIH</Organization>
+    <Web-Link>http://www.ncbi.nlm.nih.gov/geo</Web-Link>
+    <Email>geo@ncbi.nlm.nih.gov</Email>
+  </Database>
+
+  <Platform iid="GPL9052">
+    <Accession database="GEO">GPL9052</Accession>
+  </Platform>
+
+  <Sample iid="GSM534473">
+    <Status database="GEO">
+      <Submission-Date>2010-04-19</Submission-Date>
+      <Release-Date>2010-09-30</Release-Date>
+      <Last-Update-Date>2019-05-15</Last-Update-Date>
+    </Status>
+    <Title>hASC_t2_H3K4me2</Title>
+    <Accession database="GEO">GSM534473</Accession>
+    <Type>SRA</Type>
+    <Channel-Count>1</Channel-Count>
+    <Channel position="1">
+      <Source>hASC, ChIP</Source>
+      <Organism taxid="9606">Homo sapiens</Organism>
+      <Characteristics tag="cell type">
+Adipose stromal cell (ASC) pre-adipocyte
+      </Characteristics>
+      <Characteristics tag="time (relative to induction)">
+day 0
+      </Characteristics>
+      <Characteristics tag="chip epitope">
+H3K4me2
+      </Characteristics>
+      <Characteristics tag="chip antibody">
+Abcam, Cat# ab7766, Lot# 56293
+      </Characteristics>
+      <Treatment-Protocol>
+N/A
+      </Treatment-Protocol>
+      <Growth-Protocol>
+hASCs were grown in MesenPRO RS medium (Invitrogen) plus 4ng/ml FGF-2 on plates coated with 10ug/cm2 collagen I (Invitrogen). Two days after confluence, the cells were placed in induction medium (DMEM/F12 supplemented with 10% FBS plus 1uM dexamethasone, 1.7uM insulin, 0.5mM IBMX, 5uM rosiglitazone, 40ng/ml BMP4, 17uM pantothenic acid, and 33uM biotin). 72h later, the medium was replaced with maintenance medium (DMEM/F12 with 10% FBS plus 1uM dexamethasone, 1.7uM insulin, 17uM pantothenic acid, and 33uM biotin) and media was replaced every two days thereafter.
+      </Growth-Protocol>
+      <Molecule>genomic DNA</Molecule>
+      <Extract-Protocol>
+ChIP-Seq libraries were prepared as described by Mikkelsen et al. (Nature 2007; 448(7153):553-60; PMID: 17603471)
+      </Extract-Protocol>
+    </Channel>
+    <Description>
+Chromatin IP against H3K4me2
+    </Description>
+    <Data-Processing>
+Alignments: Reads were aligned to the mouse reference genome (hg18) using MAQ v0.6.8 with default parameters, except '-C 10' (discard reads that match to more than 10 locations). Redundant reads (alinign to the same starting position and orientation) were discarded.
+Densities: Aligned reads were extended to an assumed fragment length of 200 bp. The number of fragments overlapping nucleotide x in the reference sequnece were counted at 25bp resolution. The counts were then normalized to 'fragments per 10 million aligned reads'.
+Peak calling (histones): The numbers of aligned ChIP and input reads were counted in sliding windows of 500 bp for H3K4me3/me2/me1/K27ac and 5000bp H3K27me3/K36me3 and a step size of 25bp. The likelihood of the null hypothesis (no ChIP enrichment) was calculated as the probability of observing at least the number of ChIP reads, given a Poisson distribution with a mean equal to the expected number of ChIP reads (given the window size, the genome size and the total number of aligned reads) multiplied by the ratio of observed over expected input reads in the same window. Windows with p &lt; 0.0001 after Benjamini correction for multiple-hypothesis testing were kept and merged into non-overlapping intervals of arbitrary size.
+Peak calling (CTCF and PPARG): Binding sites and ChIP enrichment intervals were inferred using QuEST v2.3 (Valouev et al. Nat Methods 2008; 5(9):829-834; PMID: 19160518) in the 'transcription factor' mode.
+    </Data-Processing>
+    <Platform-Ref ref="GPL9052" />
+    <Library-Strategy>ChIP-Seq</Library-Strategy>
+    <Library-Source>genomic</Library-Source>
+    <Library-Selection>ChIP</Library-Selection>
+    <Instrument-Model>
+      <Predefined>Illumina Genome Analyzer</Predefined>
+    </Instrument-Model>
+    <Contact-Ref ref="contrib1" />
+    <Supplementary-Data type="TXT">
+ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM534nnn/GSM534473/suppl/GSM534473_hASCt2.H3K4me2.aligned.txt.gz
+    </Supplementary-Data>
+    <Supplementary-Data type="WIG">
+ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM534nnn/GSM534473/suppl/GSM534473_hASCt2.H3K4me2.density.wig.gz
+    </Supplementary-Data>
+    <Supplementary-Data type="TXT">
+ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM534nnn/GSM534473/suppl/GSM534473_hASCt2.H3K4me2.intervals.txt.gz
+    </Supplementary-Data>
+    <Relation type="SRA" target="https://www.ncbi.nlm.nih.gov/sra?term=SRX019500" />
+    <Relation type="BioSample" target="https://www.ncbi.nlm.nih.gov/biosample/SAMN00011861" />
+  </Sample>
+
+</MINiML>

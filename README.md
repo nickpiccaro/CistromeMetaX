@@ -231,7 +231,7 @@ Maps GSE IDs to their XML file locations:
 }
 ```
 
-**Example GEO XML File**: You can view an example of what a GEO XML file looks like [here](https://github.com/nickpiccaro/example-geo-xml/blob/main/sample_gsm.txt).
+**Example GEO XML File**: You can view an example of what a GEO XML file looks like [here](https://github.com/nickpiccaro/CistromeMetaX/blob/main/sample.xml).
 
 ---
 
@@ -243,14 +243,10 @@ CistromeMetaX produces structured JSON output containing extracted and validated
 # SCRUB FIX
 ```json
 {
-  "GSM1006151": {
-    "target_protein": "H3K4me3",
-    "experimental_factors": {
-      "treatment": "control",
-      "time_point": "24h",
-      "replicate": "biological_replicate_1"
-    },
-    "validation_status": "validated"
+  "GSM1007988": {
+      "factor": {
+          "extracted_factor": "H3K27me3"
+      }
   }
 }
 ```
@@ -258,12 +254,52 @@ CistromeMetaX produces structured JSON output containing extracted and validated
 ### Cell Type/Tissue Extraction Output  
 ```json
 {
-  "GSM1006151": {
-    "cell_type": "HeLa",
-    "tissue": "cervical_epithelium", 
-    "cell_line": "HeLa",
-    "organism": "Homo sapiens",
-    "validation_status": "validated"
+  "GSM1007988": {
+      "ontology": {
+          "extracted_ontologies": {
+              "cell_line": [
+                  {
+                      "official_term": "WI38",
+                      "term_identity": "cell_line",
+                      "ontology_accession": "EFO_0001260",
+                      "term": "WI-38",
+                      "ontology_type": "EFO"
+                  }
+              ],
+              "cell_type": [
+                  {
+                      "official_term": "fibroblast",
+                      "term_identity": "cell_type",
+                      "ontology_accession": "CL_0000057",
+                      "term": "fibroblast",
+                      "ontology_type": [
+                          "EFO",
+                          "Uberon"
+                      ]
+                  }
+              ],
+              "tissue": [
+                  {
+                      "official_term": "lung neoplasm",
+                      "term_identity": "tissue",
+                      "ontology_accession": "MONDO_0021117",
+                      "term": "lung",
+                      "ontology_type": "EFO"
+                  },
+                  {
+                      "official_term": "lung",
+                      "term_identity": "tissue",
+                      "ontology_accession": "UBERON_0002048",
+                      "term": "lung",
+                      "ontology_type": [
+                          "EFO",
+                          "Uberon"
+                      ]
+                  }
+              ],
+              "disease": "N/A"
+          }
+      }
   }
 }
 ```
@@ -271,19 +307,58 @@ CistromeMetaX produces structured JSON output containing extracted and validated
 ### Combined Output (Both Mode)
 ```json
 {
-  "GSM1006151": {
-    "target_protein": "H3K4me3",
-    "cell_type": "HeLa",
-    "tissue": "cervical_epithelium",
-    "cell_line": "HeLa",
-    "organism": "Homo sapiens",
-    "experimental_factors": {
-      "treatment": "control",
-      "time_point": "24h"
-    },
-    "validation_status": "validated"
+  "GSM1007988": {
+      "factor": {
+          "extracted_factor": "H3K27me3"
+      },
+      "ontology": {
+          "extracted_ontologies": {
+              "cell_line": [
+                  {
+                      "official_term": "WI38",
+                      "term_identity": "cell_line",
+                      "ontology_accession": "EFO_0001260",
+                      "term": "WI-38",
+                      "ontology_type": "EFO"
+                  }
+              ],
+              "cell_type": [
+                  {
+                      "official_term": "fibroblast",
+                      "term_identity": "cell_type",
+                      "ontology_accession": "CL_0000057",
+                      "term": "fibroblast",
+                      "ontology_type": [
+                          "EFO",
+                          "Uberon"
+                      ]
+                  }
+              ],
+              "tissue": [
+                  {
+                      "official_term": "lung neoplasm",
+                      "term_identity": "tissue",
+                      "ontology_accession": "MONDO_0021117",
+                      "term": "lung",
+                      "ontology_type": "EFO"
+                  },
+                  {
+                      "official_term": "lung",
+                      "term_identity": "tissue",
+                      "ontology_accession": "UBERON_0002048",
+                      "term": "lung",
+                      "ontology_type": [
+                          "EFO",
+                          "Uberon"
+                      ]
+                  }
+              ],
+              "disease": "N/A"
+          }
+      }
   }
 }
+
 ```
 
 ---
