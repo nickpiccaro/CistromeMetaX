@@ -285,6 +285,64 @@ def simplify_gse_xml_file(xml_file):
     output_lines = [value for key, value in extracted_data.items()]
     return "\n".join(output_lines)
 
+def _load_json_data(file_path):
+    """Helper function to load JSON data from file."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading JSON file '{file_path}': {e}")
+        return None
+
+def _parse_gsm_ids_input(gsm_ids_input):
+    """
+    Parse GSM IDs input - can be a list/array or a JSON file path.
+    Returns a list of GSM ID strings.
+    """
+    # Check if it's a string (file path)
+    if isinstance(gsm_ids_input, str):
+        data = _load_json_data(gsm_ids_input)
+        if data is None:
+            return []
+        return data if isinstance(data, list) else []
+    
+    # Handle various array-like inputs (list, pandas Series, numpy array, etc.)
+    try:
+        # Convert to list if it's pandas Series, numpy array, etc.
+        if hasattr(gsm_ids_input, 'tolist'):
+            return gsm_ids_input.tolist()
+        elif hasattr(gsm_ids_input, '__iter__') and not isinstance(gsm_ids_input, str):
+            return list(gsm_ids_input)
+        else:
+            return [gsm_ids_input] if gsm_ids_input else []
+    except Exception as e:
+        print(f"Error parsing GSM IDs input: {e}")
+        return []
+
+def _format_output_structure(gsm_id, extracted_factor=None, extracted_ontology=None):
+    """
+    Format the output according to the standardized structure.
+    """
+    result = {gsm_id: {}}
+    
+    if extracted_factor is not None:
+        result[gsm_id]["factor"] = {"extracted_factor": extracted_factor}
+    
+    if extracted_ontology is not None:
+        # Ensure the ontology structure matches expected format
+        ontology_data = extracted_ontology.get("extracted", {}) if isinstance(extracted_ontology, dict) else {}
+        
+        result[gsm_id]["ontology"] = {
+            "extracted_ontologies": {
+                "cell_line": ontology_data.get("cell_line", []) if ontology_data.get("cell_line") else [],
+                "cell_type": ontology_data.get("cell_type", []) if ontology_data.get("cell_type") else [],
+                "tissue": ontology_data.get("tissue", []) if ontology_data.get("tissue") else [],
+                "disease": ontology_data.get("disease", []) if ontology_data.get("disease") else []
+            }
+        }
+    
+    return result
+
 ### Factor Extraction ###
 def is_control(gsm_xml_string):
     # Define the instruction and input prompts
@@ -1560,24 +1618,32 @@ def meta_extract_factor(gsm_file_path, gse_file_paths):
     except Exception as e:
         print(f"Error extracting target protein from metadata | {e}")
 
-def meta_extract_factors(json_file_path):
+def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path):
     """
-    Extracts verified factors from a JSON file containing GEO metadata paths.
+    Extracts verified factors from GSM IDs using provided lookup mappings.
 
     Args:
-        json_file_path (str): Path to the JSON file with 'gsm_file_path' and 'gse_file_paths'.
+        gsm_ids_input: List of GSM IDs or path to JSON file containing GSM IDs
+        gsm_to_gse_path (str): Path to JSON file mapping GSM IDs to GSE IDs
+        gsm_paths_path (str): Path to JSON file mapping GSM IDs to file paths
+        gse_paths_path (str): Path to JSON file mapping GSE IDs to file paths
 
     Returns:
-        list: A list of dicts with keys 'geo' and 'extracted_factor'.
+        list: A list of dicts with standardized output format.
     """
-    if not os.path.exists(json_file_path):
-        raise FileNotFoundError(f"JSON file '{json_file_path}' not found.")
+    # Parse GSM IDs input
+    gsm_ids = _parse_gsm_ids_input(gsm_ids_input)
+    if not gsm_ids:
+        print("No valid GSM IDs provided.")
+        return []
 
-    try:
-        with open(json_file_path, 'r', encoding='utf-8') as f:
-            json_data = json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON file '{json_file_path}': {e}")
+    # Load lookup mappings
+    gsm_to_gse = _load_json_data(gsm_to_gse_path)
+    gsm_paths = _load_json_data(gsm_paths_path)
+    gse_paths = _load_json_data(gse_paths_path)
+
+    if not all([gsm_to_gse, gsm_paths, gse_paths]):
+        print("Failed to load one or more lookup mapping files.")
         return []
 
     # Load validation data once
@@ -1597,26 +1663,37 @@ def meta_extract_factors(json_file_path):
 
     results = []
 
-    for entry in json_data:
-        gsm_file_path = entry.get("gsm_file_path")
-        gse_file_paths = entry.get("gse_file_paths")
-
-        if not gsm_file_path or not gse_file_paths:
-            print("Missing GSM or GSE path in input entry.")
+    for gsm_id in gsm_ids:
+        # Get GSM file path
+        gsm_file_path = gsm_paths.get(gsm_id)
+        if not gsm_file_path or not os.path.exists(gsm_file_path):
+            print(f"GSM file not found for {gsm_id}")
             continue
 
-        # Get GSE XML files
+        # Get associated GSE IDs and their file paths
+        gse_ids = gsm_to_gse.get(gsm_id, [])
+        if not gse_ids:
+            print(f"No GSE associations found for {gsm_id}")
+            continue
+
+        # Collect GSE XML content
         gse_files = []
-        for gse_file in gse_file_paths:
-            if not os.path.exists(gse_file):
-                print(f"GSE XML file '{gse_file}' not found.")
+        for gse_id in gse_ids:
+            gse_file_path = gse_paths.get(gse_id)
+            if not gse_file_path or not os.path.exists(gse_file_path):
+                print(f"GSE XML file not found for {gse_id}")
                 continue
             try:
-                gse_prompt = simplify_gse_xml_file(gse_file)
+                gse_prompt = simplify_gse_xml_file(gse_file_path)
+                gse_files.append(gse_prompt)
             except Exception as e:
-                print(f"Error simplifying GSE XML file '{gse_file}': {e}")
+                print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
                 continue
-            gse_files.append(gse_prompt)
+
+        if not gse_files:
+            print(f"No valid GSE files found for {gsm_id}")
+            continue
+
         gse_text = "\n\n".join(gse_files)
 
         # Simplify GSM XML file
@@ -1630,13 +1707,13 @@ def meta_extract_factors(json_file_path):
         try:
             factor_result = extract_verify_factor(gsm_file, gse_text, genes_df, TF_df, chromatin_df)
             if factor_result and "extracted_factor" in factor_result:
-                geo_id = Path(gsm_file_path).stem  # e.g., GSM12345
-                results.append({
-                    "geo": geo_id,
-                    "extracted_factor": factor_result["extracted_factor"]
-                })
+                formatted_result = _format_output_structure(
+                    gsm_id, 
+                    extracted_factor=factor_result["extracted_factor"]
+                )
+                results.append(formatted_result)
         except Exception as e:
-            print(f"Error extracting target protein from {gsm_file_path}: {e}")
+            print(f"Error extracting target protein from {gsm_id}: {e}")
             continue
 
     return results
@@ -2123,8 +2200,8 @@ def verify_ontology(
 ):
     """
     Verifies and resolves missing ontology terms using process_ontology and generate_alternate_names.
+    (Implementation remains the same as original)
     """
-
     def is_incomplete(validated):
         return any(value is None for key, value in validated.items() if key not in ("geo", "extracted"))
     
@@ -2147,9 +2224,8 @@ def verify_ontology(
         verified_value = validated.get(key)
 
         if extracted_value and extracted_value != "N/A" and verified_value is None:
-            alt_names = generate_alternate_names(extracted_value)  # e.g. ["alt1", "alt2", "alt3"]
+            alt_names = generate_alternate_names(extracted_value)
             for alt_name in alt_names:
-                # Build new input with only the current ontology term being tested
                 new_input = {
                     "ontologies": {
                         "extracted_ontologies": {
@@ -2163,59 +2239,49 @@ def verify_ontology(
                 }
                 new_input["ontologies"]["extracted_ontologies"][key] = alt_name
 
-                # Try processing this isolated alternative
                 result = process_ontology(
-                            new_input,
-                            cellosaurus_index, efo_index, uberon_index,
-                            cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
-                            cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
-                        )
+                    new_input,
+                    cellosaurus_index, efo_index, uberon_index,
+                    cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
+                    cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
+                )
 
                 if result.get(key):
-                    # Merge only the successful key's result
                     completed_output[key] = result[key]
-                    break  # Stop after first match
+                    break
 
     for key in ["cell_line", "cell_type", "tissue", "disease"]:
         value = completed_output.get(key)
         if isinstance(value, list):
             completed_output[key] = collapse_ontology_terms(value)
              
-    
     return completed_output
 
-def extract_verify_ontology(gsm_file_path, gsm_xml_string, gse_xml_strings,
+def extract_verify_ontology(gsm_id, gsm_xml_string, gse_xml_strings,
                             cellosaurus_index, efo_index, uberon_index,
                             cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
                             cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index):
     """
     Extracts and verifies ontology terms from GSM and GSE XML strings.
+    Updated to use GSM ID instead of file path.
     """
     try:
         structured_object = extract_structured_ontology(gsm_xml_string, gse_xml_strings)
         extracted_object = {
-        "cell_line": structured_object.cell_line,
-        "cell_type": structured_object.cell_type,
-        "tissue": structured_object.tissue,
-        "disease": structured_object.disease
-    }
+            "cell_line": structured_object.cell_line,
+            "cell_type": structured_object.cell_type,
+            "tissue": structured_object.tissue,
+            "disease": structured_object.disease
+        }
     except Exception as e:
         print(f"An error occurred Extracting Ontology: {e}")    
         return None
-    
-
-    match = re.search(r'([^/\\]+)\.xml$', gsm_file_path)
-
-    if match:
-        geo = match.group(1)
-    else:
-        geo = "N/A"
 
     ret_object = {
         "ontologies": {
             "extracted_ontologies": extracted_object
         },
-        "geo": geo
+        "geo": gsm_id
     }
     
     try:
@@ -2226,7 +2292,8 @@ def extract_verify_ontology(gsm_file_path, gsm_xml_string, gse_xml_strings,
             cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
         )
     except Exception as e:
-        print(f"An error occured verifying the ontologies: {e}")
+        print(f"An error occurred verifying the ontologies: {e}")
+        return None
    
     return validated_object
 
@@ -2288,24 +2355,32 @@ def meta_extract_ontology(gsm_file_path, gse_file_paths):
     except Exception as e:
         print(f"An error occured verifying the ontologies: {e}")
 
-def meta_extract_ontologies(json_file_path):
+def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path):
     """
-    Extracts ontology metadata from a JSON file containing GEO metadata paths.
+    Extracts ontology metadata from GSM IDs using provided lookup mappings.
 
     Args:
-        json_file_path (str): Path to the JSON file with 'gsm_file_path' and 'gse_file_paths'.
+        gsm_ids_input: List of GSM IDs or path to JSON file containing GSM IDs
+        gsm_to_gse_path (str): Path to JSON file mapping GSM IDs to GSE IDs
+        gsm_paths_path (str): Path to JSON file mapping GSM IDs to file paths
+        gse_paths_path (str): Path to JSON file mapping GSE IDs to file paths
 
     Returns:
-        list: A list of ontology extraction dicts, each including 'geo' and ontology results.
+        list: A list of ontology extraction dicts with standardized format.
     """
-    if not os.path.exists(json_file_path):
-        raise FileNotFoundError(f"JSON file '{json_file_path}' not found.")
+    # Parse GSM IDs input
+    gsm_ids = _parse_gsm_ids_input(gsm_ids_input)
+    if not gsm_ids:
+        print("No valid GSM IDs provided.")
+        return []
 
-    try:
-        with open(json_file_path, 'r', encoding='utf-8') as f:
-            json_data = json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON file '{json_file_path}': {e}")
+    # Load lookup mappings
+    gsm_to_gse = _load_json_data(gsm_to_gse_path)
+    gsm_paths = _load_json_data(gsm_paths_path)
+    gse_paths = _load_json_data(gse_paths_path)
+
+    if not all([gsm_to_gse, gsm_paths, gse_paths]):
+        print("Failed to load one or more lookup mapping files.")
         return []
 
     # Load ontology data once
@@ -2340,25 +2415,36 @@ def meta_extract_ontologies(json_file_path):
 
     results = []
 
-    for entry in json_data:
-        gsm_file_path = entry.get("gsm_file_path")
-        gse_file_paths = entry.get("gse_file_paths")
+    for gsm_id in gsm_ids:
+        # Get GSM file path
+        gsm_file_path = gsm_paths.get(gsm_id)
+        if not gsm_file_path or not os.path.exists(gsm_file_path):
+            print(f"GSM file not found for {gsm_id}")
+            continue
 
-        if not gsm_file_path or not gse_file_paths:
-            print("Missing GSM or GSE path in input entry.")
+        # Get associated GSE IDs and their file paths
+        gse_ids = gsm_to_gse.get(gsm_id, [])
+        if not gse_ids:
+            print(f"No GSE associations found for {gsm_id}")
             continue
 
         # Get GSE XML content
         gse_prompts = []
-        for gse_file in gse_file_paths:
-            if not os.path.exists(gse_file):
-                print(f"GSE XML file '{gse_file}' not found.")
+        for gse_id in gse_ids:
+            gse_file_path = gse_paths.get(gse_id)
+            if not gse_file_path or not os.path.exists(gse_file_path):
+                print(f"GSE XML file not found for {gse_id}")
                 continue
             try:
-                gse_prompts.append(simplify_gse_xml_file(gse_file))
+                gse_prompts.append(simplify_gse_xml_file(gse_file_path))
             except Exception as e:
-                print(f"Error simplifying GSE XML file '{gse_file}': {e}")
+                print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
                 continue
+
+        if not gse_prompts:
+            print(f"No valid GSE files found for {gsm_id}")
+            continue
+
         gse_text = "\n\n".join(gse_prompts)
 
         # Simplify GSM
@@ -2371,35 +2457,50 @@ def meta_extract_ontologies(json_file_path):
         # Extract ontology
         try:
             result = extract_verify_ontology(
-                gsm_file_path, gsm_text, gse_text,
+                gsm_id, gsm_text, gse_text,
                 cellosaurus, efo, uberon,
                 cellosaurus_reduce, efo_reduce, uberon_reduce,
                 cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy
             )
             if result:
-                results.append(result)
+                formatted_result = _format_output_structure(
+                    gsm_id, 
+                    extracted_ontology=result
+                )
+                results.append(formatted_result)
         except Exception as e:
-            print(f"An error occurred verifying ontologies for {gsm_file_path}: {e}")
+            print(f"An error occurred verifying ontologies for {gsm_id}: {e}")
             continue
 
     return results
 
 ### Combined Extraction and Verification ###
-def meta_extract_factors_and_ontologies(json_file_path):
+def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path):
     """
-    Extracts both factors and ontology metadata from a JSON file containing GEO metadata paths.
+    Extracts both factors and ontology metadata from GSM IDs using provided lookup mappings.
+    
+    Args:
+        gsm_ids_input: List of GSM IDs or path to JSON file containing GSM IDs
+        gsm_to_gse_path (str): Path to JSON file mapping GSM IDs to GSE IDs
+        gsm_paths_path (str): Path to JSON file mapping GSM IDs to file paths
+        gse_paths_path (str): Path to JSON file mapping GSE IDs to file paths
     
     Returns:
-        list of dicts with keys 'geo', 'extracted_factor', and 'extracted_ontology'.
+        list of dicts with standardized output format.
     """
-    if not os.path.exists(json_file_path):
-        raise FileNotFoundError(f"JSON file '{json_file_path}' not found.")
+    # Parse GSM IDs input
+    gsm_ids = _parse_gsm_ids_input(gsm_ids_input)
+    if not gsm_ids:
+        print("No valid GSM IDs provided.")
+        return []
 
-    try:
-        with open(json_file_path, 'r', encoding='utf-8') as f:
-            json_data = json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON file '{json_file_path}': {e}")
+    # Load lookup mappings
+    gsm_to_gse = _load_json_data(gsm_to_gse_path)
+    gsm_paths = _load_json_data(gsm_paths_path)
+    gse_paths = _load_json_data(gse_paths_path)
+
+    if not all([gsm_to_gse, gsm_paths, gse_paths]):
+        print("Failed to load one or more lookup mapping files.")
         return []
 
     # Load factor validation data
@@ -2439,31 +2540,43 @@ def meta_extract_factors_and_ontologies(json_file_path):
 
     results = []
 
-    for entry in json_data:
-        gsm_file_path = entry.get("gsm_file_path")
-        gse_file_paths = entry.get("gse_file_paths")
-
-        if not gsm_file_path or not gse_file_paths:
-            print("Missing GSM or GSE path in input entry.")
+    for gsm_id in gsm_ids:
+        # Get GSM file path
+        gsm_file_path = gsm_paths.get(gsm_id)
+        if not gsm_file_path or not os.path.exists(gsm_file_path):
+            print(f"GSM file not found for {gsm_id}")
             continue
 
-        # Load and simplify GSM and GSE
+        # Get associated GSE IDs and their file paths
+        gse_ids = gsm_to_gse.get(gsm_id, [])
+        if not gse_ids:
+            print(f"No GSE associations found for {gsm_id}")
+            continue
+
+        # Load and simplify GSM
         try:
             gsm_text = simplify_gsm_xml_file(gsm_file_path)
         except Exception as e:
             print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
             continue
 
+        # Collect GSE content
         gse_prompts = []
-        for gse_file in gse_file_paths:
-            if not os.path.exists(gse_file):
-                print(f"GSE XML file '{gse_file}' not found.")
+        for gse_id in gse_ids:
+            gse_file_path = gse_paths.get(gse_id)
+            if not gse_file_path or not os.path.exists(gse_file_path):
+                print(f"GSE XML file not found for {gse_id}")
                 continue
             try:
-                gse_prompts.append(simplify_gse_xml_file(gse_file))
+                gse_prompts.append(simplify_gse_xml_file(gse_file_path))
             except Exception as e:
-                print(f"Error simplifying GSE XML file '{gse_file}': {e}")
+                print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
                 continue
+
+        if not gse_prompts:
+            print(f"No valid GSE files found for {gsm_id}")
+            continue
+
         gse_text = "\n\n".join(gse_prompts)
 
         # Extract factor
@@ -2473,27 +2586,27 @@ def meta_extract_factors_and_ontologies(json_file_path):
             if factor_result and "extracted_factor" in factor_result:
                 extracted_factor = factor_result["extracted_factor"]
         except Exception as e:
-            print(f"Error extracting factor from {gsm_file_path}: {e}")
+            print(f"Error extracting factor from {gsm_id}: {e}")
 
         # Extract ontology
         extracted_ontology = None
         try:
             extracted_ontology = extract_verify_ontology(
-                gsm_file_path, gsm_text, gse_text,
+                gsm_id, gsm_text, gse_text,
                 cellosaurus, efo, uberon,
                 cellosaurus_reduce, efo_reduce, uberon_reduce,
                 cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy
             )
         except Exception as e:
-            print(f"Error extracting ontology from {gsm_file_path}: {e}")
+            print(f"Error extracting ontology from {gsm_id}: {e}")
 
         # Combine if either factor or ontology is present
         if extracted_factor or extracted_ontology:
-            geo_id = Path(gsm_file_path).stem  # Extract e.g., GSM12345
-            results.append({
-                "geo": geo_id,
-                "extracted_factor": extracted_factor,
-                "extracted_ontology": extracted_ontology
-            })
+            formatted_result = _format_output_structure(
+                gsm_id,
+                extracted_factor=extracted_factor,
+                extracted_ontology=extracted_ontology
+            )
+            results.append(formatted_result)
 
     return results

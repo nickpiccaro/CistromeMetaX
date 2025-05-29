@@ -2,6 +2,8 @@
 
 A Python package and command-line tool that leverages large language models (LLMs) to parse, extract, and verify metadata from GEO MetaData XML files (from the NCBI Gene Expression Omnibus). It extracts crucial experimental factor and ontology information in formats useful for downstream tools such as the [Cistrome Data Browser](https://db3.cistrome.org/browser/). GEOMetaX aims to reduce the need for time-consuming and expensive manual metadata curation.
 
+SCRUB ChipSeq usage, describe outputs, use cell types and tissues instead, mention that this uses chatgpt doesnt require training, and validates on 
+How to get an API key for openAI, really improve the input
 ---
 # NAME IDEAS
 - CistromeGEOX
@@ -10,6 +12,7 @@ A Python package and command-line tool that leverages large language models (LLM
 - CistromeGEOlator
 - GEOParseAI
 - GEO2Cistrome
+- CistromeMeta
 
 
 ## Table of Contents
@@ -94,7 +97,8 @@ pip install git+https://github.com/nickpiccaro/GEOMetaX.git
 ### Command Line Interface
 
 You can use the following CLI commands after installation:
-
+https://docs.python.org/3/library/argparse.html
+-add a save flag
 ```bash
 geoMX-update_data
 geoMX-factor_extract_one GSM_FILE GSE_FILE1 [GSE_FILE2 ...]
@@ -133,7 +137,6 @@ geoMX-factor_extract_one "path/to/GSM353611.xml" "path/to/GSE14097.xml" "path/to
 geoMX-ontology_extract_multiple "path/to/many_GSMs.json"
 ```
 ##### JSON Input Format for CLI (for `*_multiple` or `extract_all` commands)
-
 ```json
 [
     {
