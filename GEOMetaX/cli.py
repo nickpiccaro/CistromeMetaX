@@ -1,7 +1,10 @@
+import argparse
+import json
 import sys
+from pathlib import Path
 from .downloader import install_data
 from .processor import process_data
-from .parser_extractor import meta_extract_factor, meta_extract_ontology, meta_extract_factors, meta_extract_ontologies, meta_extract_factors_and_ontologies
+from .parser_extractor import meta_extract_factors, meta_extract_ontologies, meta_extract_factors_and_ontologies
 
 def update_data():
     if len(sys.argv) < 1:
@@ -14,69 +17,133 @@ def update_data():
     print("Data processing complete.")
     print("Data update complete.")
 
-def one_factor():
-    if len(sys.argv) < 3:
-        print("Usage: geoMX-factor_extract_one GSM_FILE GSE_FILE1 [GSE_FILE2 ...]")
-        sys.exit(1)
+def meta_extract():
+    """
+    Console command for extracting metadata from GSM IDs.
+    Supports factor extraction, ontology extraction, or both.
+    """
+    parser = argparse.ArgumentParser(
+        description="Extract metadata (factors and/or ontologies) from GSM IDs",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+            Examples:
+            # Extract only factors
+            geoMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
 
-    gsm_file = sys.argv[1]
-    gse_files = sys.argv[2:]
+            # Extract only ontologies
+            geoMX-extract --mode ontology --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+
+            # Extract both factors and ontologies
+            geoMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+
+            # Save output to file
+            geoMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --output results.json
+
+            # Pass GSM IDs directly as list
+            geoMX-extract --mode factor --gsm-ids "['GSM123456', 'GSM789012']" --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+                    """
+    )
     
-    # Call your actual function
-    result = meta_extract_factor(gsm_file, gse_files)
-
-    print("Extraction result:")
-    print(result)
-
-def many_factor():
-    if len(sys.argv) < 2:
-        print("Usage: geoMX-factor_extract_multiple JSON_FILE")
-        sys.exit(1)
-
-    json_file = sys.argv[1]
+    parser.add_argument(
+        "--mode",
+        choices=["factor", "ontology", "both"],
+        required=True,
+        help="Extraction mode: 'factor' for factors only, 'ontology' for ontologies only, 'both' for both factors and ontologies"
+    )
     
-    # Call your actual function
-    result = meta_extract_factors(json_file)
-
-    print("Extraction result:")
-    print(result)
-
-def one_ontology():
-    if len(sys.argv) < 3:
-        print("Usage: geoMX-ontology_extract_one GSM_FILE GSE_FILE1 [GSE_FILE2 ...]")
-        sys.exit(1)
-
-    gsm_file = sys.argv[1]
-    gse_files = sys.argv[2:]
+    parser.add_argument(
+        "--gsm-ids",
+        required=True,
+        help="GSM IDs input: either a path to JSON file containing GSM IDs, or a string representation of a list (e.g., \"['GSM123', 'GSM456']\")"
+    )
     
-    # Call your actual function
-    result = meta_extract_ontology(gsm_file, gse_files)
-
-    print("Extraction result:")
-    print(result)
-
-def many_ontology():
-    if len(sys.argv) < 2:
-        print("Usage: geoMX-ontology_extract_multiple JSON_FILE")
-        sys.exit(1)
-
-    json_file = sys.argv[1]
+    parser.add_argument(
+        "--gsm-to-gse",
+        required=True,
+        help="Path to JSON file mapping GSM IDs to GSE IDs"
+    )
     
-    # Call your actual function
-    result = meta_extract_ontologies(json_file)
-
-    print("Extraction result:")
-    print(result)
-
-def extract_all():
-    if len(sys.argv) < 2:
-        print("Usage: geoMX-extract_all JSON_FILE")
-        sys.exit(1)
-
-    json_file = sys.argv[1]
+    parser.add_argument(
+        "--gsm-paths", 
+        required=True,
+        help="Path to JSON file mapping GSM IDs to file paths"
+    )
     
-    # Call your actual function
-    result = meta_extract_factors_and_ontologies(json_file)
-
-    print("Extraction result:")
-    print(result)
+    parser.add_argument(
+        "--gse-paths",
+        required=True, 
+        help="Path to JSON file mapping GSE IDs to file paths"
+    )
+    
+    parser.add_argument(
+        "--output", "-o",
+        help="Optional: Path to save the output JSON file. If not provided, results will be printed to stdout"
+    )
+    
+    args = parser.parse_args()
+    
+    # Parse GSM IDs input - handle both file paths and direct list strings
+    try:
+        # Try to parse as JSON string first (for direct list input)
+        if args.gsm_ids.startswith('[') and args.gsm_ids.endswith(']'):
+            gsm_ids_input = json.loads(args.gsm_ids)
+        else:
+            # Assume it's a file path
+            gsm_ids_input = args.gsm_ids
+    except json.JSONDecodeError:
+        # If JSON parsing fails, treat as file path
+        gsm_ids_input = args.gsm_ids
+    
+    # Validate that required mapping files exist
+    required_files = [args.gsm_to_gse, args.gsm_paths, args.gse_paths]
+    for file_path in required_files:
+        if not Path(file_path).exists():
+            print(f"Error: Required mapping file not found: {file_path}", file=sys.stderr)
+            sys.exit(1)
+    
+    # Select appropriate extraction function based on mode
+    if args.mode == "factor":
+        print(f"Extracting factors for GSM IDs...")
+        results = meta_extract_factors(
+            gsm_ids_input,
+            args.gsm_to_gse,
+            args.gsm_paths,
+            args.gse_paths
+        )
+    elif args.mode == "ontology":
+        print(f"Extracting ontologies for GSM IDs...")
+        results = meta_extract_ontologies(
+            gsm_ids_input,
+            args.gsm_to_gse,
+            args.gsm_paths,
+            args.gse_paths
+        )
+    elif args.mode == "both":
+        print(f"Extracting both factors and ontologies for GSM IDs...")
+        results = meta_extract_factors_and_ontologies(
+            gsm_ids_input,
+            args.gsm_to_gse,
+            args.gsm_paths,
+            args.gse_paths
+        )
+    
+    # Handle output
+    if args.output:
+        # Save to file
+        output_path = Path(args.output)
+        try:
+            # Create parent directories if they don't exist
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(results, f, indent=2, ensure_ascii=False)
+            
+            print(f"Results saved to: {output_path}")
+            print(f"Total records processed: {len(results)}")
+            
+        except Exception as e:
+            print(f"Error saving output file: {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        # Print to stdout
+        print(json.dumps(results, indent=2, ensure_ascii=False))

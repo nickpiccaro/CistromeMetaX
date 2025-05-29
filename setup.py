@@ -20,11 +20,7 @@ setup(
     entry_points={
         "console_scripts": [
             "geoMX-update_data=GEOMetaX.cli:update_data",
-            "geoMX-factor_extract_one=GEOMetaX.cli:one_factor",
-            "geoMX-ontology_extract_one=GEOMetaX.cli:one_ontology",
-            "geoMX-factor_extract_multiple=GEOMetaX.cli:many_factor",
-            "geoMX-ontology_extract_multiple=GEOMetaX.cli:many_ontology",
-            "geoMX-extract_all=GEOMetaX.cli:extract_all",
+            "geoMX-extract=GEOMetaX.cli:meta_extract",
         ],
     },
 )

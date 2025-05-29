@@ -232,3 +232,25 @@ For issues, please reach out via email at nickpiccaro [at] gmail [dot] com.
 
 ---
 ```
+
+# Extract only factors and print to console
+geoMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+
+# Extract ontologies and save to file
+geoMX-extract --mode ontology --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --output results/ontologies.json
+
+# Extract both factors and ontologies, save to file
+geoMX-extract --mode both --gsm-ids "['GSM123456', 'GSM789012']" --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json -o combined_results.json
+
+How to View the Epilog
+Assuming your setup.py has been correctly installed and GEOMetaX is available in your environment, you can view the epilog by running your command with the standard help flags:
+
+Bash
+
+geoMX-extract --help
+or
+
+Bash
+
+geoMX-extract -h
+What Happens When You Run It

@@ -1575,47 +1575,6 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
     return verified_object
 
 ### Factor Extraction Functionality ###
-def meta_extract_factor(gsm_file_path, gse_file_paths):
-    # Get GSE XML files
-    gse_files = []
-    for gse_file in gse_file_paths:
-        if not os.path.exists(gse_file):
-            raise FileNotFoundError(f"GSE XML file '{gse_file}' not found.")
-        try:
-            gse_prompt = simplify_gse_xml_file(gse_file)
-        except Exception as e:
-            print(f"Error simplifying GSE XML file '{gse_file}': {e}")
-            continue
-        gse_files.append(gse_prompt)
-    gse_files = "\n\n".join(gse_files)
-    
-    # Simplify GSM XML file
-    try:
-        gsm_file = simplify_gsm_xml_file(gsm_file_path)
-    except Exception as e:
-        print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
-        return None
-
-    # Load Validation Data
-    data_dir = get_data_dir()
-    parsed_factor_dir = data_dir / "parsed_factor_data"
-
-    try:
-        genes_df = pd.read_csv(parsed_factor_dir / "gene_info.csv", encoding='utf-8')
-        TF_df = pd.read_csv(parsed_factor_dir / "Homo_sapiens_TF.csv", sep="\t", encoding='utf-8')
-        chromatin_df = pd.read_csv(parsed_factor_dir / "Homo_sapiens_CR.csv", encoding='utf-8')
-    except FileNotFoundError as e:
-        print(f"File not found: {e}")
-        return None
-    except pd.errors.ParserError as e:
-        print(f"Error parsing CSV files: {e}")
-        return None
-    
-    try:
-        return extract_verify_factor(gsm_file, gse_files, genes_df, TF_df, chromatin_df)
-    except Exception as e:
-        print(f"Error extracting target protein from metadata | {e}")
-
 def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path):
     """
     Extracts verified factors from GSM IDs using provided lookup mappings.
@@ -2296,63 +2255,6 @@ def extract_verify_ontology(gsm_id, gsm_xml_string, gse_xml_strings,
     return validated_object
 
 ### Ontology Extraction Functionality###
-def meta_extract_ontology(gsm_file_path, gse_file_paths):
-# Get GSE XML files
-    gse_files = []
-    for gse_file in gse_file_paths:
-        if not os.path.exists(gse_file):
-            raise FileNotFoundError(f"GSE XML file '{gse_file}' not found.")
-        try:
-            gse_prompt = simplify_gse_xml_file(gse_file)
-        except Exception as e:
-            print(f"Error simplifying GSE XML file '{gse_file}': {e}")
-            continue
-        gse_files.append(gse_prompt)
-    gse_files = "\n\n".join(gse_files)
-    
-    # Simplify GSM XML file
-    try:
-        gsm_file = simplify_gsm_xml_file(gsm_file_path)
-    except Exception as e:
-        print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
-        return None
-
-    data_dir = get_data_dir()
-    parsed_ontology_dir = data_dir / "parsed_ontology_data"
-    try:
-        with open(parsed_ontology_dir / "cellosaurus.json", "r", encoding='utf-8') as file:
-            cellosaurus = json.load(file)
-        with open(parsed_ontology_dir / "cellosaurus_reduce.json", "r", encoding='utf-8') as file:
-            cellosaurus_reduce = json.load(file)
-        with open(parsed_ontology_dir / "cellosaurus_fuzzy.json", "r", encoding='utf-8') as file:
-            cellosaurus_fuzzy = json.load(file)
-
-        with open(parsed_ontology_dir / "efo.json", "r", encoding='utf-8') as file:
-            efo = json.load(file)
-        with open(parsed_ontology_dir / "efo_reduce.json", "r", encoding='utf-8') as file:
-            efo_reduce = json.load(file)
-        with open(parsed_ontology_dir / "efo_fuzzy.json", "r", encoding='utf-8') as file:
-            efo_fuzzy = json.load(file)
-
-        with open(parsed_ontology_dir / "uberon.json", "r", encoding='utf-8') as file:
-            uberon = json.load(file)
-        with open(parsed_ontology_dir / "uberon_reduce.json", "r", encoding='utf-8') as file:
-            uberon_reduce = json.load(file)
-        with open(parsed_ontology_dir / "uberon_fuzzy.json", "r", encoding='utf-8') as file:
-            uberon_fuzzy = json.load(file)
-
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading files: {e}")
-        return None
-
-    try: 
-        return extract_verify_ontology(gsm_file_path, gsm_file, gse_files,
-                            cellosaurus, efo, uberon,
-                            cellosaurus_reduce, efo_reduce, uberon_reduce,
-                            cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy)
-    except Exception as e:
-        print(f"An error occured verifying the ontologies: {e}")
-
 def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path):
     """
     Extracts ontology metadata from GSM IDs using provided lookup mappings.
