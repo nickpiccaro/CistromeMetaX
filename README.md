@@ -4,6 +4,18 @@ A Python package and command-line tool that leverages large language models (LLM
 
 SCRUB ChipSeq usage, describe outputs, use cell types and tissues instead, mention that this uses chatgpt doesnt require training, and validates on 
 How to get an API key for openAI, really improve the input
+
+### THINGS TO EDIT README 
+SCRUB TO CHANGE CHANGE THE NAME TO CistromeMetaX
+In intro: Specify that this is for ChipSeq experiments, when describing ontologies use cell types and tissues instead of using the word ontology, mention that this tool is built on native chatgpt openAI functionality and does not need or require model training or any specialized setup, also mention that this package validates its llm outputs as valid target proteins and cell types, tissues, and cell lines which is unlike others. Also before anything talk about how manual extraction for this process is long and usually not a reasonable approach as the amount of open access ChipSeq experiments there is a varitey of metadata practices as these experiments are becomming cheaper and cheaper to perform there are more and more of these experiments that unfortunatly cannot be used and implemented for their powerful data insights, so this tool utilizes llms to extract and verify key metadata values that can be used to standardize powerful insights (if this is confusing please use your creative liberty to improve this but you get the idea and the purpose)
+
+Also add for the .env setup how and where to get an API key for openAI
+
+Also reflect a more robust instruction for how to use this functionality in both the python script or in the console. I added a anew change to how to use this package I will include that below.
+
+Also please highlight what the expected output of this funciton is in markdown.
+
+Oh also provide a link to what an xml file might look like in a .txt file, have this be linked to as a github page
 ---
 # NAME IDEAS
 - CistromeGEOX

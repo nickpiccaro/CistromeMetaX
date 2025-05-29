@@ -1629,29 +1629,24 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_pat
 
         # Get associated GSE IDs and their file paths
         gse_ids = gsm_to_gse.get(gsm_id, [])
-        if not gse_ids:
-            print(f"No GSE associations found for {gsm_id}")
-            continue
 
-        # Collect GSE XML content
-        gse_files = []
-        for gse_id in gse_ids:
-            gse_file_path = gse_paths.get(gse_id)
-            if not gse_file_path or not os.path.exists(gse_file_path):
-                print(f"GSE XML file not found for {gse_id}")
-                continue
-            try:
-                gse_prompt = simplify_gse_xml_file(gse_file_path)
-                gse_files.append(gse_prompt)
-            except Exception as e:
-                print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
-                continue
+        # Collect GSE content
+        if gse_ids:
+            gse_prompts = []
+            for gse_id in gse_ids:
+                gse_file_path = gse_paths.get(gse_id)
+                if not gse_file_path or not os.path.exists(gse_file_path):
+                    print(f"GSE XML file not found for {gse_id}")
+                    continue
+                try:
+                    gse_prompts.append(simplify_gse_xml_file(gse_file_path))
+                except Exception as e:
+                    print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
+                    continue
 
-        if not gse_files:
-            print(f"No valid GSE files found for {gsm_id}")
-            continue
-
-        gse_text = "\n\n".join(gse_files)
+            gse_text = "\n\n".join(gse_prompts)
+        else:
+            gse_text = ""
 
         # Simplify GSM XML file
         try:
@@ -1669,6 +1664,7 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_pat
                     extracted_factor=factor_result["extracted_factor"]
                 )
                 results.append(formatted_result)
+            print(f"Extracted factor for {gsm_id}")
         except Exception as e:
             print(f"Error extracting target protein from {gsm_id}: {e}")
             continue
@@ -2324,28 +2320,24 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
 
         # Get associated GSE IDs and their file paths
         gse_ids = gsm_to_gse.get(gsm_id, [])
-        if not gse_ids:
-            print(f"No GSE associations found for {gsm_id}")
-            continue
 
-        # Get GSE XML content
-        gse_prompts = []
-        for gse_id in gse_ids:
-            gse_file_path = gse_paths.get(gse_id)
-            if not gse_file_path or not os.path.exists(gse_file_path):
-                print(f"GSE XML file not found for {gse_id}")
-                continue
-            try:
-                gse_prompts.append(simplify_gse_xml_file(gse_file_path))
-            except Exception as e:
-                print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
-                continue
+        # Collect GSE content
+        if gse_ids:
+            gse_prompts = []
+            for gse_id in gse_ids:
+                gse_file_path = gse_paths.get(gse_id)
+                if not gse_file_path or not os.path.exists(gse_file_path):
+                    print(f"GSE XML file not found for {gse_id}")
+                    continue
+                try:
+                    gse_prompts.append(simplify_gse_xml_file(gse_file_path))
+                except Exception as e:
+                    print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
+                    continue
 
-        if not gse_prompts:
-            print(f"No valid GSE files found for {gsm_id}")
-            continue
-
-        gse_text = "\n\n".join(gse_prompts)
+            gse_text = "\n\n".join(gse_prompts)
+        else:
+            gse_text = ""
 
         # Simplify GSM
         try:
@@ -2368,6 +2360,7 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
                     extracted_ontology=result
                 )
                 results.append(formatted_result)
+            print(f"Extracted ontologies for {gsm_id}")
         except Exception as e:
             print(f"An error occurred verifying ontologies for {gsm_id}: {e}")
             continue
@@ -2447,11 +2440,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
             print(f"GSM file not found for {gsm_id}")
             continue
 
-        # Get associated GSE IDs and their file paths
-        gse_ids = gsm_to_gse.get(gsm_id, [])
-        if not gse_ids:
-            print(f"No GSE associations found for {gsm_id}")
-            continue
+        
 
         # Load and simplify GSM
         try:
@@ -2459,26 +2448,28 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
         except Exception as e:
             print(f"Error simplifying GSM XML file '{gsm_file_path}': {e}")
             continue
+        
+        # Get associated GSE IDs and their file paths
+        gse_ids = gsm_to_gse.get(gsm_id, [])
 
         # Collect GSE content
-        gse_prompts = []
-        for gse_id in gse_ids:
-            gse_file_path = gse_paths.get(gse_id)
-            if not gse_file_path or not os.path.exists(gse_file_path):
-                print(f"GSE XML file not found for {gse_id}")
-                continue
-            try:
-                gse_prompts.append(simplify_gse_xml_file(gse_file_path))
-            except Exception as e:
-                print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
-                continue
+        if gse_ids:
+            gse_prompts = []
+            for gse_id in gse_ids:
+                gse_file_path = gse_paths.get(gse_id)
+                if not gse_file_path or not os.path.exists(gse_file_path):
+                    print(f"GSE XML file not found for {gse_id}")
+                    continue
+                try:
+                    gse_prompts.append(simplify_gse_xml_file(gse_file_path))
+                except Exception as e:
+                    print(f"Error simplifying GSE XML file '{gse_file_path}': {e}")
+                    continue
 
-        if not gse_prompts:
-            print(f"No valid GSE files found for {gsm_id}")
-            continue
-
-        gse_text = "\n\n".join(gse_prompts)
-
+            gse_text = "\n\n".join(gse_prompts)
+        else:
+            gse_text = ""
+            
         # Extract factor
         extracted_factor = None
         try:
@@ -2508,5 +2499,6 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
                 extracted_ontology=extracted_ontology
             )
             results.append(formatted_result)
+            print(f"Extracted {gsm_id}")
 
     return results
