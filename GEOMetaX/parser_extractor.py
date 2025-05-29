@@ -2462,6 +2462,7 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
                 cellosaurus_reduce, efo_reduce, uberon_reduce,
                 cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy
             )
+            print(f"Extracted ontology for {gsm_id}: {result}")
             if result:
                 formatted_result = _format_output_structure(
                     gsm_id, 
