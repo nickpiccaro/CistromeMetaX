@@ -32,14 +32,42 @@ def _parse_gsm_ids_input(gsm_ids_input):
     
     # Handle string input
     if isinstance(gsm_ids_input, str):
+        gsm_ids_input = gsm_ids_input.strip()
+        
         # Try to parse as JSON string first (for direct list input)
-        if gsm_ids_input.strip().startswith('[') and gsm_ids_input.strip().endswith(']'):
+        if gsm_ids_input.startswith('[') and gsm_ids_input.endswith(']'):
             try:
                 parsed_list = json.loads(gsm_ids_input)
                 if isinstance(parsed_list, list):
                     return parsed_list
             except json.JSONDecodeError:
-                pass
+                # Try to fix common quote issues - convert single quotes to double quotes
+                try:
+                    # Replace single quotes with double quotes for JSON compatibility
+                    fixed_json = gsm_ids_input.replace("'", '"')
+                    parsed_list = json.loads(fixed_json)
+                    if isinstance(parsed_list, list):
+                        return parsed_list
+                except json.JSONDecodeError:
+                    pass
+                
+                # Try to handle case where quotes are missing around strings
+                try:
+                    # Handle format like [GSM123, GSM456] -> ["GSM123", "GSM456"]
+                    import re
+                    # Find content between brackets
+                    match = re.match(r'\[(.*)\]', gsm_ids_input)
+                    if match:
+                        content = match.group(1).strip()
+                        if content:
+                            # Split by comma and clean up each item
+                            items = [item.strip().strip('"\'') for item in content.split(',')]
+                            # Filter out empty items
+                            items = [item for item in items if item]
+                            if items:
+                                return items
+                except Exception:
+                    pass
         
         # Check if it's a file path
         if Path(gsm_ids_input).exists():
@@ -54,6 +82,10 @@ def _parse_gsm_ids_input(gsm_ids_input):
                 pass
             
             print(f"Error: GSM IDs input '{gsm_ids_input}' is not a valid JSON list or existing file path", file=sys.stderr)
+            print("Valid formats:", file=sys.stderr)
+            print('  - JSON file path: gsm_ids.json', file=sys.stderr)
+            print('  - JSON list: \'["GSM123", "GSM456"]\'', file=sys.stderr)
+            print('  - JSON list (alt): "[\\\"GSM123\\\", \\\"GSM456\\\"]"', file=sys.stderr)
             sys.exit(1)
     
     # Handle other iterable types
