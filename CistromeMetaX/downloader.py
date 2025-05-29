@@ -94,7 +94,7 @@ def fetch_chromatin_remodelers_and_synonyms(output_csv):
 
 def install_data():
     """Downloads required data and organizes it into directories."""
-    print("GEOMetaX | Installing data...")
+    print("CistromeMetaX | Installing data...")
     data_dir = get_data_dir()
     os.makedirs(data_dir / "unparsed_factor_data", exist_ok=True)
     os.makedirs(data_dir / "unparsed_ontology_data", exist_ok=True)

@@ -1,31 +1,14 @@
-# GEOMetaX
+# CistromeMetaX
 
-A Python package and command-line tool that leverages large language models (LLMs) to parse, extract, and verify metadata from GEO MetaData XML files (from the NCBI Gene Expression Omnibus). It extracts crucial experimental factor and ontology information in formats useful for downstream tools such as the [Cistrome Data Browser](https://db3.cistrome.org/browser/). GEOMetaX aims to reduce the need for time-consuming and expensive manual metadata curation.
+A Python package and command-line tool that leverages large language models (LLMs) to parse, extract, and verify metadata from GEO MetaData XML files (from the NCBI Gene Expression Omnibus) specifically for ChIP-seq experiments. CistromeMetaX extracts crucial experimental factors, cell types, tissues, and target proteins in formats useful for downstream tools such as the [Cistrome Data Browser](https://db3.cistrome.org/browser/).
 
-SCRUB ChipSeq usage, describe outputs, use cell types and tissues instead, mention that this uses chatgpt doesnt require training, and validates on 
-How to get an API key for openAI, really improve the input
+## The Challenge
 
-### THINGS TO EDIT README 
-SCRUB TO CHANGE CHANGE THE NAME TO CistromeMetaX
-In intro: Specify that this is for ChipSeq experiments, when describing ontologies use cell types and tissues instead of using the word ontology, mention that this tool is built on native chatgpt openAI functionality and does not need or require model training or any specialized setup, also mention that this package validates its llm outputs as valid target proteins and cell types, tissues, and cell lines which is unlike others. Also before anything talk about how manual extraction for this process is long and usually not a reasonable approach as the amount of open access ChipSeq experiments there is a varitey of metadata practices as these experiments are becomming cheaper and cheaper to perform there are more and more of these experiments that unfortunatly cannot be used and implemented for their powerful data insights, so this tool utilizes llms to extract and verify key metadata values that can be used to standardize powerful insights (if this is confusing please use your creative liberty to improve this but you get the idea and the purpose)
+Manual metadata extraction for ChIP-seq experiments is an extraordinarily time-consuming and often impractical approach. As ChIP-seq experiments become increasingly affordable and accessible, the volume of open-access datasets continues to grow exponentially. Unfortunately, the variety of metadata practices across different laboratories and research groups means that many powerful ChIP-seq datasets remain underutilized because their metadata cannot be efficiently standardized for computational analysis.
 
-Also add for the .env setup how and where to get an API key for openAI
+This presents a significant bottleneck: thousands of valuable ChIP-seq experiments sit in public repositories with inconsistent or incomplete metadata annotations, preventing researchers from leveraging these datasets for meta-analyses, comparative studies, and broader biological insights. CistromeMetaX addresses this critical gap by utilizing advanced language models to automatically extract and verify key metadata values, enabling the standardization and integration of diverse ChIP-seq datasets for powerful data-driven discoveries.
 
-Also reflect a more robust instruction for how to use this functionality in both the python script or in the console. I added a anew change to how to use this package I will include that below.
-
-Also please highlight what the expected output of this funciton is in markdown.
-
-Oh also provide a link to what an xml file might look like in a .txt file, have this be linked to as a github page
 ---
-# NAME IDEAS
-- CistromeGEOX
-- CistromeParser
-- GEOMetaX
-- CistromeGEOlator
-- GEOParseAI
-- GEO2Cistrome
-- CistromeMeta
-
 
 ## Table of Contents
 
@@ -36,10 +19,10 @@ Oh also provide a link to what an xml file might look like in a .txt file, have 
 - [Usage](#usage)
   - [Command Line Interface](#command-line-interface)
   - [Python Interface](#python-interface)
+- [Input File Structure](#input-file-structure)
+- [Expected Output](#expected-output)
+- [Generating Input Files](#generating-input-files)
 - [Changelog](#changelog)
-  - [Removed](#removed)
-  - [Changed](#changed)
-  - [Added](#added)
 - [Future Goals](#future-goals)
 - [References](#references)
 - [Support](#support)
@@ -48,13 +31,15 @@ Oh also provide a link to what an xml file might look like in a .txt file, have 
 
 ## About
 
-GEOMetaX streamlines the extraction of critical metadata such as experimental factors and ontologies from GEO (Gene Expression Omnibus) XML files using LLMs. It is designed to integrate with existing bioinformatics pipelines, providing highly accurate and consistent outputs suitable for resources like Cistrome.
+CistromeMetaX streamlines the extraction of critical metadata from ChIP-seq experiments, including experimental factors, cell types, tissues, and target proteins from GEO (Gene Expression Omnibus) XML files. Unlike other metadata extraction tools, CistromeMetaX is built on native ChatGPT OpenAI functionality and requires no model training or specialized setup. The package validates its LLM outputs against established databases to ensure extracted cell types, tissues, cell lines, and target proteins are biologically valid and standardized.
+
+The tool is designed to integrate seamlessly with existing bioinformatics pipelines, providing highly accurate and consistent outputs suitable for resources like Cistrome and other ChIP-seq analysis platforms.
 
 ---
 
 ## The Model
 
-This package utilizes the OpenAI GPT models under the hood. It performs semantic parsing and context-aware extraction to generate structured metadata. The results are optimized for minimal post-processing and can be fed directly into downstream databases or tools.
+This package utilizes OpenAI's GPT models through their native API. It performs semantic parsing and context-aware extraction to generate structured metadata from ChIP-seq experiment descriptions. The results are validated against established biological databases and optimized for minimal post-processing, allowing direct integration into downstream databases or analytical tools.
 
 ---
 
@@ -71,7 +56,7 @@ This package utilizes the OpenAI GPT models under the hood. It performs semantic
 Install the package directly from GitHub:
 
 ```bash
-pip install git+https://github.com/nickpiccaro/GEOMetaX.git
+pip install git+https://github.com/nickpiccaro/CistromeMetaX.git
 ```
 
 ### Setup Instructions
@@ -79,7 +64,7 @@ pip install git+https://github.com/nickpiccaro/GEOMetaX.git
 1. **Create a virtual environment** using Python 3:
 
     ```bash
-    python3 -m venv envGEOMetaX
+    python3 -m venv envCistromeMetaX
     ```
 
 2. **Activate the virtual environment**:
@@ -87,16 +72,23 @@ pip install git+https://github.com/nickpiccaro/GEOMetaX.git
     - **Bash**:
 
       ```bash
-      source envGEOMetaX/Scripts/activate
+      source envCistromeMetaX/Scripts/activate
       ```
 
     - **PowerShell**:
 
       ```powershell
-      .\envGEOMetaX\Scripts\Activate
+      .\envCistromeMetaX\Scripts\Activate
       ```
 
-3. **Add your OpenAI API Key** to a `.env` file in your project directory:
+3. **Get your OpenAI API Key**:
+   - Visit [OpenAI's API platform](https://platform.openai.com/api-keys)
+   - Sign up or log in to your account
+   - Navigate to "API Keys" in your dashboard
+   - Click "Create new secret key"
+   - Copy the generated key (it will only be shown once)
+
+4. **Add your OpenAI API Key** to a `.env` file in your project directory:
 
     ```
     OPENAI_API_KEY=your_openai_api_key_here
@@ -108,120 +100,246 @@ pip install git+https://github.com/nickpiccaro/GEOMetaX.git
 
 ### Command Line Interface
 
-You can use the following CLI commands after installation:
-https://docs.python.org/3/library/argparse.html
--add a save flag
+The new streamlined CLI command uses JSON configuration files for batch processing:
+
 ```bash
-geoMX-update_data
-geoMX-factor_extract_one GSM_FILE GSE_FILE1 [GSE_FILE2 ...]
-geoMX-ontology_extract_one GSM_FILE GSE_FILE1 [GSE_FILE2 ...]
-geoMX-factor_extract_multiple JSON_FILE
-geoMX-ontology_extract_multiple JSON_FILE
-geoMX-extract_all JSON_FILE
+geoMX-extract --mode [factor|ontology|both] --gsm-ids GSM_IDS_INPUT --gsm-to-gse GSM_TO_GSE_FILE --gsm-paths GSM_PATHS_FILE --gse-paths GSE_PATHS_FILE [--output OUTPUT_FILE] [--verbose]
 ```
 
-#### CLI Command Descriptions
+#### CLI Arguments
 
-- `geoMX-update_data`  
-  Updates internal ontology and factor data. Not required unless upstream sources are updated.
-
-- `geoMX-factor_extract_one GSM_FILE GSE_FILE1 [GSE_FILE2 ...]`  
-  Extracts factors for a single GSM file and its associated GSE files.
-
-- `geoMX-ontology_extract_one GSM_FILE GSE_FILE1 [GSE_FILE2 ...]`  
-  Extracts ontology terms for a single GSM file and its associated GSE files.
-
-- `geoMX-factor_extract_multiple JSON_FILE`  
-  Extracts factors from multiple files listed in a JSON object.
-
-- `geoMX-ontology_extract_multiple JSON_FILE`  
-  Extracts ontology terms from multiple files listed in a JSON object.
-
-- `geoMX-extract_all JSON_FILE`  
-  Extracts both factors and ontology terms from multiple files via JSON.
+- `--mode`: Extraction mode
+  - `factor`: Extract experimental factors only
+  - `ontology`: Extract cell types and tissues only  
+  - `both`: Extract both factors and cell types/tissues
+- `--gsm-ids`: GSM IDs input (JSON file path or JSON string)
+- `--gsm-to-gse`: Path to JSON file mapping GSM IDs to GSE IDs
+- `--gsm-paths`: Path to JSON file mapping GSM IDs to file paths
+- `--gse-paths`: Path to JSON file mapping GSE IDs to file paths
+- `--output, -o`: Optional output file path (prints to stdout if not specified)
+- `--verbose, -v`: Enable verbose output
 
 #### Example Usage
-```bash
-geoMX-factor_extract_one "path/to/GSM353611.xml" "path/to/GSE14097.xml" "path/to/GSE14092.xml"
-```
 
 ```bash
-geoMX-ontology_extract_multiple "path/to/many_GSMs.json"
-```
-##### JSON Input Format for CLI (for `*_multiple` or `extract_all` commands)
-```json
-[
-    {
-        "gsm_file_path": "path/to/GSM353611.xml",
-        "gse_file_paths": [
-            "path/to/GSE14097.xml",
-            "path/to/GSE14092.xml"
-        ]
-    },
-    {
-        "gsm_file_path": "path/to/GSM353617.xml",
-        "gse_file_paths": []
-    },
-    {
-        "gsm_file_path": "path/to/GSM448027.xml",
-        "gse_file_paths": [
-            "path/to/GSE17937.xml"
-        ]
-    }
-]
+# Extract only factors
+geoMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+
+# Extract cell types and tissues, save to file
+geoMX-extract --mode ontology --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --output results/cell_types.json
+
+# Extract both factors and cell types/tissues
+geoMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json -o combined_results.json
+
+# Pass GSM IDs directly as JSON string
+geoMX-extract --mode factor --gsm-ids '["GSM123456", "GSM789012"]' --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
 ```
 
 ---
 
 ### Python Interface
 
-You can also use GEOMetaX directly within your Python scripts:
+You can use CistromeMetaX directly within your Python scripts:
 
 ```python
-from GEOMetaX import meta_extract_ontology, meta_extract_factor, meta_extract_factors, meta_extract_ontologies, meta_extract_factors_and_ontologies
+from CistromeMetaX import meta_extract_factors, meta_extract_ontologies, meta_extract_factors_and_ontologies
 import json
 
-# Single extraction example
-gsm_file_path = 'GSM669931/GSM/GSM669931.xml'
-gse_file_paths = ["GSM669931/GSE/GSE14097.xml"]
+# Example 1: Extract both factors and cell types/tissues using file paths
+result = meta_extract_factors_and_ontologies(
+    gsm_ids_input="metadata/gsm_ids.json",
+    gsm_to_gse_path="metadata/gsm_to_gse.json", 
+    gsm_paths_path="metadata/gsm_paths.json",
+    gse_paths_path="metadata/gse_paths.json"
+)
 
-result1 = meta_extract_factor(gsm_file_path, gse_file_paths)
-with open("test.json", 'w') as f:
-    json.dump(result1, f, indent=4)
-print(result1)
-
-# Batch extraction example using JSON input
-json_file_path = 'json_test.json'
-result = meta_extract_ontologies(json_file_path)
-with open("test_output.json", 'w') as f:
+with open("full_results.json", 'w') as f:
     json.dump(result, f, indent=4)
 print(result)
+
+# Example 2: Extract factors only using direct GSM ID list
+gsm_ids_input = ["GSM669931", "GSM1006151"]
+result_factors = meta_extract_factors(
+    gsm_ids_input=gsm_ids_input,
+    gsm_to_gse_path="metadata/gsm_to_gse.json", 
+    gsm_paths_path="metadata/gsm_paths.json",
+    gse_paths_path="metadata/gse_paths.json"
+)
+
+# Example 3: Extract cell types and tissues only
+result_ontologies = meta_extract_ontologies(
+    gsm_ids_input="metadata/gsm_ids.json",
+    gsm_to_gse_path="metadata/gsm_to_gse.json", 
+    gsm_paths_path="metadata/gsm_paths.json",
+    gse_paths_path="metadata/gse_paths.json"
+)
+```
+
+---
+
+## Input File Structure
+
+CistromeMetaX requires four JSON configuration files to process your ChIP-seq metadata:
+
+### 1. GSM IDs File (`gsm_ids.json`)
+List of GSM identifiers to process:
+```json
+[
+  "GSM1006151",
+  "GSM1007988",
+  "GSM1009641",
+  "GSM1013129"
+]
+```
+
+### 2. GSM to GSE Mapping (`gsm_to_gse.json`)
+Maps each GSM to its associated GSE experiments:
+```json
+{
+  "GSM1006151": [
+    "GSE40970",
+    "GSE40972"
+  ],
+  "GSM1007988": [
+    "GSE41048",
+    "GSE41050"
+  ],
+  "GSM1009641": [
+    "GSE41166"
+  ]
+}
+```
+
+### 3. GSM File Paths (`gsm_paths.json`)
+Maps GSM IDs to their XML file locations:
+```json
+{
+  "GSM1006151": "path/to/GSM1006151.xml",
+  "GSM1007988": "path/to/GSM1007988.xml",
+  "GSM1009641": "path/to/GSM1009641.xml"
+}
+```
+
+### 4. GSE File Paths (`gse_paths.json`)
+Maps GSE IDs to their XML file locations:
+```json
+{
+  "GSE40970": "path/to/GSE40970.xml",
+  "GSE40972": "path/to/GSE40972.xml",
+  "GSE41048": "path/to/GSE41048.xml",
+  "GSE41050": "path/to/GSE41050.xml"
+}
+```
+
+**Example GEO XML File**: You can view an example of what a GEO XML file looks like [here](https://github.com/nickpiccaro/example-geo-xml/blob/main/sample_gsm.txt).
+
+---
+
+## Expected Output
+
+CistromeMetaX produces structured JSON output containing extracted and validated metadata:
+
+### Factor Extraction Output
+# SCRUB FIX
+```json
+{
+  "GSM1006151": {
+    "target_protein": "H3K4me3",
+    "experimental_factors": {
+      "treatment": "control",
+      "time_point": "24h",
+      "replicate": "biological_replicate_1"
+    },
+    "validation_status": "validated"
+  }
+}
+```
+
+### Cell Type/Tissue Extraction Output  
+```json
+{
+  "GSM1006151": {
+    "cell_type": "HeLa",
+    "tissue": "cervical_epithelium", 
+    "cell_line": "HeLa",
+    "organism": "Homo sapiens",
+    "validation_status": "validated"
+  }
+}
+```
+
+### Combined Output (Both Mode)
+```json
+{
+  "GSM1006151": {
+    "target_protein": "H3K4me3",
+    "cell_type": "HeLa",
+    "tissue": "cervical_epithelium",
+    "cell_line": "HeLa",
+    "organism": "Homo sapiens",
+    "experimental_factors": {
+      "treatment": "control",
+      "time_point": "24h"
+    },
+    "validation_status": "validated"
+  }
+}
+```
+
+---
+
+## Generating Input Files
+
+If you need to create the required JSON input files from your existing data structure, use this AI prompt to generate a custom Python function:
+
+### AI Prompt Template
+
+```
+I need to create JSON configuration files for CistromeMetaX from my existing ChIP-seq data organization. 
+
+**My current data structure:**
+[Describe how your GSM and GSE XML files are currently organized, including directory structure and naming conventions]
+
+**Required output files:**
+1. gsm_ids.json - Array of GSM identifiers: ["GSM123", "GSM456", ...]
+2. gsm_to_gse.json - Object mapping GSM to GSE arrays: {"GSM123": ["GSE789"], ...}  
+3. gsm_paths.json - Object mapping GSM IDs to XML file paths: {"GSM123": "path/to/GSM123.xml", ...}
+4. gse_paths.json - Object mapping GSE IDs to XML file paths: {"GSE789": "path/to/GSE789.xml", ...}
+
+Please generate a Python function that reads my data structure and creates these four JSON files with the correct format for CistromeMetaX.
 ```
 
 ---
 
 ## Changelog
 
-### Removed
+### Added
 
-- _To be added in future versions_
+- (5/29/25) New streamlined CLI interface with JSON configuration files
+- (5/29/25) Support for direct GSM ID list input in Python interface
+- (5/29/25) Enhanced validation against biological databases
+- (5/29/25) ChIP-seq specific metadata extraction optimizations
+- (5/22/25) Initial CLI and Python interface for cell type/tissue extraction
+- (5/22/25) Support for batch JSON-based parsing
 
 ### Changed
 
-- _To be added in future versions_
+- (5/29/25) Renamed package from GEOMetaX to CistromeMetaX
+- (5/29/25) Updated terminology from "ontology" to "cell types and tissues"
+- (5/29/25) Restructured CLI to use JSON configuration files
 
-### Added
+### Removed
 
-- (5/22/25) Initial CLI and Python interface for ontology/factor extraction
-- (5/22/25) Support for batch JSON-based parsing
+- (5/29/25) Legacy CLI commands (replaced with unified `geoMX-extract`)
 
 ---
 
 ## Future Goals
 
 - Expand LLM support to other providers (e.g., Claude, Mistral)
-- Support async batch processing
-- General validation/debugging
+- Support async batch processing for large-scale datasets
+- Real-time metadata quality assessment
+- Extract additional features (e.g., chemical and experimental modifications)
 
 ---
 
@@ -230,39 +348,17 @@ print(result)
 - [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)
 - [Cistrome Data Browser](https://db3.cistrome.org/browser/)
 - [OpenAI GPT Models](https://platform.openai.com/docs)
-- [NCBI Gene](https://www.ncbi.nlm.nih.gov/gene/) Gene/Target Protein Validation
-- [Harmonize 3.0](https://maayanlab.cloud/Harmonizome) Chromatin Remodelers Validation Data
-- [AnimalTFDB v4.0](https://guolab.wchscu.cn/AnimalTFDB4//#/) Animal Transcription Factor Database
-- [Cellosaurus](https://www.cellosaurus.org/) Cell line Database
-- [EFO](https://github.com/EBISPOT/efo/?tab=readme-ov-file) Ontology Database
-- [Uberon](https://obophenotype.github.io/uberon/) Ontology Database
+- [NCBI Gene](https://www.ncbi.nlm.nih.gov/gene/) - Gene/Target Protein Validation
+- [Harmonize 3.0](https://maayanlab.cloud/Harmonizome) - Chromatin Remodelers Validation Data
+- [AnimalTFDB v4.0](https://guolab.wchscu.cn/AnimalTFDB4//#/) - Animal Transcription Factor Database
+- [Cellosaurus](https://www.cellosaurus.org/) - Cell Line Database
+- [EFO](https://github.com/EBISPOT/efo/?tab=readme-ov-file) - Experimental Factor Ontology Database
+- [Uberon](https://obophenotype.github.io/uberon/) - Anatomical Ontology Database
+
 ---
 
 ## Support
 
-For issues, please reach out via email at nickpiccaro [at] gmail [dot] com.
+For issues, questions, or feature requests, please reach out via email at npiccaro [dot] business [at] gmail [dot] com.
 
 ---
-```
-
-# Extract only factors and print to console
-geoMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
-
-# Extract ontologies and save to file
-geoMX-extract --mode ontology --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --output results/ontologies.json
-
-# Extract both factors and ontologies, save to file
-geoMX-extract --mode both --gsm-ids "['GSM123456', 'GSM789012']" --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json -o combined_results.json
-
-How to View the Epilog
-Assuming your setup.py has been correctly installed and GEOMetaX is available in your environment, you can view the epilog by running your command with the standard help flags:
-
-Bash
-
-geoMX-extract --help
-or
-
-Bash
-
-geoMX-extract -h
-What Happens When You Run It

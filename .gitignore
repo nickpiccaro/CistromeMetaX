@@ -1,6 +1,6 @@
 # Ignore data directories
-GEOMetaX/data/unparsed_factor_data/
-GEOMetaX/data/unparsed_ontology_data/
+CistromeMetaX/data/unparsed_factor_data/
+CistromeMetaX/data/unparsed_ontology_data/
 # Ignore Python cache
 __pycache__/
 *.pyc

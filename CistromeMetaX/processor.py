@@ -378,7 +378,7 @@ def build_index_uberon(data, remove_words=False, fuzzy=False):
 
 def process_data():
     """Processes all downloaded files, extracting relevant data and saving to parsed directories."""
-    print("GEOMetaX | Processing data...")
+    print("CistromeMetaX | Processing data...")
 
     error_occured = False
 
@@ -433,7 +433,7 @@ def process_data():
         # Paths
         gene_gz = unparsed_factor_dir / "gene_info.gz"
         gene_csv = parsed_factor_dir / "gene_info.csv"
-        gene_ids_path = Path("GEOMetaX") / "gene_ids.npy"
+        gene_ids_path = Path("CistromeMetaX") / "gene_ids.npy"
 
         if gene_gz.exists() and gene_ids_path.exists():
             # Load valid GeneIDs into a set for fast lookup
@@ -485,7 +485,7 @@ def process_data():
             delete_folder(unparsed_ontology_dir)
         except Exception as e:
             print(f"Error deleting Unparsed Ontology Directory: {e}")
-    print("GEOMetaX | Data processing complete.")
+    print("CistromeMetaX | Data processing complete.")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="GEOMetaX",
-    version="0.1.0",
+    name="CistromeMetaX",
+    version="0.1.1",
     packages=find_packages(),
     install_requires=[
         "requests",
@@ -16,11 +16,11 @@ setup(
         "langchain_experimental"
     ],
     include_package_data=True,
-    package_data={"GEOMetaX": ["data/**/*"]},
+    package_data={"CistromeMetaX": ["data/**/*"]},
     entry_points={
         "console_scripts": [
-            "geoMX-update_data=GEOMetaX.cli:update_data",
-            "geoMX-extract=GEOMetaX.cli:meta_extract",
+            "cistromeMX-update_data=CistromeMetaX.cli:update_data",
+            "cistromeMX-extract=CistromeMetaX.cli:meta_extract",
         ],
     },
 )
