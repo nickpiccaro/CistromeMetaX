@@ -329,15 +329,13 @@ def _format_output_structure(gsm_id, extracted_factor=None, extracted_ontology=N
         result[gsm_id]["factor"] = {"extracted_factor": extracted_factor}
     
     if extracted_ontology is not None:
-        # Ensure the ontology structure matches expected format
-        ontology_data = extracted_ontology.get("extracted", {}) if isinstance(extracted_ontology, dict) else {}
-        
+        # Handle the ontology data - use validated terms if available, otherwise fall back to "N/A"
         result[gsm_id]["ontology"] = {
             "extracted_ontologies": {
-                "cell_line": ontology_data.get("cell_line", []) if ontology_data.get("cell_line") else [],
-                "cell_type": ontology_data.get("cell_type", []) if ontology_data.get("cell_type") else [],
-                "tissue": ontology_data.get("tissue", []) if ontology_data.get("tissue") else [],
-                "disease": ontology_data.get("disease", []) if ontology_data.get("disease") else []
+                "cell_line": extracted_ontology.get("cell_line") if extracted_ontology.get("cell_line") is not None else "N/A",
+                "cell_type": extracted_ontology.get("cell_type") if extracted_ontology.get("cell_type") is not None else "N/A", 
+                "tissue": extracted_ontology.get("tissue") if extracted_ontology.get("tissue") is not None else "N/A",
+                "disease": extracted_ontology.get("disease") if extracted_ontology.get("disease") is not None else "N/A"
             }
         }
     
@@ -2462,7 +2460,6 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
                 cellosaurus_reduce, efo_reduce, uberon_reduce,
                 cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy
             )
-            print(f"Extracted ontology for {gsm_id}: {result}")
             if result:
                 formatted_result = _format_output_structure(
                     gsm_id, 
