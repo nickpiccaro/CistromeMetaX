@@ -240,7 +240,6 @@ Maps GSE IDs to their XML file locations:
 CistromeMetaX produces structured JSON output containing extracted and validated metadata:
 
 ### Factor Extraction Output
-# SCRUB FIX
 ```json
 {
   "GSM1007988": {
