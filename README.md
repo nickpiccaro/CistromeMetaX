@@ -16,6 +16,7 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 - [The Model](#the-model)
 - [Requirements](#requirements)
 - [Installation](#installation)
+- [Model Configuration](#model-configuration)
 - [Usage](#usage)
   - [Command Line Interface](#command-line-interface)
   - [Python Interface](#python-interface)
@@ -31,7 +32,7 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 
 ## About
 
-CistromeMetaX streamlines the extraction of critical metadata from ChIP-seq experiments, including experimental factors, cell types, tissues, and target proteins from GEO (Gene Expression Omnibus) XML files. Unlike other metadata extraction tools, CistromeMetaX is built on native ChatGPT OpenAI functionality and requires no model training or specialized setup. The package validates its LLM outputs against established databases to ensure extracted cell types, tissues, cell lines, and target proteins are biologically valid and standardized.
+CistromeMetaX streamlines the extraction of critical metadata from ChIP-seq experiments, including experimental factors, cell types, tissues, and target proteins from GEO (Gene Expression Omnibus) XML files. CistromeMetaX supports multiple LLM providers out of the box and requires no model training or specialized setup. The package validates its LLM outputs against established databases to ensure extracted cell types, tissues, cell lines, and target proteins are biologically valid and standardized.
 
 The tool is designed to integrate seamlessly with existing bioinformatics pipelines, providing highly accurate and consistent outputs suitable for resources like Cistrome and other ChIP-seq analysis platforms.
 
@@ -39,14 +40,16 @@ The tool is designed to integrate seamlessly with existing bioinformatics pipeli
 
 ## The Model
 
-This package utilizes OpenAI's GPT models through their native API. It performs semantic parsing and context-aware extraction to generate structured metadata from ChIP-seq experiment descriptions. The results are validated against established biological databases and optimized for minimal post-processing, allowing direct integration into downstream databases or analytical tools.
+CistromeMetaX uses [LangChain's `init_chat_model`](https://python.langchain.com/docs/how_to/chat_models_universal_init/) to provide a unified interface across LLM providers. It performs semantic parsing and context-aware extraction to generate structured metadata from ChIP-seq experiment descriptions. The results are validated against established biological databases and optimized for minimal post-processing, allowing direct integration into downstream databases or analytical tools.
+
+By default, CistromeMetaX uses OpenAI's `gpt-4o-mini`, but you can use any supported LLM provider by specifying the `--model` flag on the CLI or passing the `model` parameter in the Python API.
 
 ---
 
 ## Requirements
 
 - Python 3.6+
-- OpenAI API Key
+- An API key for at least one supported LLM provider
 - Virtual environment (recommended)
 
 ---
@@ -81,14 +84,13 @@ pip install git+https://github.com/nickpiccaro/CistromeMetaX.git
       .\envCistromeMetaX\Scripts\Activate
       ```
 
-3. **Get your OpenAI API Key**:
-   - Visit [OpenAI's API platform](https://platform.openai.com/api-keys)
-   - Sign up or log in to your account
-   - Navigate to "API Keys" in your dashboard
-   - Click "Create new secret key"
-   - Copy the generated key (it will only be shown once)
+3. **Install CistromeMetaX**:
 
-4. **Add your OpenAI API Key** to a `.env` file in your project directory:
+    ```bash
+    pip install git+https://github.com/nickpiccaro/CistromeMetaX.git
+    ```
+
+4. **Add your API key(s)** to a `.env` file in your project directory (see [Model Configuration](#model-configuration) below):
 
     ```
     OPENAI_API_KEY=your_openai_api_key_here
@@ -96,14 +98,68 @@ pip install git+https://github.com/nickpiccaro/CistromeMetaX.git
 
 ---
 
+## Model Configuration
+
+### Supported Providers (Pre-installed)
+
+CistromeMetaX ships with LangChain integration packages for the following providers — no additional installation required:
+
+| Provider | Model String Example | Required Env Variable | Get an API Key |
+|----------|---------------------|-----------------------|----------------|
+| **OpenAI** (default) | `openai:gpt-4o-mini` | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com/api-keys) |
+| **Anthropic** | `anthropic:claude-sonnet-4-5-20250929` | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com/) |
+| **Google GenAI** | `google_genai:gemini-2.5-flash` | `GOOGLE_API_KEY` | [aistudio.google.com](https://aistudio.google.com/apikey) |
+| **Mistral AI** | `mistralai:mistral-large-latest` | `MISTRAL_API_KEY` | [console.mistral.ai](https://console.mistral.ai/) |
+| **DeepSeek** | `deepseek:deepseek-chat` | `DEEPSEEK_API_KEY` | [platform.deepseek.com](https://platform.deepseek.com/) |
+
+### Using Additional Providers
+
+CistromeMetaX supports any LLM provider that has a LangChain chat model integration package. To use a provider not listed above, simply install its package into your environment:
+
+```bash
+pip install langchain-<provider>
+```
+
+Then pass its model string to the `--model` flag or `model` parameter as usual. For a full list of supported providers and their model strings, see the [LangChain Chat Model Integrations](https://docs.langchain.com/oss/python/integrations/chat) page.
+
+### Model String Format
+
+Models are specified in `provider:model_name` format. If no model is specified, CistromeMetaX defaults to `openai:gpt-4o-mini`.
+
+```
+openai:gpt-4o-mini                       # OpenAI GPT-4o Mini (default)
+openai:gpt-4o                            # OpenAI GPT-4o
+anthropic:claude-sonnet-4-5-20250929     # Anthropic Claude Sonnet
+google_genai:gemini-2.5-flash            # Google Gemini Flash
+mistralai:mistral-large-latest            # Mistral Large
+deepseek:deepseek-chat                    # DeepSeek Chat
+```
+
+### Setting Up Your API Keys
+
+Create a `.env` file in your project directory with the API key(s) for the provider(s) you plan to use. You only need to set the key for the provider you're actively using:
+
+```env
+# Required for default usage (OpenAI)
+OPENAI_API_KEY=sk-proj-your-key-here
+
+# Optional — only needed if you use these providers
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+GOOGLE_API_KEY=your-google-key-here
+MISTRAL_API_KEY=your-mistral-key-here
+DEEPSEEK_API_KEY=your-deepseek-key-here
+```
+
+---
+
 ## Usage
 
 ### Command Line Interface
 
-The new streamlined CLI command uses JSON configuration files for batch processing:
+The CLI command uses JSON configuration files for batch processing:
 
 ```bash
-geoMX-extract --mode [factor|ontology|both] --gsm-ids GSM_IDS_INPUT --gsm-to-gse GSM_TO_GSE_FILE --gsm-paths GSM_PATHS_FILE --gse-paths GSE_PATHS_FILE [--output OUTPUT_FILE] [--verbose]
+geoMX-extract --mode [factor|ontology|both] --gsm-ids GSM_IDS_INPUT --gsm-to-gse GSM_TO_GSE_FILE --gsm-paths GSM_PATHS_FILE --gse-paths GSE_PATHS_FILE [--model MODEL] [--output OUTPUT_FILE] [--verbose]
 ```
 
 #### CLI Arguments
@@ -116,36 +172,56 @@ geoMX-extract --mode [factor|ontology|both] --gsm-ids GSM_IDS_INPUT --gsm-to-gse
 - `--gsm-to-gse`: Path to JSON file mapping GSM IDs to GSE IDs
 - `--gsm-paths`: Path to JSON file mapping GSM IDs to file paths
 - `--gse-paths`: Path to JSON file mapping GSE IDs to file paths
+- `--model, -m`: LLM model in `provider:model_name` format (default: `openai:gpt-4o-mini`)
 - `--output, -o`: Optional output file path (prints to stdout if not specified)
 - `--verbose, -v`: Enable verbose output
 
 #### Example Usage
 
 ```bash
-# Extract only factors
-geoMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+# Extract both factors and ontologies (default model: openai:gpt-4o-mini)
+geoMX-extract --mode both \
+  --gsm-ids gsm_ids.json \
+  --gsm-to-gse mappings/gsm_to_gse.json \
+  --gsm-paths mappings/gsm_paths.json \
+  --gse-paths mappings/gse_paths.json \
+  -o results.json
 
-# Extract cell types and tissues, save to file
-geoMX-extract --mode ontology --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --output results/cell_types.json
+# Use Anthropic Claude
+geoMX-extract --mode both \
+  --gsm-ids gsm_ids.json \
+  --gsm-to-gse mappings/gsm_to_gse.json \
+  --gsm-paths mappings/gsm_paths.json \
+  --gse-paths mappings/gse_paths.json \
+  --model anthropic:claude-sonnet-4-5-20250929
 
-# Extract both factors and cell types/tissues
-geoMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json -o combined_results.json
+# Use Google Gemini for factor extraction only
+geoMX-extract --mode factor \
+  --gsm-ids gsm_ids.json \
+  --gsm-to-gse mappings/gsm_to_gse.json \
+  --gsm-paths mappings/gsm_paths.json \
+  --gse-paths mappings/gse_paths.json \
+  -m google_genai:gemini-2.5-flash
 
 # Pass GSM IDs directly as JSON string
-geoMX-extract --mode factor --gsm-ids '["GSM123456", "GSM789012"]' --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+geoMX-extract --mode factor \
+  --gsm-ids '["GSM123456", "GSM789012"]' \
+  --gsm-to-gse mappings/gsm_to_gse.json \
+  --gsm-paths mappings/gsm_paths.json \
+  --gse-paths mappings/gse_paths.json
 ```
 
 ---
 
 ### Python Interface
 
-You can use CistromeMetaX directly within your Python scripts:
+You can use CistromeMetaX directly within your Python scripts. All extraction functions accept an optional `model` parameter:
 
 ```python
 from CistromeMetaX import meta_extract_factors, meta_extract_ontologies, meta_extract_factors_and_ontologies
 import json
 
-# Example 1: Extract both factors and cell types/tissues using file paths
+# Example 1: Extract both factors and cell types/tissues (default model)
 result = meta_extract_factors_and_ontologies(
     gsm_ids_input="metadata/gsm_ids.json",
     gsm_to_gse_path="metadata/gsm_to_gse.json", 
@@ -155,18 +231,27 @@ result = meta_extract_factors_and_ontologies(
 
 with open("full_results.json", 'w') as f:
     json.dump(result, f, indent=4)
-print(result)
 
-# Example 2: Extract factors only using direct GSM ID list
+# Example 2: Use Anthropic Claude
+result = meta_extract_factors_and_ontologies(
+    gsm_ids_input="metadata/gsm_ids.json",
+    gsm_to_gse_path="metadata/gsm_to_gse.json", 
+    gsm_paths_path="metadata/gsm_paths.json",
+    gse_paths_path="metadata/gse_paths.json",
+    model="anthropic:claude-sonnet-4-5-20250929"
+)
+
+# Example 3: Extract factors only with Google Gemini
 gsm_ids_input = ["GSM669931", "GSM1006151"]
 result_factors = meta_extract_factors(
     gsm_ids_input=gsm_ids_input,
     gsm_to_gse_path="metadata/gsm_to_gse.json", 
     gsm_paths_path="metadata/gsm_paths.json",
-    gse_paths_path="metadata/gse_paths.json"
+    gse_paths_path="metadata/gse_paths.json",
+    model="google_genai:gemini-2.5-flash"
 )
 
-# Example 3: Extract cell types and tissues only
+# Example 4: Extract cell types and tissues only (default model)
 result_ontologies = meta_extract_ontologies(
     gsm_ids_input="metadata/gsm_ids.json",
     gsm_to_gse_path="metadata/gsm_to_gse.json", 
@@ -357,7 +442,6 @@ CistromeMetaX produces structured JSON output containing extracted and validated
       }
   }
 }
-
 ```
 
 ---
@@ -389,6 +473,10 @@ Please generate a Python function that reads my data structure and creates these
 
 ### Added
 
+- (6/01/25) **Multi-model support** — use any LangChain-compatible LLM provider (OpenAI, Anthropic, Google, Mistral, DeepSeek, and more)
+- (6/01/25) New `--model` / `-m` CLI flag to select the LLM provider and model
+- (6/01/25) Robust LLM response parsing that handles variations across providers (markdown-fenced JSON, text preamble, Python-style lists)
+- (6/01/25) Pre-installed integration packages for OpenAI, Anthropic, Google GenAI, Mistral, and DeepSeek
 - (5/29/25) New streamlined CLI interface with JSON configuration files
 - (5/29/25) Support for direct GSM ID list input in Python interface
 - (5/29/25) Enhanced validation against biological databases
@@ -398,19 +486,22 @@ Please generate a Python function that reads my data structure and creates these
 
 ### Changed
 
+- (6/01/25) Replaced hardcoded `ChatOpenAI` with LangChain's `init_chat_model` for universal provider support
+- (6/01/25) All extraction functions now accept an optional `model` parameter
+- (6/01/25) Updated `requirements.txt` with multi-provider LangChain packages
 - (5/29/25) Renamed package from GEOMetaX to CistromeMetaX
 - (5/29/25) Updated terminology from "ontology" to "cell types and tissues"
 - (5/29/25) Restructured CLI to use JSON configuration files
 
 ### Removed
 
+- (6/01/25) Direct dependency on `langchain-openai` as the sole LLM provider
 - (5/29/25) Legacy CLI commands (replaced with unified `geoMX-extract`)
 
 ---
 
 ## Future Goals
 
-- Expand LLM support to other providers (e.g., Claude, Mistral)
 - Support async batch processing for large-scale datasets
 - Real-time metadata quality assessment
 - Extract additional features (e.g., chemical and experimental modifications)
@@ -421,7 +512,7 @@ Please generate a Python function that reads my data structure and creates these
 
 - [NCBI GEO](https://www.ncbi.nlm.nih.gov/geo/)
 - [Cistrome Data Browser](https://db3.cistrome.org/browser/)
-- [OpenAI GPT Models](https://platform.openai.com/docs)
+- [LangChain Chat Model Integrations](https://docs.langchain.com/oss/python/integrations/chat)
 - [NCBI Gene](https://www.ncbi.nlm.nih.gov/gene/) - Gene/Target Protein Validation
 - [Harmonize 3.0](https://maayanlab.cloud/Harmonizome) - Chromatin Remodelers Validation Data
 - [AnimalTFDB v4.0](https://guolab.wchscu.cn/AnimalTFDB4//#/) - Animal Transcription Factor Database

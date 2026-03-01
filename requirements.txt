@@ -8,3 +8,9 @@ langchain_experimental
 langchain_openai
 langchain-community
 langchain
+langchain-openai
+langchain-anthropic
+langchain-google-genai
+langchain-mistralai
+langchain-deepseek
+python-dotenv

@@ -9,9 +9,183 @@ from pathlib import Path
 from rapidfuzz import fuzz
 from pydantic import BaseModel, Field
 
-from langchain_openai import ChatOpenAI
+from langchain.chat_models import init_chat_model
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 from langchain.prompts import ChatPromptTemplate
+
+# Default model used when no model is specified
+_DEFAULT_MODEL = "openai:gpt-4o-mini"
+
+
+def _init_llm(model=None):
+    """
+    Initialize a chat model using langchain's init_chat_model.
+    
+    Args:
+        model (str, optional): Model identifier in the format "provider:model_name"
+            (e.g., "openai:gpt-4o-mini", "anthropic:claude-sonnet-4-5-20250929").
+            If only a model name is provided, the provider will be inferred.
+            Defaults to "openai:gpt-4o-mini" if None.
+    
+    Returns:
+        BaseChatModel: An initialized chat model instance.
+    
+    Raises:
+        ValueError: If the model or provider is invalid.
+        RuntimeError: If the required API key is missing or authentication fails.
+    """
+    model = model or _DEFAULT_MODEL
+    
+    try:
+        llm = init_chat_model(model, temperature=0)
+        return llm
+    except ImportError as e:
+        # Missing provider package (e.g., langchain-anthropic not installed)
+        provider = model.split(":")[0] if ":" in model else "unknown"
+        raise ImportError(
+            f"The integration package for provider '{provider}' is not installed. "
+            f"Please install it (e.g., 'pip install langchain-{provider}'). "
+            f"Original error: {e}"
+        ) from e
+    except Exception as e:
+        error_msg = str(e).lower()
+        if "api_key" in error_msg or "api key" in error_msg or "authenticate" in error_msg or "auth" in error_msg:
+            provider = model.split(":")[0] if ":" in model else "unknown"
+            raise RuntimeError(
+                f"Authentication failed for model '{model}'. "
+                f"Please ensure the correct API key for '{provider}' is set in your .env file. "
+                f"Common environment variable names: OPENAI_API_KEY, ANTHROPIC_API_KEY, "
+                f"GOOGLE_API_KEY, etc. Original error: {e}"
+            ) from e
+        elif "not found" in error_msg or "invalid" in error_msg or "does not exist" in error_msg:
+            raise ValueError(
+                f"Invalid model '{model}'. Please check the model name and provider. "
+                f"Use the format 'provider:model_name' (e.g., 'openai:gpt-4o-mini', "
+                f"'anthropic:claude-sonnet-4-5-20250929'). Original error: {e}"
+            ) from e
+        else:
+            raise
+
+
+def _parse_llm_json(content):
+    """
+    Robustly parse a JSON object from an LLM response string.
+    
+    Handles common LLM output variations:
+      - Clean JSON: {"factor": "ER", "reasoning": "..."}
+      - Markdown-wrapped: ```json\n{"factor": "ER"}\n```
+      - Text preamble: "Here is the result:\n{"factor": "ER"}"
+    
+    Args:
+        content (str): Raw LLM response content.
+    
+    Returns:
+        dict: Parsed JSON object.
+    
+    Raises:
+        ValueError: If no valid JSON object can be extracted.
+    """
+    if not content or not content.strip():
+        raise ValueError("Empty LLM response")
+    
+    text = content.strip()
+    
+    # 1. Try direct parse first
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    
+    # 2. Strip markdown code fences (```json ... ``` or ``` ... ```)
+    import re
+    fenced = re.search(r'```(?:json)?\s*\n?(.*?)\n?\s*```', text, re.DOTALL)
+    if fenced:
+        try:
+            return json.loads(fenced.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+    
+    # 3. Find the first { ... } block in the text
+    brace_match = re.search(r'\{.*\}', text, re.DOTALL)
+    if brace_match:
+        try:
+            return json.loads(brace_match.group(0))
+        except json.JSONDecodeError:
+            pass
+    
+    raise ValueError(f"Could not parse JSON from LLM response: {text[:200]}")
+
+
+def _parse_llm_list(content):
+    """
+    Robustly parse a JSON list/array from an LLM response string.
+    
+    Handles common LLM output variations:
+      - Clean list: ["synonym1", "synonym2"]
+      - Markdown-wrapped: ```json\n["synonym1"]\n```
+      - Text preamble: "Here are the synonyms:\n["synonym1", "synonym2"]"
+      - Python-style lists with single quotes: ['synonym1', 'synonym2']
+    
+    Args:
+        content (str): Raw LLM response content.
+    
+    Returns:
+        list: Parsed list.
+    
+    Raises:
+        ValueError: If no valid list can be extracted.
+    """
+    if not content or not content.strip():
+        raise ValueError("Empty LLM response")
+    
+    text = content.strip()
+    
+    # 1. Try direct JSON parse
+    try:
+        result = json.loads(text)
+        if isinstance(result, list):
+            return result
+    except json.JSONDecodeError:
+        pass
+    
+    # 2. Strip markdown code fences
+    import re
+    fenced = re.search(r'```(?:json|python)?\s*\n?(.*?)\n?\s*```', text, re.DOTALL)
+    if fenced:
+        inner = fenced.group(1).strip()
+        try:
+            result = json.loads(inner)
+            if isinstance(result, list):
+                return result
+        except json.JSONDecodeError:
+            pass
+        # Try ast.literal_eval for Python-style lists
+        try:
+            result = ast.literal_eval(inner)
+            if isinstance(result, list):
+                return result
+        except (ValueError, SyntaxError):
+            pass
+    
+    # 3. Find the first [ ... ] block in the text
+    bracket_match = re.search(r'\[.*\]', text, re.DOTALL)
+    if bracket_match:
+        candidate = bracket_match.group(0)
+        try:
+            result = json.loads(candidate)
+            if isinstance(result, list):
+                return result
+        except json.JSONDecodeError:
+            pass
+        # Try ast.literal_eval for single-quoted Python lists
+        try:
+            result = ast.literal_eval(candidate)
+            if isinstance(result, list):
+                return result
+        except (ValueError, SyntaxError):
+            pass
+    
+    raise ValueError(f"Could not parse list from LLM response: {text[:200]}")
 
 ### General Functionality ###
 def get_data_dir():
@@ -342,7 +516,7 @@ def _format_output_structure(gsm_id, extracted_factor=None, extracted_ontology=N
     return result
 
 ### Factor Extraction ###
-def is_control(gsm_xml_string):
+def is_control(gsm_xml_string, model=None):
     # Define the instruction and input prompts
     GUIDELINES_PROMPT = (
         """
@@ -397,13 +571,17 @@ def is_control(gsm_xml_string):
 
     try:
         chat_message = setup_messages.format_messages()
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        llm = _init_llm(model)
         res = llm.invoke(chat_message)
-        return res.content.strip()
+        # Extract just "True" or "False" from response, handling models that add extra text
+        content = res.content.strip().lower()
+        if "true" in content:
+            return "True"
+        return "False"
     except Exception as e:
         raise e
 
-def extract_factor(gsm_xml_string, gse_xml_strings):
+def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
     """
     Extracts the transcription factor or target protein being mapped in a ChIP-seq experiment from GSM and GSE XML metadata strings.
 
@@ -661,10 +839,10 @@ def extract_factor(gsm_xml_string, gse_xml_strings):
 
     try:
         chat_message = setup_messages.format_messages()
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        llm = _init_llm(model)
         res = llm.invoke(chat_message)
         res_content = res.content
-        return_dict = json.loads(res_content)
+        return_dict = _parse_llm_json(res_content)
         result = return_dict.get("factor")
         return result
     except Exception as e:
@@ -830,7 +1008,7 @@ def validate_histone_mark(mark):
 
     return True
 
-def generate_synonyms(factor):
+def generate_synonyms(factor, model=None):
     """
     Generates a list of synonyms for a genomic binding protein or gene using a specified LLM (Language Learning Model).
 
@@ -869,22 +1047,16 @@ def generate_synonyms(factor):
         chat_message = setup_messages.format_messages()
         
         # Initialize and invoke the LLM
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")  # Adjust the model as needed
+        llm = _init_llm(model)
         response = llm.invoke(chat_message)
 
-        # Extract the content of the response
-        res_content = response.content.strip()
-
-        # Validate output format (basic JSON-like list structure)
-        if not res_content.startswith("[") or not res_content.endswith("]"):
-            raise ValueError("LLM response is not in the expected list format.")
-
-        return res_content
+        # Parse the list from the response (handles markdown fences, preamble, etc.)
+        return _parse_llm_list(response.content)
 
     except Exception as e:
         raise
 
-def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails):
+def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
     """
     Reanalyzes metadata for a given GSM sample to identify the correct experimental factor while avoiding previously identified incorrect factors.
 
@@ -1114,16 +1286,16 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails):
 
     try:
         chat_message = setup_messages.format_messages()
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        llm = _init_llm(model)
         res = llm.invoke(chat_message)
         res_content = res.content
-        return_dict = json.loads(res_content)
+        return_dict = _parse_llm_json(res_content)
         result = return_dict.get("factor")
         return result
     except Exception as e:
         raise
 
-def tf_picker(TF_factors, gsm_xml_string, gse_xml_strings):
+def tf_picker(TF_factors, gsm_xml_string, gse_xml_strings, model=None):
     """
     Identifies the most likely transcription factor referenced in ChIP-seq metadata.
 
@@ -1198,14 +1370,14 @@ def tf_picker(TF_factors, gsm_xml_string, gse_xml_strings):
 
     try:
         chat_message = setup_messages.format_messages()
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        llm = _init_llm(model)
         res = llm.invoke(chat_message)
-        res_content = res.content
+        res_content = res.content.strip()
         return res_content
     except Exception as e:
         raise
     
-def cr_picker(CR_factors, gsm_xml_string, gse_xml_strings):
+def cr_picker(CR_factors, gsm_xml_string, gse_xml_strings, model=None):
     """
     Identifies the most likely chromatin remodeler referenced in ChIP-seq metadata.
 
@@ -1281,14 +1453,14 @@ def cr_picker(CR_factors, gsm_xml_string, gse_xml_strings):
 
     try:
         chat_message = setup_messages.format_messages()
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        llm = _init_llm(model)
         res = llm.invoke(chat_message)
-        res_content = res.content
+        res_content = res.content.strip()
         return res_content
     except Exception as e:
         raise
     
-def gene_picker(GENE_factors, gsm_xml_string, gse_xml_strings):
+def gene_picker(GENE_factors, gsm_xml_string, gse_xml_strings, model=None):
     """
     Identifies the most likely gene referenced in ChIP-seq metadata.
 
@@ -1366,14 +1538,14 @@ def gene_picker(GENE_factors, gsm_xml_string, gse_xml_strings):
 
     try:
         chat_message = setup_messages.format_messages()
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        llm = _init_llm(model)
         res = llm.invoke(chat_message)
-        res_content = res.content
+        res_content = res.content.strip()
         return res_content
     except Exception as e:
         raise
 
-def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, genes_df, TF_df, chromatin_df):
+def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, genes_df, TF_df, chromatin_df, model=None):
     """
     Validates and identifies the binding protein (transcription factor, chromatin remodeler, histone modification, or gene) 
     based on the provided factor and GSM metadata. The function first checks for transcription factors, 
@@ -1419,7 +1591,7 @@ def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, g
                     result = pd.Series(filtered_matches_tf[0])
                     satisfied = True
                 else:
-                    selected_factor = tf_picker(filtered_matches_tf, gsm_xml_string, gse_xml_strings)
+                    selected_factor = tf_picker(filtered_matches_tf, gsm_xml_string, gse_xml_strings, model=model)
                     selected_result = [row for row in filtered_matches_tf if row["Symbol"] == selected_factor]
                     if selected_result:
                         result = pd.Series(selected_result[0])
@@ -1437,7 +1609,7 @@ def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, g
                         satisfied = True
                     else:
                         try:
-                            selected_factor = cr_picker(filtered_matches_cr, gsm_xml_string, gse_xml_strings)
+                            selected_factor = cr_picker(filtered_matches_cr, gsm_xml_string, gse_xml_strings, model=model)
                             selected_result = [row for row in filtered_matches_cr if row["Symbol"] == selected_factor]
                             if selected_result:
                                 result = pd.Series(selected_result[0])
@@ -1451,7 +1623,7 @@ def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, g
                             result = pd.Series({"Symbol": factor})
                             satisfied = True
                         else:
-                            selected_factor = gene_picker(matches, gsm_xml_string, gse_xml_strings)
+                            selected_factor = gene_picker(matches, gsm_xml_string, gse_xml_strings, model=model)
                             selected_result = [row for row in matches if clean_input(row["Symbol"]) == clean_input(selected_factor)]
                             if selected_result:
                                 result = pd.Series(selected_result[0])
@@ -1462,7 +1634,7 @@ def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, g
             print(f"Error validating: {e}")                
     return result, satisfied
 
-def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df):
+def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df, model=None):
     """
     Verifies and validates the provided factor (transcription factor, chromatin remodeler, histone modification, or gene) 
     by checking if it exists in human gene data or through the use of synonyms. It attempts to validate the factor by 
@@ -1503,14 +1675,13 @@ def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
 
         try:
             if matches:
-                result, satisfied = validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, genes_df, TF_df, chromatin_df)
+                result, satisfied = validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, genes_df, TF_df, chromatin_df, model=model)
         except Exception as e:
             print(f"Error validating binding protein for factor '{factor}': {e}")
 
         if not satisfied and factor != "None":
             try:
-                synonyms_string = generate_synonyms(factor)
-                synonyms = eval(synonyms_string)
+                synonyms = generate_synonyms(factor, model=model)
             except Exception as e:
                 print(f"Error generating/evaluating synonyms for factor '{factor}': {e}")
                 synonyms = []
@@ -1521,13 +1692,13 @@ def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
                 try:
                     syn_matches = match_human_gene(genes_df, synonym)
                     if syn_matches:
-                        result, satisfied = validate_binding_protein(synonym, gsm_xml_string, gse_xml_strings, syn_matches, genes_df, TF_df, chromatin_df)
+                        result, satisfied = validate_binding_protein(synonym, gsm_xml_string, gse_xml_strings, syn_matches, genes_df, TF_df, chromatin_df, model=model)
                 except Exception as e:
                     print(f"Error validating synonym '{synonym}': {e}")
 
         if not satisfied:
             try:
-                rechecked_result = factor_recheck(gsm_xml_string, gse_xml_strings, failed_factors)
+                rechecked_result = factor_recheck(gsm_xml_string, gse_xml_strings, failed_factors, model=model)
                 factor = rechecked_result
                 satisfied = False
             except Exception as e:
@@ -1536,7 +1707,7 @@ def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
 
     return result
 
-def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df):
+def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df, model=None):
     """
     Extracts and verifies factors associated with a GEO tag.
 
@@ -1550,20 +1721,20 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
     """
 
     try:
-        control = is_control(gsm_xml_string)
+        control = is_control(gsm_xml_string, model=model)
         if control.strip().lower() == "true":
             return {}
     except Exception as e:
         print(f"An error occurred detecting control sample: {e}")
 
     try:
-        actual_factor = extract_factor(gsm_xml_string, gse_xml_strings)
+        actual_factor = extract_factor(gsm_xml_string, gse_xml_strings, model=model)
     except Exception as e:
         print(f"An error occurred Extracting Factor: {e}")
 
     try:
         factor = actual_factor
-        verified_factor = verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df)
+        verified_factor = verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df, model=model)
         if verified_factor['Symbol']:
             verified_object = {"extracted_factor": verified_factor['Symbol']}
         else:
@@ -1575,7 +1746,7 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
     return verified_object
 
 ### Factor Extraction Functionality ###
-def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path):
+def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path, model=None):
     """
     Extracts verified factors from GSM IDs using provided lookup mappings.
 
@@ -1657,7 +1828,7 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_pat
 
         # Extract factor
         try:
-            factor_result = extract_verify_factor(gsm_file, gse_text, genes_df, TF_df, chromatin_df)
+            factor_result = extract_verify_factor(gsm_file, gse_text, genes_df, TF_df, chromatin_df, model=model)
             if factor_result and "extracted_factor" in factor_result:
                 formatted_result = _format_output_structure(
                     gsm_id, 
@@ -1672,7 +1843,7 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_pat
     return results
 
 ### Extract Ontologies ###
-def extract_structured_ontology(gsm_xml_string, gse_xml_strings):
+def extract_structured_ontology(gsm_xml_string, gse_xml_strings, model=None):
     """
     Extract cell line, cell type, tissue, and disease ontologies for a ChIP-seq sample from GSM (sample-level)
     and GSE (series-level) XML metadata using an LLM with a strict structured output schema.
@@ -1945,7 +2116,7 @@ def extract_structured_ontology(gsm_xml_string, gse_xml_strings):
 
     try:
         chat_message = setup_messages.format_messages()
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        llm = _init_llm(model)
         structured_llm = llm.with_structured_output(ChIPSeqMetadata)
         res = structured_llm.invoke(chat_message)
         return res
@@ -2112,7 +2283,7 @@ def process_ontology(
 
     return validated_object
 
-def generate_alternate_names(ontology):
+def generate_alternate_names(ontology, model=None):
     """
     Generates alternative names for a cell ontology term that did not return an exact match from the databases.
 
@@ -2170,9 +2341,9 @@ def generate_alternate_names(ontology):
 
     try:
         chat_message = setup_messages.format_messages()
-        llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
+        llm = _init_llm(model)
         res = llm.invoke(chat_message)
-        actual_array = ast.literal_eval(res.content)
+        actual_array = _parse_llm_list(res.content)
         return actual_array
     except Exception as e:
         raise
@@ -2181,7 +2352,8 @@ def verify_ontology(
     input_ontology,
     cellosaurus_index, efo_index, uberon_index,
     cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
-    cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
+    cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index,
+    model=None
 ):
     """
     Verifies and resolves missing ontology terms using process_ontology and generate_alternate_names.
@@ -2209,7 +2381,7 @@ def verify_ontology(
         verified_value = validated.get(key)
 
         if extracted_value and extracted_value != "N/A" and verified_value is None:
-            alt_names = generate_alternate_names(extracted_value)
+            alt_names = generate_alternate_names(extracted_value, model=model)
             for alt_name in alt_names:
                 new_input = {
                     "ontologies": {
@@ -2245,13 +2417,14 @@ def verify_ontology(
 def extract_verify_ontology(gsm_id, gsm_xml_string, gse_xml_strings,
                             cellosaurus_index, efo_index, uberon_index,
                             cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
-                            cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index):
+                            cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index,
+                            model=None):
     """
     Extracts and verifies ontology terms from GSM and GSE XML strings.
     Updated to use GSM ID instead of file path.
     """
     try:
-        structured_object = extract_structured_ontology(gsm_xml_string, gse_xml_strings)
+        structured_object = extract_structured_ontology(gsm_xml_string, gse_xml_strings, model=model)
         extracted_object = {
             "cell_line": structured_object.cell_line,
             "cell_type": structured_object.cell_type,
@@ -2274,7 +2447,8 @@ def extract_verify_ontology(gsm_id, gsm_xml_string, gse_xml_strings,
             ret_object,
             cellosaurus_index, efo_index, uberon_index,
             cellosaurus_reduce_index, efo_reduce_index, uberon_reduce_index,
-            cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
+            cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index,
+            model=model
         )
     except Exception as e:
         print(f"An error occurred verifying the ontologies: {e}")
@@ -2283,7 +2457,7 @@ def extract_verify_ontology(gsm_id, gsm_xml_string, gse_xml_strings,
     return validated_object
 
 ### Ontology Extraction Functionality###
-def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path):
+def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path, model=None):
     """
     Extracts ontology metadata from GSM IDs using provided lookup mappings.
 
@@ -2384,7 +2558,8 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
                 gsm_id, gsm_text, gse_text,
                 cellosaurus, efo, uberon,
                 cellosaurus_reduce, efo_reduce, uberon_reduce,
-                cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy
+                cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy,
+                model=model
             )
             if result:
                 formatted_result = _format_output_structure(
@@ -2400,7 +2575,7 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
     return results
 
 ### Combined Extraction and Verification ###
-def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path):
+def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path, model=None):
     """
     Extracts both factors and ontology metadata from GSM IDs using provided lookup mappings.
     
@@ -2505,7 +2680,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
         # Extract factor
         extracted_factor = None
         try:
-            factor_result = extract_verify_factor(gsm_text, gse_text, genes_df, TF_df, chromatin_df)
+            factor_result = extract_verify_factor(gsm_text, gse_text, genes_df, TF_df, chromatin_df, model=model)
             if factor_result and "extracted_factor" in factor_result:
                 extracted_factor = factor_result["extracted_factor"]
         except Exception as e:
@@ -2518,7 +2693,8 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
                 gsm_id, gsm_text, gse_text,
                 cellosaurus, efo, uberon,
                 cellosaurus_reduce, efo_reduce, uberon_reduce,
-                cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy
+                cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy,
+                model=model
             )
         except Exception as e:
             print(f"Error extracting ontology from {gsm_id}: {e}")

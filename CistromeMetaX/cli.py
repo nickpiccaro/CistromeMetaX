@@ -128,6 +128,12 @@ Examples:
 
     # Pass GSM IDs with different JSON formatting
     geoMX-extract --mode factor --gsm-ids "[\"GSM123456\", \"GSM789012\"]" --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+
+    # Use a different model provider (requires langchain-anthropic and ANTHROPIC_API_KEY in .env)
+    geoMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --model anthropic:claude-sonnet-4-5-20250929
+
+    # Use Google Vertex AI (requires langchain-google-vertexai and GOOGLE_API_KEY in .env)
+    geoMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json -m google_vertexai:gemini-2.5-flash
         """
     )
    
@@ -172,6 +178,16 @@ Examples:
         action="store_true",
         help="Enable verbose output"
     )
+
+    parser.add_argument(
+        "--model", "-m",
+        default=None,
+        help="Model to use for LLM extraction, in 'provider:model_name' format "
+             "(e.g., 'openai:gpt-4o-mini', 'anthropic:claude-sonnet-4-5-20250929', "
+             "'google_vertexai:gemini-2.5-flash'). Defaults to 'openai:gpt-4o-mini'. "
+             "Requires the corresponding API key in your .env file and the provider's "
+             "langchain integration package installed (e.g., 'pip install langchain-anthropic')."
+    )
    
     args = parser.parse_args()
    
@@ -183,6 +199,10 @@ Examples:
             print(f"Parsed GSM IDs as list with {len(gsm_ids_input)} items")
         else:
             print(f"Using GSM IDs from file: {gsm_ids_input}")
+        if args.model:
+            print(f"Using model: {args.model}")
+        else:
+            print(f"Using default model: openai:gpt-4o-mini")
    
     # Validate that required mapping files exist
     required_files = [args.gsm_to_gse, args.gsm_paths, args.gse_paths]
@@ -200,7 +220,8 @@ Examples:
                 gsm_ids_input,
                 args.gsm_to_gse,
                 args.gsm_paths,
-                args.gse_paths
+                args.gse_paths,
+                model=args.model
             )
         elif args.mode == "ontology":
             if args.verbose:
@@ -209,7 +230,8 @@ Examples:
                 gsm_ids_input,
                 args.gsm_to_gse,
                 args.gsm_paths,
-                args.gse_paths
+                args.gse_paths,
+                model=args.model
             )
         elif args.mode == "both":
             if args.verbose:
@@ -218,8 +240,18 @@ Examples:
                 gsm_ids_input,
                 args.gsm_to_gse,
                 args.gsm_paths,
-                args.gse_paths
+                args.gse_paths,
+                model=args.model
             )
+    except ImportError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
         print(f"Error during extraction: {e}", file=sys.stderr)
         sys.exit(1)
