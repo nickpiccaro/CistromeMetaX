@@ -1674,7 +1674,24 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_pat
 ### Extract Ontologies ###
 def extract_structured_ontology(gsm_xml_string, gse_xml_strings):
     """
-    #SCRUB Populate
+    Extract cell line, cell type, tissue, and disease ontologies for a ChIP-seq sample from GSM (sample-level)
+    and GSE (series-level) XML metadata using an LLM with a strict structured output schema.
+
+    Output fields follow these conventions:
+      - cell_line: Cellosaurus official cell line symbol (e.g., "MCF7", "T47D")
+      - cell_type: standardized cell type term aligned to EFO/Uberon when applicable
+      - tissue: standardized anatomical source term aligned to Uberon/EFO when applicable
+      - disease: standardized disease term when present
+
+    Rules: use official ontology naming (no parenthetical synonyms); if a field is not supported by the metadata,
+    return "N/A" for that field.
+
+    Args:
+        gsm_xml_string: GSM XML string for a single sample.
+        gse_xml_strings: List of GSE XML strings providing experiment/series context.
+
+    Returns:
+        ChIPSeqMetadata (Pydantic model): {cell_line, cell_type, tissue, disease}.
     """
 
     class ChIPSeqMetadata(BaseModel):
@@ -1955,6 +1972,13 @@ def validate_ontology(extracted_obj, cellosaurus_index, efo_index, uberon_index,
             continue
 
         matches = []
+        if term_key in cellosaurus_index:
+            for match in ensure_list(cellosaurus_index[term_key]):
+                matches.append({
+                    **match,
+                    "term": extracted_obj[key],
+                    "term_identity": key
+                })
         if term_key in efo_index:
             for match in ensure_list(efo_index[term_key]):
                 matches.append({
@@ -2008,6 +2032,14 @@ def validate_ontology_fuzzy(extracted_obj, cellosaurus_index, efo_index, uberon_
             continue
 
         matches = []
+        cellosaurus_matches = fuzzy_match(term_key, cellosaurus_index)
+        if cellosaurus_matches:
+            for match in ensure_list(cellosaurus_matches):
+                matches.append({
+                    **match,
+                    "term": extracted_obj[key],
+                    "term_identity": key
+                })
         efo_matches = fuzzy_match(term_key, efo_index)
         if efo_matches:
             for match in ensure_list(efo_matches):
