@@ -20,3 +20,5 @@ dist/
 # Ignore logs
 logs/
 *.log
+
+test_runs/
