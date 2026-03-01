@@ -473,10 +473,10 @@ Please generate a Python function that reads my data structure and creates these
 
 ### Added
 
-- (6/01/25) **Multi-model support** — use any LangChain-compatible LLM provider (OpenAI, Anthropic, Google, Mistral, DeepSeek, and more)
-- (6/01/25) New `--model` / `-m` CLI flag to select the LLM provider and model
-- (6/01/25) Robust LLM response parsing that handles variations across providers (markdown-fenced JSON, text preamble, Python-style lists)
-- (6/01/25) Pre-installed integration packages for OpenAI, Anthropic, Google GenAI, Mistral, and DeepSeek
+- (3/01/26) **Multi-model support** — use any LangChain-compatible LLM provider (OpenAI, Anthropic, Google, Mistral, DeepSeek, and more)
+- (3/01/26) New `--model` / `-m` CLI flag to select the LLM provider and model
+- (3/01/26) Robust LLM response parsing that handles variations across providers (markdown-fenced JSON, text preamble, Python-style lists)
+- (3/01/26) Pre-installed integration packages for OpenAI, Anthropic, Google GenAI, Mistral, and DeepSeek
 - (5/29/25) New streamlined CLI interface with JSON configuration files
 - (5/29/25) Support for direct GSM ID list input in Python interface
 - (5/29/25) Enhanced validation against biological databases
@@ -486,9 +486,9 @@ Please generate a Python function that reads my data structure and creates these
 
 ### Changed
 
-- (6/01/25) Replaced hardcoded `ChatOpenAI` with LangChain's `init_chat_model` for universal provider support
-- (6/01/25) All extraction functions now accept an optional `model` parameter
-- (6/01/25) Updated `requirements.txt` with multi-provider LangChain packages
+- (3/01/26) Replaced hardcoded `ChatOpenAI` with LangChain's `init_chat_model` for universal provider support
+- (3/01/26) All extraction functions now accept an optional `model` parameter
+- (3/01/26) Updated `requirements.txt` with multi-provider LangChain packages
 - (5/29/25) Renamed package from GEOMetaX to CistromeMetaX
 - (5/29/25) Updated terminology from "ontology" to "cell types and tissues"
 - (5/29/25) Restructured CLI to use JSON configuration files
