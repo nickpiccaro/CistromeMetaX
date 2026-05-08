@@ -9,7 +9,7 @@ from .parser_extractor import meta_extract_factors, meta_extract_ontologies, met
 
 def update_data():
     if len(sys.argv) < 1:
-        print("Usage: geoMX-update_data")
+        print("Usage: cistromeMX-update_data")
         sys.exit(1)
    
     install_data()
@@ -112,28 +112,28 @@ def meta_extract():
         epilog="""
 Examples:
     # Extract only factors
-    geoMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+    cistromeMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
 
     # Extract only ontologies
-    geoMX-extract --mode ontology --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+    cistromeMX-extract --mode ontology --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
 
     # Extract both factors and ontologies
-    geoMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+    cistromeMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
 
     # Save output to file
-    geoMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --output results.json
+    cistromeMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --output results.json
 
     # Pass GSM IDs directly as JSON list string
-    geoMX-extract --mode factor --gsm-ids '["GSM123456", "GSM789012"]' --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+    cistromeMX-extract --mode factor --gsm-ids '["GSM123456", "GSM789012"]' --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
 
     # Pass GSM IDs with different JSON formatting
-    geoMX-extract --mode factor --gsm-ids "[\"GSM123456\", \"GSM789012\"]" --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
+    cistromeMX-extract --mode factor --gsm-ids "[\"GSM123456\", \"GSM789012\"]" --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
 
     # Use a different model provider (requires langchain-anthropic and ANTHROPIC_API_KEY in .env)
-    geoMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --model anthropic:claude-sonnet-4-5-20250929
+    cistromeMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --model anthropic:claude-sonnet-4-5-20250929
 
     # Use Google Vertex AI (requires langchain-google-vertexai and GOOGLE_API_KEY in .env)
-    geoMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json -m google_vertexai:gemini-2.5-flash
+    cistromeMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json -m google_vertexai:gemini-2.5-flash
         """
     )
    

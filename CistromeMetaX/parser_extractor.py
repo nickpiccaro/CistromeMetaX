@@ -1,6 +1,5 @@
 import re
 import pandas as pd
-import re
 import xml.etree.ElementTree as ET
 import json
 import ast
@@ -10,8 +9,8 @@ from rapidfuzz import fuzz
 from pydantic import BaseModel, Field
 
 from langchain.chat_models import init_chat_model
-from langchain.schema import HumanMessage, SystemMessage, AIMessage
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_core.prompts import ChatPromptTemplate
 
 # Default model used when no model is specified
 _DEFAULT_MODEL = "openai:gpt-4o-mini"
@@ -296,21 +295,38 @@ def remove_invalid_characters_from_file(file_path):
         return None
 
 def collapse_ontology_terms(entries):
-    grouped = {}
+    """Collapse a list of ontology match dicts, removing duplicates and merging
+    entries that share the same (official_term, ontology_accession) pair."""
 
-    # Group entries by official_term
+    def _make_hashable(v):
+        """Convert a value to a hashable form for deduplication."""
+        if isinstance(v, list):
+            return tuple(sorted(str(i) for i in v))
+        return v
+
+    # --- Step 1: Remove fully identical entries ---
+    seen = set()
+    unique_entries = []
     for entry in entries:
-        key = entry['official_term']
-        if key not in grouped:
-            grouped[key] = []
-        grouped[key].append(entry)
+        fingerprint = tuple(sorted(
+            (k, _make_hashable(v)) for k, v in entry.items()
+        ))
+        if fingerprint not in seen:
+            seen.add(fingerprint)
+            unique_entries.append(entry)
+
+    # --- Step 2: Group by (official_term, ontology_accession) ---
+    grouped = {}
+    for entry in unique_entries:
+        group_key = (entry.get('official_term', ''), entry.get('ontology_accession', ''))
+        grouped.setdefault(group_key, []).append(entry)
 
     collapsed_entries = []
 
-    for official_term, group in grouped.items():
+    for (official_term, accession), group in grouped.items():
         collapsed_entry = {'official_term': official_term}
 
-        # Collect all possible keys other than official_term
+        # Collect all field keys across the group
         keys = set()
         for item in group:
             keys.update(item.keys())
@@ -321,11 +337,19 @@ def collapse_ontology_terms(entries):
             for item in group:
                 if key in item and item[key] is not None:
                     values.append(item[key])
-            unique_values = list(set(values))
+
+            # Deduplicate, handling unhashable types (lists, dicts)
+            unique_values = []
+            seen_values = set()
+            for v in values:
+                h = _make_hashable(v)
+                if h not in seen_values:
+                    seen_values.add(h)
+                    unique_values.append(v)
 
             if len(unique_values) == 1:
                 collapsed_entry[key] = unique_values[0]
-            else:
+            elif len(unique_values) > 1:
                 collapsed_entry[key] = unique_values
 
         collapsed_entries.append(collapsed_entry)
@@ -493,15 +517,18 @@ def _parse_gsm_ids_input(gsm_ids_input):
         print(f"Error parsing GSM IDs input: {e}")
         return []
 
-def _format_output_structure(gsm_id, extracted_factor=None, extracted_ontology=None):
+def _format_output_structure(gsm_id, extracted_factor=None, factor_status=None, extracted_ontology=None):
     """
     Format the output according to the standardized structure.
     """
     result = {gsm_id: {}}
-    
+
     if extracted_factor is not None:
-        result[gsm_id]["factor"] = {"extracted_factor": extracted_factor}
-    
+        factor_entry = {"extracted_factor": extracted_factor}
+        if extracted_factor == "N/A" and factor_status:
+            factor_entry["factor_status"] = factor_status
+        result[gsm_id]["factor"] = factor_entry
+
     if extracted_ontology is not None:
         # Handle the ontology data - use validated terms if available, otherwise fall back to "N/A"
         result[gsm_id]["ontology"] = {
@@ -1652,7 +1679,7 @@ def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
     # Initialize variables
     failed_factors = []
     result = pd.Series(dtype='object')
-    max_loops = 3
+    max_loops = 2
     loop_count = 0
     satisfied = False
 
@@ -1723,7 +1750,7 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
     try:
         control = is_control(gsm_xml_string, model=model)
         if control.strip().lower() == "true":
-            return {}
+            return {"extracted_factor": "N/A", "factor_status": "control_sample"}
     except Exception as e:
         print(f"An error occurred detecting control sample: {e}")
 
@@ -1731,6 +1758,10 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
         actual_factor = extract_factor(gsm_xml_string, gse_xml_strings, model=model)
     except Exception as e:
         print(f"An error occurred Extracting Factor: {e}")
+        return {"extracted_factor": "N/A", "factor_status": "extraction_failed"}
+
+    if not actual_factor or actual_factor == "None":
+        return {"extracted_factor": "N/A", "factor_status": "no_factor_detected"}
 
     try:
         factor = actual_factor
@@ -1738,11 +1769,11 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
         if verified_factor['Symbol']:
             verified_object = {"extracted_factor": verified_factor['Symbol']}
         else:
-            verified_object = {}
+            verified_object = {"extracted_factor": "N/A", "factor_status": "verification_failed"}
     except Exception as e:
         print(f"An error occured verifying the factor: {e}")
-        verified_object = {}
-        
+        verified_object = {"extracted_factor": "N/A", "factor_status": "verification_failed"}
+
     return verified_object
 
 ### Factor Extraction Functionality ###
@@ -1831,8 +1862,9 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_pat
             factor_result = extract_verify_factor(gsm_file, gse_text, genes_df, TF_df, chromatin_df, model=model)
             if factor_result and "extracted_factor" in factor_result:
                 formatted_result = _format_output_structure(
-                    gsm_id, 
-                    extracted_factor=factor_result["extracted_factor"]
+                    gsm_id,
+                    extracted_factor=factor_result["extracted_factor"],
+                    factor_status=factor_result.get("factor_status")
                 )
                 results.append(formatted_result)
             print(f"Extracted factor for {gsm_id}")
@@ -2679,10 +2711,12 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
             
         # Extract factor
         extracted_factor = None
+        factor_status = None
         try:
             factor_result = extract_verify_factor(gsm_text, gse_text, genes_df, TF_df, chromatin_df, model=model)
             if factor_result and "extracted_factor" in factor_result:
                 extracted_factor = factor_result["extracted_factor"]
+                factor_status = factor_result.get("factor_status")
         except Exception as e:
             print(f"Error extracting factor from {gsm_id}: {e}")
 
@@ -2704,6 +2738,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
             formatted_result = _format_output_structure(
                 gsm_id,
                 extracted_factor=extracted_factor,
+                factor_status=factor_status,
                 extracted_ontology=extracted_ontology
             )
             results.append(formatted_result)
