@@ -159,7 +159,7 @@ DEEPSEEK_API_KEY=your-deepseek-key-here
 The CLI command uses JSON configuration files for batch processing:
 
 ```bash
-geoMX-extract --mode [factor|ontology|both] --gsm-ids GSM_IDS_INPUT --gsm-to-gse GSM_TO_GSE_FILE --gsm-paths GSM_PATHS_FILE --gse-paths GSE_PATHS_FILE [--model MODEL] [--output OUTPUT_FILE] [--verbose]
+cistromeMX-extract --mode [factor|ontology|both] --gsm-ids GSM_IDS_INPUT --gsm-to-gse GSM_TO_GSE_FILE --gsm-paths GSM_PATHS_FILE --gse-paths GSE_PATHS_FILE [--model MODEL] [--output OUTPUT_FILE] [--verbose]
 ```
 
 #### CLI Arguments
@@ -180,7 +180,7 @@ geoMX-extract --mode [factor|ontology|both] --gsm-ids GSM_IDS_INPUT --gsm-to-gse
 
 ```bash
 # Extract both factors and ontologies (default model: openai:gpt-4o-mini)
-geoMX-extract --mode both \
+cistromeMX-extract --mode both \
   --gsm-ids gsm_ids.json \
   --gsm-to-gse mappings/gsm_to_gse.json \
   --gsm-paths mappings/gsm_paths.json \
@@ -188,7 +188,7 @@ geoMX-extract --mode both \
   -o results.json
 
 # Use Anthropic Claude
-geoMX-extract --mode both \
+cistromeMX-extract --mode both \
   --gsm-ids gsm_ids.json \
   --gsm-to-gse mappings/gsm_to_gse.json \
   --gsm-paths mappings/gsm_paths.json \
@@ -196,7 +196,7 @@ geoMX-extract --mode both \
   --model anthropic:claude-sonnet-4-5-20250929
 
 # Use Google Gemini for factor extraction only
-geoMX-extract --mode factor \
+cistromeMX-extract --mode factor \
   --gsm-ids gsm_ids.json \
   --gsm-to-gse mappings/gsm_to_gse.json \
   --gsm-paths mappings/gsm_paths.json \
@@ -204,7 +204,7 @@ geoMX-extract --mode factor \
   -m google_genai:gemini-2.5-flash
 
 # Pass GSM IDs directly as JSON string
-geoMX-extract --mode factor \
+cistromeMX-extract --mode factor \
   --gsm-ids '["GSM123456", "GSM789012"]' \
   --gsm-to-gse mappings/gsm_to_gse.json \
   --gsm-paths mappings/gsm_paths.json \
@@ -334,6 +334,28 @@ CistromeMetaX produces structured JSON output containing extracted and validated
   }
 }
 ```
+
+When a factor cannot be determined, `extracted_factor` is set to `"N/A"` and a `factor_status` field is included to explain why:
+
+```json
+{
+  "GSM1234567": {
+      "factor": {
+          "extracted_factor": "N/A",
+          "factor_status": "control_sample"
+      }
+  }
+}
+```
+
+| `factor_status` | Meaning |
+|---|---|
+| `control_sample` | Sample identified as an input/control experiment (e.g., IgG, Input, WCE) |
+| `no_factor_detected` | LLM did not identify a target protein in the metadata |
+| `extraction_failed` | An error occurred during LLM extraction |
+| `verification_failed` | A factor was extracted but could not be validated against gene, transcription factor, chromatin remodeler, or histone modification databases |
+
+The `factor_status` field only appears when `extracted_factor` is `"N/A"`.
 
 ### Cell Type/Tissue Extraction Output  
 ```json
@@ -496,7 +518,7 @@ Please generate a Python function that reads my data structure and creates these
 ### Removed
 
 - (6/01/25) Direct dependency on `langchain-openai` as the sole LLM provider
-- (5/29/25) Legacy CLI commands (replaced with unified `geoMX-extract`)
+- (5/29/25) Legacy CLI commands (replaced with unified `cistromeMX-extract`)
 
 ---
 
