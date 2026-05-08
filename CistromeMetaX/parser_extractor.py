@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+import sys
 import xml.etree.ElementTree as ET
 import json
 import ast
@@ -11,6 +12,13 @@ from pydantic import BaseModel, Field
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
+
+from .geo_fetch import (
+    fetch_geo_xml,
+    discover_parent_gses,
+    expand_gse_to_gsms,
+    MAX_TRIES as _GEO_MAX_TRIES,
+)
 
 # Default model used when no model is specified
 _DEFAULT_MODEL = "openai:gpt-4o-mini"
@@ -356,25 +364,37 @@ def collapse_ontology_terms(entries):
 
     return collapsed_entries
 
+def _load_xml_root(xml_input):
+    """
+    Accept either a path to an XML file or an XML string, and return the
+    ElementTree root. MINiML payloads always start with '<?xml', so a stripped
+    input beginning with '<' is treated as inline XML; everything else is
+    treated as a file path.
+    """
+    if isinstance(xml_input, str) and xml_input.lstrip().startswith("<"):
+        return ET.fromstring(xml_input)
+    return ET.parse(xml_input).getroot()
+
+
 def simplify_gsm_xml_file(xml_file):
     """
-    Simplifies and extracts relevant data from a GSM XML file by excluding 
-    specified elements and handling "Channel" elements separately. Includes 
+    Simplifies and extracts relevant data from a GSM MINiML XML by excluding
+    specified elements and handling "Channel" elements separately. Includes
     attributes and text content for clarity.
 
     Args:
-        xml_file (str): Path to the GSM XML file.
+        xml_file: Path to a GSM XML file, or the XML body itself as a string
+            (e.g., as returned by ``geo_fetch.fetch_geo_xml``).
 
     Returns:
         str: A formatted string containing the extracted data.
     """
     # Define the XML namespace
     ns = {"ns": "http://www.ncbi.nlm.nih.gov/geo/info/MINiML"}
-    
-    # Parse the XML file
-    tree = ET.parse(xml_file)
-    root = tree.getroot()
-    
+
+    # Parse the XML (file path or inline XML string)
+    root = _load_xml_root(xml_file)
+
     # Find the "Sample" element
     sample = root.find("ns:Sample", ns)
     
@@ -437,21 +457,21 @@ def simplify_gsm_xml_file(xml_file):
 
 def simplify_gse_xml_file(xml_file):
     """
-    Simplifies and extracts relevant data from a GSE XML file by excluding 
+    Simplifies and extracts relevant data from a GSE MINiML XML by excluding
     specified elements and including attributes for clarity.
 
     Args:
-        xml_file (str): Path to the GSE XML file.
+        xml_file: Path to a GSE XML file, or the XML body itself as a string
+            (e.g., as returned by ``geo_fetch.fetch_geo_xml``).
 
     Returns:
         str: A formatted string containing the extracted data.
     """
     # Define the XML namespace
     ns = {"ns": "http://www.ncbi.nlm.nih.gov/geo/info/MINiML"}
-    
-    # Parse the XML file
-    tree = ET.parse(xml_file)
-    root = tree.getroot()
+
+    # Parse the XML (file path or inline XML string)
+    root = _load_xml_root(xml_file)
 
     # Find the Series element
     series = root.find("ns:Series", ns)
@@ -571,6 +591,7 @@ def is_control(gsm_xml_string, model=None):
         2. If it's a control experiment for the target protein, which may contain any of the keywords above, output "True".
         3. If the experiment uses a control for the cell line or species, output "False". Only output "True" for control experiments concerning the target protein.
         4. Otherwise, output "False".
+        5. Be especially scrutinous when control-related terms appear; make sure the experiment itself is a control experiment, not a non-control target experiment that is merely referencing or providing context about the matched control used for comparison.
 
         PLEASE only output "True" or "False" — do not provide any other information.
         """
@@ -1776,33 +1797,111 @@ def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
 
     return verified_object
 
-### Factor Extraction Functionality ###
-def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path, model=None):
+### Fetch-mode pipeline (used when caller omits all three mapping JSONs) ###
+def _expand_accessions_to_gsm_queue(accessions, verbose=False):
     """
-    Extracts verified factors from GSM IDs using provided lookup mappings.
+    Split a mixed list of GSM/GSE accession strings into a deduplicated GSM
+    work queue. GSE accessions are fetched and expanded to their child GSMs
+    via NCBI; bare GSMs pass through. Order is preserved (first-seen wins).
+    """
+    queue = []
+    seen = set()
+    for acc in accessions:
+        if not isinstance(acc, str) or not acc:
+            continue
+        if acc.upper().startswith("GSE"):
+            if verbose:
+                print(f"Expanding {acc} to child GSMs...", file=sys.stderr)
+            children = expand_gse_to_gsms(acc, verbose=verbose)
+            if verbose:
+                print(f"  {acc} -> {len(children)} child GSM(s)", file=sys.stderr)
+            for child in children:
+                if child not in seen:
+                    seen.add(child)
+                    queue.append(child)
+        else:
+            if acc not in seen:
+                seen.add(acc)
+                queue.append(acc)
+    return queue
 
-    Args:
-        gsm_ids_input: List of GSM IDs or path to JSON file containing GSM IDs
-        gsm_to_gse_path (str): Path to JSON file mapping GSM IDs to GSE IDs
-        gsm_paths_path (str): Path to JSON file mapping GSM IDs to file paths
-        gse_paths_path (str): Path to JSON file mapping GSE IDs to file paths
+
+def _fetch_gsm_and_gse_text(gsm_id, verbose=False):
+    """
+    Fetch a single GSM's MINiML XML and the XMLs of every parent GSE we can
+    discover, then run them through the existing simplifiers.
 
     Returns:
-        list: A list of dicts with standardized output format.
+        tuple[str, str] | tuple[None, None]:
+            (gsm_text, gse_text) on success — gse_text may be "" if no parent
+            GSE could be fetched. (None, None) when the GSM itself could not
+            be fetched after MAX_TRIES (caller should emit a blank entry).
     """
+    gsm_xml, parent_gses = discover_parent_gses(gsm_id, verbose=verbose)
+    if gsm_xml is None:
+        return None, None
+
+    try:
+        gsm_text = simplify_gsm_xml_file(gsm_xml)
+    except Exception as e:
+        print(f"{gsm_id} | Error simplifying fetched GSM XML: {e}", file=sys.stderr)
+        return None, None
+
+    gse_prompts = []
+    for gse_id in parent_gses:
+        gse_xml = fetch_geo_xml(gse_id, targ="self", verbose=verbose)
+        if gse_xml is None:
+            # final-failure already printed by fetch_geo_xml; carry on
+            continue
+        try:
+            gse_prompts.append(simplify_gse_xml_file(gse_xml))
+        except Exception as e:
+            print(f"{gsm_id} | Error simplifying fetched GSE XML for {gse_id}: {e}", file=sys.stderr)
+            continue
+
+    return gsm_text, "\n\n".join(gse_prompts)
+
+
+### Factor Extraction Functionality ###
+def meta_extract_factors(gsm_ids_input, gsm_to_gse_path=None, gsm_paths_path=None, gse_paths_path=None, model=None, verbose=False):
+    """
+    Extract verified factors from GSM (and optionally GSE) accessions.
+
+    Two modes:
+
+    1. **Fetch mode** (recommended) — omit all three mapping path arguments.
+       Bare accession strings in ``gsm_ids_input`` are fetched directly from
+       NCBI GEO. GSE accessions are auto-expanded to their child GSMs.
+       After ``MAX_TRIES`` retries, an unrecoverable accession is reported
+       on stderr and emitted as ``{gsm_id: {}}`` so output positions are
+       preserved.
+
+    2. **Local-file mode** — provide all three mapping JSONs. Same behavior
+       as before this change.
+
+    Args:
+        gsm_ids_input: List of accession strings (GSM/GSE), or a path to a
+            JSON file containing such a list.
+        gsm_to_gse_path (str, optional): Path to JSON mapping GSM IDs to GSE IDs.
+        gsm_paths_path (str, optional): Path to JSON mapping GSM IDs to file paths.
+        gse_paths_path (str, optional): Path to JSON mapping GSE IDs to file paths.
+        model (str, optional): LLM identifier in ``provider:model`` form.
+        verbose (bool): If True, emit retry/expansion progress to stderr.
+
+    Returns:
+        list: A list of dicts with the standardized output format.
+    """
+    fetch_mode = (gsm_to_gse_path is None and gsm_paths_path is None and gse_paths_path is None)
+    if not fetch_mode and not all([gsm_to_gse_path, gsm_paths_path, gse_paths_path]):
+        raise ValueError(
+            "Provide all three mapping paths (gsm_to_gse, gsm_paths, gse_paths) "
+            "to use local-file mode, or omit all three to fetch from NCBI GEO."
+        )
+
     # Parse GSM IDs input
     gsm_ids = _parse_gsm_ids_input(gsm_ids_input)
     if not gsm_ids:
         print("No valid GSM IDs provided.")
-        return []
-
-    # Load lookup mappings
-    gsm_to_gse = _load_json_data(gsm_to_gse_path)
-    gsm_paths = _load_json_data(gsm_paths_path)
-    gse_paths = _load_json_data(gse_paths_path)
-
-    if not all([gsm_to_gse, gsm_paths, gse_paths]):
-        print("Failed to load one or more lookup mapping files.")
         return []
 
     # Load validation data once
@@ -1821,6 +1920,39 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_pat
         return []
 
     results = []
+
+    if fetch_mode:
+        gsm_queue = _expand_accessions_to_gsm_queue(gsm_ids, verbose=verbose)
+        for gsm_id in gsm_queue:
+            gsm_text, gse_text = _fetch_gsm_and_gse_text(gsm_id, verbose=verbose)
+            if gsm_text is None:
+                # fetch_geo_xml already logged the final failure
+                results.append({gsm_id: {}})
+                continue
+            try:
+                factor_result = extract_verify_factor(gsm_text, gse_text, genes_df, TF_df, chromatin_df, model=model)
+                if factor_result and "extracted_factor" in factor_result:
+                    formatted_result = _format_output_structure(
+                        gsm_id,
+                        extracted_factor=factor_result["extracted_factor"],
+                        factor_status=factor_result.get("factor_status")
+                    )
+                    results.append(formatted_result)
+                if verbose:
+                    print(f"Extracted factor for {gsm_id}", file=sys.stderr)
+            except Exception as e:
+                print(f"Error extracting target protein from {gsm_id}: {e}", file=sys.stderr)
+                continue
+        return results
+
+    # Local-file mode (mappings provided)
+    gsm_to_gse = _load_json_data(gsm_to_gse_path)
+    gsm_paths = _load_json_data(gsm_paths_path)
+    gse_paths = _load_json_data(gse_paths_path)
+
+    if not all([gsm_to_gse, gsm_paths, gse_paths]):
+        print("Failed to load one or more lookup mapping files.")
+        return []
 
     for gsm_id in gsm_ids:
         # Get GSM file path
@@ -2489,32 +2621,40 @@ def extract_verify_ontology(gsm_id, gsm_xml_string, gse_xml_strings,
     return validated_object
 
 ### Ontology Extraction Functionality###
-def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path, model=None):
+def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path=None, gsm_paths_path=None, gse_paths_path=None, model=None, verbose=False):
     """
-    Extracts ontology metadata from GSM IDs using provided lookup mappings.
+    Extract ontology metadata from GSM (and optionally GSE) accessions.
+
+    Two modes — see :func:`meta_extract_factors` for full details:
+
+    * **Fetch mode** (recommended): omit all three mapping paths; bare
+      accession strings are fetched directly from NCBI GEO. GSE accessions
+      auto-expand to child GSMs. Unrecoverable accessions are emitted as
+      ``{gsm_id: {}}``.
+    * **Local-file mode**: provide all three mapping JSONs.
 
     Args:
-        gsm_ids_input: List of GSM IDs or path to JSON file containing GSM IDs
-        gsm_to_gse_path (str): Path to JSON file mapping GSM IDs to GSE IDs
-        gsm_paths_path (str): Path to JSON file mapping GSM IDs to file paths
-        gse_paths_path (str): Path to JSON file mapping GSE IDs to file paths
+        gsm_ids_input: List of accession strings, or path to a JSON list.
+        gsm_to_gse_path (str, optional): GSM→GSE mapping JSON.
+        gsm_paths_path (str, optional): GSM→XML path mapping JSON.
+        gse_paths_path (str, optional): GSE→XML path mapping JSON.
+        model (str, optional): LLM identifier in ``provider:model`` form.
+        verbose (bool): If True, emit retry/expansion progress to stderr.
 
     Returns:
         list: A list of ontology extraction dicts with standardized format.
     """
+    fetch_mode = (gsm_to_gse_path is None and gsm_paths_path is None and gse_paths_path is None)
+    if not fetch_mode and not all([gsm_to_gse_path, gsm_paths_path, gse_paths_path]):
+        raise ValueError(
+            "Provide all three mapping paths (gsm_to_gse, gsm_paths, gse_paths) "
+            "to use local-file mode, or omit all three to fetch from NCBI GEO."
+        )
+
     # Parse GSM IDs input
     gsm_ids = _parse_gsm_ids_input(gsm_ids_input)
     if not gsm_ids:
         print("No valid GSM IDs provided.")
-        return []
-
-    # Load lookup mappings
-    gsm_to_gse = _load_json_data(gsm_to_gse_path)
-    gsm_paths = _load_json_data(gsm_paths_path)
-    gse_paths = _load_json_data(gse_paths_path)
-
-    if not all([gsm_to_gse, gsm_paths, gse_paths]):
-        print("Failed to load one or more lookup mapping files.")
         return []
 
     # Load ontology data once
@@ -2548,6 +2688,43 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
         return []
 
     results = []
+
+    if fetch_mode:
+        gsm_queue = _expand_accessions_to_gsm_queue(gsm_ids, verbose=verbose)
+        for gsm_id in gsm_queue:
+            gsm_text, gse_text = _fetch_gsm_and_gse_text(gsm_id, verbose=verbose)
+            if gsm_text is None:
+                results.append({gsm_id: {}})
+                continue
+            try:
+                result = extract_verify_ontology(
+                    gsm_id, gsm_text, gse_text,
+                    cellosaurus, efo, uberon,
+                    cellosaurus_reduce, efo_reduce, uberon_reduce,
+                    cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy,
+                    model=model
+                )
+                if result:
+                    formatted_result = _format_output_structure(
+                        gsm_id,
+                        extracted_ontology=result
+                    )
+                    results.append(formatted_result)
+                if verbose:
+                    print(f"Extracted ontologies for {gsm_id}", file=sys.stderr)
+            except Exception as e:
+                print(f"An error occurred verifying ontologies for {gsm_id}: {e}", file=sys.stderr)
+                continue
+        return results
+
+    # Local-file mode
+    gsm_to_gse = _load_json_data(gsm_to_gse_path)
+    gsm_paths = _load_json_data(gsm_paths_path)
+    gse_paths = _load_json_data(gse_paths_path)
+
+    if not all([gsm_to_gse, gsm_paths, gse_paths]):
+        print("Failed to load one or more lookup mapping files.")
+        return []
 
     for gsm_id in gsm_ids:
         # Get GSM file path
@@ -2595,7 +2772,7 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
             )
             if result:
                 formatted_result = _format_output_structure(
-                    gsm_id, 
+                    gsm_id,
                     extracted_ontology=result
                 )
                 results.append(formatted_result)
@@ -2607,35 +2784,43 @@ def meta_extract_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_
     return results
 
 ### Combined Extraction and Verification ###
-def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_paths_path, gse_paths_path, model=None):
+def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path=None, gsm_paths_path=None, gse_paths_path=None, model=None, verbose=False):
     """
-    Extracts both factors and ontology metadata from GSM IDs using provided lookup mappings.
-    
+    Extract both factors and ontology metadata from GSM (and optionally GSE) accessions.
+
+    Two modes — see :func:`meta_extract_factors` for full details:
+
+    * **Fetch mode** (recommended): omit all three mapping paths; bare
+      accession strings are fetched directly from NCBI GEO. GSE accessions
+      auto-expand to child GSMs. Unrecoverable accessions are emitted as
+      ``{gsm_id: {}}``.
+    * **Local-file mode**: provide all three mapping JSONs.
+
     Args:
-        gsm_ids_input: List of GSM IDs or path to JSON file containing GSM IDs
-        gsm_to_gse_path (str): Path to JSON file mapping GSM IDs to GSE IDs
-        gsm_paths_path (str): Path to JSON file mapping GSM IDs to file paths
-        gse_paths_path (str): Path to JSON file mapping GSE IDs to file paths
-    
+        gsm_ids_input: List of accession strings, or path to a JSON list.
+        gsm_to_gse_path (str, optional): GSM→GSE mapping JSON.
+        gsm_paths_path (str, optional): GSM→XML path mapping JSON.
+        gse_paths_path (str, optional): GSE→XML path mapping JSON.
+        model (str, optional): LLM identifier in ``provider:model`` form.
+        verbose (bool): If True, emit retry/expansion progress to stderr.
+
     Returns:
         list of dicts with standardized output format.
     """
+    fetch_mode = (gsm_to_gse_path is None and gsm_paths_path is None and gse_paths_path is None)
+    if not fetch_mode and not all([gsm_to_gse_path, gsm_paths_path, gse_paths_path]):
+        raise ValueError(
+            "Provide all three mapping paths (gsm_to_gse, gsm_paths, gse_paths) "
+            "to use local-file mode, or omit all three to fetch from NCBI GEO."
+        )
+
     # Parse GSM IDs input
     gsm_ids = _parse_gsm_ids_input(gsm_ids_input)
     if not gsm_ids:
         print("No valid GSM IDs provided.")
         return []
 
-    # Load lookup mappings
-    gsm_to_gse = _load_json_data(gsm_to_gse_path)
-    gsm_paths = _load_json_data(gsm_paths_path)
-    gse_paths = _load_json_data(gse_paths_path)
-
-    if not all([gsm_to_gse, gsm_paths, gse_paths]):
-        print("Failed to load one or more lookup mapping files.")
-        return []
-
-    # Load factor validation data
+    # Load factor + ontology validation data
     data_dir = get_data_dir()
     parsed_factor_dir = data_dir / "parsed_factor_data"
     parsed_ontology_dir = data_dir / "parsed_ontology_data"
@@ -2672,6 +2857,57 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
 
     results = []
 
+    if fetch_mode:
+        gsm_queue = _expand_accessions_to_gsm_queue(gsm_ids, verbose=verbose)
+        for gsm_id in gsm_queue:
+            gsm_text, gse_text = _fetch_gsm_and_gse_text(gsm_id, verbose=verbose)
+            if gsm_text is None:
+                results.append({gsm_id: {}})
+                continue
+
+            extracted_factor = None
+            factor_status = None
+            try:
+                factor_result = extract_verify_factor(gsm_text, gse_text, genes_df, TF_df, chromatin_df, model=model)
+                if factor_result and "extracted_factor" in factor_result:
+                    extracted_factor = factor_result["extracted_factor"]
+                    factor_status = factor_result.get("factor_status")
+            except Exception as e:
+                print(f"Error extracting factor from {gsm_id}: {e}", file=sys.stderr)
+
+            extracted_ontology = None
+            try:
+                extracted_ontology = extract_verify_ontology(
+                    gsm_id, gsm_text, gse_text,
+                    cellosaurus, efo, uberon,
+                    cellosaurus_reduce, efo_reduce, uberon_reduce,
+                    cellosaurus_fuzzy, efo_fuzzy, uberon_fuzzy,
+                    model=model
+                )
+            except Exception as e:
+                print(f"Error extracting ontology from {gsm_id}: {e}", file=sys.stderr)
+
+            if extracted_factor or extracted_ontology:
+                formatted_result = _format_output_structure(
+                    gsm_id,
+                    extracted_factor=extracted_factor,
+                    factor_status=factor_status,
+                    extracted_ontology=extracted_ontology
+                )
+                results.append(formatted_result)
+                if verbose:
+                    print(f"Extracted {gsm_id}", file=sys.stderr)
+        return results
+
+    # Local-file mode
+    gsm_to_gse = _load_json_data(gsm_to_gse_path)
+    gsm_paths = _load_json_data(gsm_paths_path)
+    gse_paths = _load_json_data(gse_paths_path)
+
+    if not all([gsm_to_gse, gsm_paths, gse_paths]):
+        print("Failed to load one or more lookup mapping files.")
+        return []
+
     for gsm_id in gsm_ids:
         # Get GSM file path
         gsm_file_path = gsm_paths.get(gsm_id)
@@ -2679,7 +2915,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
             print(f"GSM file not found for {gsm_id}")
             continue
 
-        
+
 
         # Load and simplify GSM
         try:
@@ -2687,7 +2923,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
         except Exception as e:
             print(f"{gsm_id} | Error simplifying GSM XML file '{gsm_file_path}': {e}")
             continue
-        
+
         # Get associated GSE IDs and their file paths
         gse_ids = gsm_to_gse.get(gsm_id, [])
 
@@ -2708,7 +2944,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path, gsm_path
             gse_text = "\n\n".join(gse_prompts)
         else:
             gse_text = ""
-            
+
         # Extract factor
         extracted_factor = None
         factor_status = None

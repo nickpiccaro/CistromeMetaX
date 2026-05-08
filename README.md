@@ -1,6 +1,6 @@
 # CistromeMetaX
 
-A Python package and command-line tool that leverages large language models (LLMs) to parse, extract, and verify metadata from GEO MetaData XML files (from the NCBI Gene Expression Omnibus) specifically for ChIP-seq experiments. CistromeMetaX extracts crucial experimental factors, cell types, tissues, and target proteins in formats useful for downstream tools such as the [Cistrome Data Browser](https://db3.cistrome.org/browser/).
+A Python package and command-line tool that leverages large language models (LLMs) to parse, extract, and verify metadata from GEO MetaData XML files (from the NCBI Gene Expression Omnibus) specifically for ChIP-seq experiments. **Give it a list of GSM (or GSE) accession IDs and it pulls the MINiML XML directly from NCBI GEO and returns standardized factors, cell types, tissues, and target proteins** — formats useful for downstream tools such as the [Cistrome Data Browser](https://db3.cistrome.org/browser/). For users who already have local XML files cached, the original local-file workflow is still supported.
 
 ## The Challenge
 
@@ -18,9 +18,9 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 - [Installation](#installation)
 - [Model Configuration](#model-configuration)
 - [Usage](#usage)
-  - [Command Line Interface](#command-line-interface)
-  - [Python Interface](#python-interface)
-- [Input File Structure](#input-file-structure)
+  - [Quick Start: Accession IDs (Fetch from GEO)](#quick-start-accession-ids-fetch-from-geo)
+  - [Local-File Mode](#local-file-mode)
+- [Input File Structure (Local-File Mode Only)](#input-file-structure-local-file-mode-only)
 - [Expected Output](#expected-output)
 - [Generating Input Files](#generating-input-files)
 - [Changelog](#changelog)
@@ -32,7 +32,7 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 
 ## About
 
-CistromeMetaX streamlines the extraction of critical metadata from ChIP-seq experiments, including experimental factors, cell types, tissues, and target proteins from GEO (Gene Expression Omnibus) XML files. CistromeMetaX supports multiple LLM providers out of the box and requires no model training or specialized setup. The package validates its LLM outputs against established databases to ensure extracted cell types, tissues, cell lines, and target proteins are biologically valid and standardized.
+CistromeMetaX streamlines the extraction of critical metadata from ChIP-seq experiments, including experimental factors, cell types, tissues, and target proteins from GEO (Gene Expression Omnibus) records. The default workflow takes a list of GSM/GSE accession strings and fetches the MINiML XML directly from NCBI GEO — no pre-downloaded files or mapping JSONs required. For pipelines with locally cached XMLs, the package also accepts pre-built mapping files. CistromeMetaX supports multiple LLM providers out of the box and validates its LLM outputs against established databases to ensure extracted cell types, tissues, cell lines, and target proteins are biologically valid and standardized.
 
 The tool is designed to integrate seamlessly with existing bioinformatics pipelines, providing highly accurate and consistent outputs suitable for resources like Cistrome and other ChIP-seq analysis platforms.
 
@@ -154,27 +154,99 @@ DEEPSEEK_API_KEY=your-deepseek-key-here
 
 ## Usage
 
-### Command Line Interface
+CistromeMetaX has two operating modes:
 
-The CLI command uses JSON configuration files for batch processing:
+- **Fetch mode (default)** — pass a list of GSM/GSE accession strings and let CistromeMetaX pull the MINiML XML directly from NCBI GEO. No mapping files required.
+- **Local-file mode** — pass three pre-built JSON mapping files plus a list of GSM IDs. Use this when you have GEO XMLs already cached on disk and want to avoid network calls.
+
+### Quick Start: Accession IDs (Fetch from GEO)
+
+#### Command Line
 
 ```bash
-cistromeMX-extract --mode [factor|ontology|both] --gsm-ids GSM_IDS_INPUT --gsm-to-gse GSM_TO_GSE_FILE --gsm-paths GSM_PATHS_FILE --gse-paths GSE_PATHS_FILE [--model MODEL] [--output OUTPUT_FILE] [--verbose]
+# Extract factors for one GSM — fetches XML from NCBI in memory
+cistromeMX-extract --mode factor --gsm-ids '["GSM534473"]'
+
+# Extract both factors and ontologies, save to file, verbose progress
+cistromeMX-extract --mode both --gsm-ids '["GSM534473", "GSM669931"]' -o results.json -v
+
+# Pass a GSE — auto-expands to all child GSMs
+cistromeMX-extract --mode factor --gsm-ids '["GSE20752"]' -v
+
+# Use a different model provider
+cistromeMX-extract --mode both --gsm-ids '["GSM534473"]' \
+  --model anthropic:claude-sonnet-4-5-20250929
+```
+
+In fetch mode, CistromeMetaX:
+
+- Hits the public NCBI MINiML endpoint (`https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi`) with rate limiting (≥0.35s between requests) and up to 3 retries per accession.
+- Auto-discovers each GSM's parent GSE(s) using `targ=series`, falling back to `targ=all`, so the LLM gets the same GSM + GSE context as in local-file mode.
+- Expands any GSE accession in the input list to all of its child GSMs (de-duplicated against any GSMs you also listed).
+- Holds fetched XMLs in memory only — nothing is written to disk.
+- After 3 failed retries on an accession, prints a `Could not fetch <accession>` line to stderr and emits `{<accession>: {}}` in the output list, preserving output positions for downstream consumers.
+
+#### Python
+
+```python
+from CistromeMetaX import (
+    meta_extract_factors,
+    meta_extract_ontologies,
+    meta_extract_factors_and_ontologies,
+)
+
+# Default: fetch from NCBI. Pass GSM and/or GSE accessions.
+result = meta_extract_factors_and_ontologies(["GSM534473", "GSE20752"])
+
+# Verbose progress on stderr; pick a specific model
+result = meta_extract_factors(
+    ["GSM534473"],
+    model="anthropic:claude-sonnet-4-5-20250929",
+    verbose=True,
+)
+```
+
+You can also call the fetch helpers directly:
+
+```python
+from CistromeMetaX import fetch_geo_xml, expand_gse_to_gsms
+
+xml_str = fetch_geo_xml("GSM534473", targ="series")  # MINiML XML as a string
+child_gsms = expand_gse_to_gsms("GSE20752")           # list of child GSM accessions
+```
+
+---
+
+### Local-File Mode
+
+Use this mode when you already have GEO XML files cached locally and pre-built mapping JSONs. Behavior here is unchanged from previous releases.
+
+#### Command Line
+
+```bash
+cistromeMX-extract --mode [factor|ontology|both] \
+  --gsm-ids GSM_IDS_INPUT \
+  --gsm-to-gse GSM_TO_GSE_FILE \
+  --gsm-paths GSM_PATHS_FILE \
+  --gse-paths GSE_PATHS_FILE \
+  [--model MODEL] [--output OUTPUT_FILE] [--verbose]
 ```
 
 #### CLI Arguments
 
 - `--mode`: Extraction mode
   - `factor`: Extract experimental factors only
-  - `ontology`: Extract cell types and tissues only  
+  - `ontology`: Extract cell types and tissues only
   - `both`: Extract both factors and cell types/tissues
-- `--gsm-ids`: GSM IDs input (JSON file path or JSON string)
-- `--gsm-to-gse`: Path to JSON file mapping GSM IDs to GSE IDs
-- `--gsm-paths`: Path to JSON file mapping GSM IDs to file paths
-- `--gse-paths`: Path to JSON file mapping GSE IDs to file paths
-- `--model, -m`: LLM model in `provider:model_name` format (default: `openai:gpt-4o-mini`)
-- `--output, -o`: Optional output file path (prints to stdout if not specified)
-- `--verbose, -v`: Enable verbose output
+- `--gsm-ids`: GSM/GSE accessions input (JSON file path or JSON string). In fetch mode, GSE accessions auto-expand to child GSMs.
+- `--gsm-to-gse`: *(Optional — local-file mode only)* Path to JSON file mapping GSM IDs to GSE IDs.
+- `--gsm-paths`: *(Optional — local-file mode only)* Path to JSON file mapping GSM IDs to file paths.
+- `--gse-paths`: *(Optional — local-file mode only)* Path to JSON file mapping GSE IDs to file paths.
+- `--model, -m`: LLM model in `provider:model_name` format (default: `openai:gpt-4o-mini`).
+- `--output, -o`: Optional output file path (prints to stdout if not specified).
+- `--verbose, -v`: Enable verbose output (stderr).
+
+> **Note:** All three mapping flags must be provided together for local-file mode. Omit all three to use fetch mode. Providing some-but-not-all is an error.
 
 #### Example Usage
 
@@ -203,7 +275,7 @@ cistromeMX-extract --mode factor \
   --gse-paths mappings/gse_paths.json \
   -m google_genai:gemini-2.5-flash
 
-# Pass GSM IDs directly as JSON string
+# Pass GSM IDs directly as JSON string (still local-file mode here, since mappings are supplied)
 cistromeMX-extract --mode factor \
   --gsm-ids '["GSM123456", "GSM789012"]' \
   --gsm-to-gse mappings/gsm_to_gse.json \
@@ -211,11 +283,7 @@ cistromeMX-extract --mode factor \
   --gse-paths mappings/gse_paths.json
 ```
 
----
-
-### Python Interface
-
-You can use CistromeMetaX directly within your Python scripts. All extraction functions accept an optional `model` parameter:
+#### Python
 
 ```python
 from CistromeMetaX import meta_extract_factors, meta_extract_ontologies, meta_extract_factors_and_ontologies
@@ -224,7 +292,7 @@ import json
 # Example 1: Extract both factors and cell types/tissues (default model)
 result = meta_extract_factors_and_ontologies(
     gsm_ids_input="metadata/gsm_ids.json",
-    gsm_to_gse_path="metadata/gsm_to_gse.json", 
+    gsm_to_gse_path="metadata/gsm_to_gse.json",
     gsm_paths_path="metadata/gsm_paths.json",
     gse_paths_path="metadata/gse_paths.json"
 )
@@ -235,7 +303,7 @@ with open("full_results.json", 'w') as f:
 # Example 2: Use Anthropic Claude
 result = meta_extract_factors_and_ontologies(
     gsm_ids_input="metadata/gsm_ids.json",
-    gsm_to_gse_path="metadata/gsm_to_gse.json", 
+    gsm_to_gse_path="metadata/gsm_to_gse.json",
     gsm_paths_path="metadata/gsm_paths.json",
     gse_paths_path="metadata/gse_paths.json",
     model="anthropic:claude-sonnet-4-5-20250929"
@@ -245,7 +313,7 @@ result = meta_extract_factors_and_ontologies(
 gsm_ids_input = ["GSM669931", "GSM1006151"]
 result_factors = meta_extract_factors(
     gsm_ids_input=gsm_ids_input,
-    gsm_to_gse_path="metadata/gsm_to_gse.json", 
+    gsm_to_gse_path="metadata/gsm_to_gse.json",
     gsm_paths_path="metadata/gsm_paths.json",
     gse_paths_path="metadata/gse_paths.json",
     model="google_genai:gemini-2.5-flash"
@@ -254,7 +322,7 @@ result_factors = meta_extract_factors(
 # Example 4: Extract cell types and tissues only (default model)
 result_ontologies = meta_extract_ontologies(
     gsm_ids_input="metadata/gsm_ids.json",
-    gsm_to_gse_path="metadata/gsm_to_gse.json", 
+    gsm_to_gse_path="metadata/gsm_to_gse.json",
     gsm_paths_path="metadata/gsm_paths.json",
     gse_paths_path="metadata/gse_paths.json"
 )
@@ -262,9 +330,9 @@ result_ontologies = meta_extract_ontologies(
 
 ---
 
-## Input File Structure
+## Input File Structure (Local-File Mode Only)
 
-CistromeMetaX requires four JSON configuration files to process your ChIP-seq metadata:
+The four JSON configuration files below are only required for **local-file mode**. Fetch mode (the default) does not need any of them — pass accession strings to `--gsm-ids` and CistromeMetaX will discover everything else from NCBI.
 
 ### 1. GSM IDs File (`gsm_ids.json`)
 List of GSM identifiers to process:
@@ -495,6 +563,9 @@ Please generate a Python function that reads my data structure and creates these
 
 ### Added
 
+- (5/08/26) **Fetch mode** — pass bare GSM/GSE accession strings; CistromeMetaX pulls MINiML XML directly from NCBI GEO and auto-discovers parent GSEs. Mapping JSONs are now optional. GSE inputs auto-expand to all their child GSMs. Unrecoverable accessions are reported on stderr after 3 retries and emitted as `{accession: {}}` to preserve output positions.
+- (5/08/26) New top-level helpers: `fetch_geo_xml`, `expand_gse_to_gsms` (in `CistromeMetaX.geo_fetch`).
+- (5/08/26) `simplify_gsm_xml_file` and `simplify_gse_xml_file` now accept either a file path **or** an XML string, so they work transparently with fetched payloads.
 - (3/01/26) **Multi-model support** — use any LangChain-compatible LLM provider (OpenAI, Anthropic, Google, Mistral, DeepSeek, and more)
 - (3/01/26) New `--model` / `-m` CLI flag to select the LLM provider and model
 - (3/01/26) Robust LLM response parsing that handles variations across providers (markdown-fenced JSON, text preamble, Python-style lists)
