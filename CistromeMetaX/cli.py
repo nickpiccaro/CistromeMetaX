@@ -103,69 +103,73 @@ def _parse_gsm_ids_input(gsm_ids_input):
 
 def meta_extract():
     """
-    Console command for extracting metadata from GSM IDs.
+    Console command for extracting metadata from GSM/GSE accessions.
     Supports factor extraction, ontology extraction, or both.
+
+    By default (no mapping JSONs supplied), MINiML XML is fetched directly
+    from NCBI GEO. When all three mapping JSONs are provided, the previous
+    local-file workflow is used.
     """
     parser = argparse.ArgumentParser(
-        description="Extract metadata (factors and/or ontologies) from GSM IDs",
+        description="Extract metadata (factors and/or ontologies) from GSM/GSE accessions",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    # Extract only factors
+    # Fetch mode (default) — pass bare accession strings; XML is pulled from NCBI GEO
+    cistromeMX-extract --mode factor --gsm-ids '["GSM534473"]'
+    cistromeMX-extract --mode both --gsm-ids '["GSM534473", "GSE20752"]' -o results.json
+
+    # GSE accessions auto-expand to all child GSMs
+    cistromeMX-extract --mode factor --gsm-ids '["GSE20752"]' -v
+
+    # Use a different model provider in fetch mode
+    cistromeMX-extract --mode both --gsm-ids '["GSM534473"]' --model anthropic:claude-sonnet-4-5-20250929
+
+    # Local-file mode — supply all three mapping JSONs
     cistromeMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
 
-    # Extract only ontologies
-    cistromeMX-extract --mode ontology --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
-
-    # Extract both factors and ontologies
-    cistromeMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
-
-    # Save output to file
-    cistromeMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --output results.json
-
-    # Pass GSM IDs directly as JSON list string
-    cistromeMX-extract --mode factor --gsm-ids '["GSM123456", "GSM789012"]' --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
-
-    # Pass GSM IDs with different JSON formatting
-    cistromeMX-extract --mode factor --gsm-ids "[\"GSM123456\", \"GSM789012\"]" --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json
-
-    # Use a different model provider (requires langchain-anthropic and ANTHROPIC_API_KEY in .env)
+    # Local-file mode with different model
     cistromeMX-extract --mode both --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json --model anthropic:claude-sonnet-4-5-20250929
-
-    # Use Google Vertex AI (requires langchain-google-vertexai and GOOGLE_API_KEY in .env)
-    cistromeMX-extract --mode factor --gsm-ids gsm_ids.json --gsm-to-gse mappings/gsm_to_gse.json --gsm-paths mappings/gsm_paths.json --gse-paths mappings/gse_paths.json -m google_vertexai:gemini-2.5-flash
         """
     )
-   
+
     parser.add_argument(
         "--mode",
         choices=["factor", "ontology", "both"],
         required=True,
-        help="Extraction mode: 'factor' for factors only, 'ontology' for ontologies only, 'both' for both factors and ontologies"
+        help="Extraction mode: 'factor', 'ontology', or 'both'"
     )
-   
+
     parser.add_argument(
         "--gsm-ids",
         required=True,
-        help="GSM IDs input: either a path to JSON file containing GSM IDs, or a JSON string representation of a list (e.g., '[\"GSM123\", \"GSM456\"]')"
+        help="Accessions input: a path to a JSON file containing a list of GSM/GSE accessions, "
+             "or a JSON list string (e.g., '[\"GSM534473\", \"GSE20752\"]'). "
+             "GSE accessions are auto-expanded to all their child GSMs."
     )
-   
+
     parser.add_argument(
         "--gsm-to-gse",
-        required=True,
-        help="Path to JSON file mapping GSM IDs to GSE IDs"
+        required=False,
+        default=None,
+        help="Optional. Path to JSON mapping GSM IDs to GSE IDs. Required only for local-file mode; "
+             "omit to fetch from NCBI."
     )
-   
+
     parser.add_argument(
         "--gsm-paths",
-        required=True,
-        help="Path to JSON file mapping GSM IDs to file paths"
+        required=False,
+        default=None,
+        help="Optional. Path to JSON mapping GSM IDs to local XML file paths. Required only for "
+             "local-file mode; omit to fetch from NCBI."
     )
-   
+
     parser.add_argument(
         "--gse-paths",
-        required=True,
-        help="Path to JSON file mapping GSE IDs to file paths"
+        required=False,
+        default=None,
+        help="Optional. Path to JSON mapping GSE IDs to local XML file paths. Required only for "
+             "local-file mode; omit to fetch from NCBI."
     )
    
     parser.add_argument(
@@ -190,10 +194,23 @@ Examples:
     )
    
     args = parser.parse_args()
-   
+
     # Parse GSM IDs input using the enhanced parser
     gsm_ids_input = _parse_gsm_ids_input(args.gsm_ids)
-    
+
+    # Decide between fetch mode and local-file mode based on mapping args.
+    # All three mapping JSONs absent => fetch mode. All three present => local mode.
+    # Anything in between is a usage error.
+    mapping_args = (args.gsm_to_gse, args.gsm_paths, args.gse_paths)
+    fetch_mode = all(p is None for p in mapping_args)
+    if not fetch_mode and not all(mapping_args):
+        print(
+            "Error: provide all three mapping files (--gsm-to-gse, --gsm-paths, --gse-paths) "
+            "for local-file mode, or omit all three to fetch from NCBI.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     if args.verbose:
         if isinstance(gsm_ids_input, list):
             print(f"Parsed GSM IDs as list with {len(gsm_ids_input)} items")
@@ -203,46 +220,38 @@ Examples:
             print(f"Using model: {args.model}")
         else:
             print(f"Using default model: openai:gpt-4o-mini")
-   
-    # Validate that required mapping files exist
-    required_files = [args.gsm_to_gse, args.gsm_paths, args.gse_paths]
-    for file_path in required_files:
-        if not Path(file_path).exists():
-            print(f"Error: Required mapping file not found: {file_path}", file=sys.stderr)
-            sys.exit(1)
-   
+        print(f"Mode: {'fetch from NCBI GEO' if fetch_mode else 'local files'}")
+
+    # Validate mapping files only when in local-file mode
+    if not fetch_mode:
+        for file_path in mapping_args:
+            if not Path(file_path).exists():
+                print(f"Error: Required mapping file not found: {file_path}", file=sys.stderr)
+                sys.exit(1)
+
+    # Build kwargs that work for both modes
+    extract_kwargs = dict(model=args.model, verbose=args.verbose)
+    if not fetch_mode:
+        extract_kwargs.update(
+            gsm_to_gse_path=args.gsm_to_gse,
+            gsm_paths_path=args.gsm_paths,
+            gse_paths_path=args.gse_paths,
+        )
+
     # Select appropriate extraction function based on mode
     try:
         if args.mode == "factor":
             if args.verbose:
                 print(f"Extracting factors for GSM IDs...")
-            results = meta_extract_factors(
-                gsm_ids_input,
-                args.gsm_to_gse,
-                args.gsm_paths,
-                args.gse_paths,
-                model=args.model
-            )
+            results = meta_extract_factors(gsm_ids_input, **extract_kwargs)
         elif args.mode == "ontology":
             if args.verbose:
                 print(f"Extracting ontologies for GSM IDs...")
-            results = meta_extract_ontologies(
-                gsm_ids_input,
-                args.gsm_to_gse,
-                args.gsm_paths,
-                args.gse_paths,
-                model=args.model
-            )
+            results = meta_extract_ontologies(gsm_ids_input, **extract_kwargs)
         elif args.mode == "both":
             if args.verbose:
                 print(f"Extracting both factors and ontologies for GSM IDs...")
-            results = meta_extract_factors_and_ontologies(
-                gsm_ids_input,
-                args.gsm_to_gse,
-                args.gsm_paths,
-                args.gse_paths,
-                model=args.model
-            )
+            results = meta_extract_factors_and_ontologies(gsm_ids_input, **extract_kwargs)
     except ImportError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

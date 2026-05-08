@@ -1,0 +1,121 @@
+[
+  {
+    "GSM935373": {
+      "factor": {
+        "extracted_factor": "GATA2"
+      }
+    }
+  },
+  {
+    "GSM935274": {
+      "factor": {
+        "extracted_factor": "N/A",
+        "factor_status": "control_sample"
+      }
+    }
+  },
+  {
+    "GSM803411": {
+      "factor": {
+        "extracted_factor": "ZEB1"
+      }
+    }
+  },
+  {
+    "GSM935317": {
+      "factor": {
+        "extracted_factor": "FOS"
+      }
+    }
+  },
+  {
+    "GSM935616": {
+      "factor": {
+        "extracted_factor": "BHLHE40"
+      }
+    }
+  },
+  {
+    "GSM1010812": {
+      "factor": {
+        "extracted_factor": "TAF1"
+      }
+    }
+  },
+  {
+    "GSM1010895": {
+      "factor": {
+        "extracted_factor": "TEAD4"
+      }
+    }
+  },
+  {
+    "GSM782123": {
+      "factor": {
+        "extracted_factor": "TCF7L2"
+      }
+    }
+  },
+  {
+    "GSM935496": {
+      "factor": {
+        "extracted_factor": "TAL1"
+      }
+    }
+  },
+  {
+    "GSM935401": {
+      "factor": {
+        "extracted_factor": "EP300"
+      }
+    }
+  },
+  {
+    "GSM992827": {
+      "factor": {
+        "extracted_factor": "N/A",
+        "factor_status": "no_factor_detected"
+      }
+    }
+  },
+  {
+    "GSM992828": {
+      "factor": {
+        "extracted_factor": "N/A",
+        "factor_status": "no_factor_detected"
+      }
+    }
+  },
+  {
+    "GSM992829": {
+      "factor": {
+        "extracted_factor": "N/A",
+        "factor_status": "no_factor_detected"
+      }
+    }
+  },
+  {
+    "GSM992830": {
+      "factor": {
+        "extracted_factor": "N/A",
+        "factor_status": "no_factor_detected"
+      }
+    }
+  },
+  {
+    "GSM992831": {
+      "factor": {
+        "extracted_factor": "N/A",
+        "factor_status": "no_factor_detected"
+      }
+    }
+  },
+  {
+    "GSM992832": {
+      "factor": {
+        "extracted_factor": "N/A",
+        "factor_status": "no_factor_detected"
+      }
+    }
+  }
+]
