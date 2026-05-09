@@ -25,3 +25,4 @@ test_runs/
 
 # Ignore local test data (XML files, user test fixtures)
 tests/test_data/
+tests/
