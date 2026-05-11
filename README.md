@@ -13,6 +13,7 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 ## Table of Contents
 
 - [About](#about)
+- [Factor Classification Categories](#factor-classification-categories)
 - [The Model](#the-model)
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -35,6 +36,24 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 CistromeMetaX streamlines the extraction of critical metadata from ChIP-seq experiments, including experimental factors, cell types, tissues, and target proteins from GEO (Gene Expression Omnibus) records. The default workflow takes a list of GSM/GSE accession strings and fetches the MINiML XML directly from NCBI GEO — no pre-downloaded files or mapping JSONs required. For pipelines with locally cached XMLs, the package also accepts pre-built mapping files. CistromeMetaX supports multiple LLM providers out of the box and validates its LLM outputs against established databases to ensure extracted cell types, tissues, cell lines, and target proteins are biologically valid and standardized.
 
 The tool is designed to integrate seamlessly with existing bioinformatics pipelines, providing highly accurate and consistent outputs suitable for resources like Cistrome and other ChIP-seq analysis platforms.
+
+---
+
+## Factor Classification Categories
+
+Every successfully extracted factor is now annotated with a `factor_type` field that classifies the factor into one of several biological/experimental categories. This makes downstream filtering and analysis (e.g., separating histone-modification studies from transcription-factor ChIPs, or flagging non-human/viral targets) straightforward.
+
+| `factor_type` | Description | Example factors |
+|---|---|---|
+| `transcription_factor` | Human transcription factor validated against AnimalTFDB | `ESR1`, `FOXA1`, `MYC`, `TP53` |
+| `histone_modification` | Histone mark validated against the canonical histone-mark grammar | `H3K27ac`, `H3K4me3`, `H3K9me2` |
+| `chromatin_remodeler` | Chromatin-remodeling factor validated against Harmonizome | `BRD4`, `EZH2`, `SMARCA4` |
+| `viral_factor` | Viral protein from the curated viral-factor DB (KSHV, EBV, HPV, HBV, HCMV, HIV-1, HTLV-1, Adenovirus, SV40, Influenza, SARS-CoV-2) | `LANA`, `EBNA3A`, `ZTA`, `HBx`, `SARS-CoV-2-N` |
+| `gene_editing_tool` | CRISPR-family enzymes and other programmable nucleases (incl. dCas9 fusions, base/prime editors, TALENs, ZFNs) | `CAS9`, `CAS12A`, `TALEN`, `ZFN` |
+| `gene` | A human gene present in NCBI Gene but not in any specialized DB | `ACTB`, `GAPDH` |
+| `none` | No extractable factor (control, missing metadata, or unresolved) | — |
+
+The `factor_type` field always travels alongside `extracted_factor` in factor output. See [Expected Output](#expected-output) for examples.
 
 ---
 
@@ -393,37 +412,103 @@ Maps GSE IDs to their XML file locations:
 CistromeMetaX produces structured JSON output containing extracted and validated metadata:
 
 ### Factor Extraction Output
+
+Every successful factor extraction includes both `extracted_factor` and `factor_type`:
+
 ```json
 {
   "GSM1007988": {
       "factor": {
-          "extracted_factor": "H3K27me3"
+          "extracted_factor": "H3K27me3",
+          "factor_type": "histone_modification"
       }
   }
 }
 ```
 
-When a factor cannot be determined, `extracted_factor` is set to `"N/A"` and a `factor_status` field is included to explain why:
+A transcription-factor example:
+
+```json
+{
+  "GSM534473": {
+      "factor": {
+          "extracted_factor": "ESR1",
+          "factor_type": "transcription_factor"
+      }
+  }
+}
+```
+
+A viral-factor example (KSHV-infected cells):
+
+```json
+{
+  "GSM7654321": {
+      "factor": {
+          "extracted_factor": "LANA",
+          "factor_type": "viral_factor"
+      }
+  }
+}
+```
+
+A gene-editing-tool example (a dCas9-KRAB experiment):
+
+```json
+{
+  "GSM2345678": {
+      "factor": {
+          "extracted_factor": "CAS9",
+          "factor_type": "gene_editing_tool"
+      }
+  }
+}
+```
+
+#### Epitope-tagged factors
+
+When the ChIP antibody targets an epitope tag (e.g., HA, FLAG, Myc, V5) and CistromeMetaX can recover the underlying tagged target from the metadata, both `extracted_factor` and `factor_type` reflect the **real** target — not the tag — and `factor_status` is set to `epitope_tagged` as a success modifier:
+
+```json
+{
+  "GSM6616013": {
+      "factor": {
+          "extracted_factor": "ASCL1",
+          "factor_type": "transcription_factor",
+          "factor_status": "epitope_tagged"
+      }
+  }
+}
+```
+
+#### Failure modes
+
+When a factor cannot be determined, `extracted_factor` is set to `"N/A"`, `factor_type` is set to `"none"`, and `factor_status` explains why:
 
 ```json
 {
   "GSM1234567": {
       "factor": {
           "extracted_factor": "N/A",
+          "factor_type": "none",
           "factor_status": "control_sample"
       }
   }
 }
 ```
 
+### Status and Classification Fields
+
 | `factor_status` | Meaning |
 |---|---|
-| `control_sample` | Sample identified as an input/control experiment (e.g., IgG, Input, WCE) |
-| `no_factor_detected` | LLM did not identify a target protein in the metadata |
-| `extraction_failed` | An error occurred during LLM extraction |
-| `verification_failed` | A factor was extracted but could not be validated against gene, transcription factor, chromatin remodeler, or histone modification databases |
+| `control_sample` | Sample identified as an input/control experiment (e.g., IgG, Input, WCE) — failure mode |
+| `no_factor_detected` | LLM did not identify a target protein in the metadata — failure mode |
+| `extraction_failed` | An error occurred during LLM extraction — failure mode |
+| `verification_failed` | A factor was extracted but could not be validated against any database (gene, TF, chromatin remodeler, histone, viral, or gene-editing) — failure mode |
+| `incomplete_epitope_tag` | An epitope tag (HA/FLAG/Myc/etc.) was detected as the ChIP antibody, but the underlying tagged target could not be recovered from the metadata — failure mode |
+| `epitope_tagged` | The ChIP antibody targets an epitope tag and the underlying target *was* recovered. `extracted_factor` holds the real target — success modifier |
 
-The `factor_status` field only appears when `extracted_factor` is `"N/A"`.
+`factor_status` is present in every failure mode and also appears as the `epitope_tagged` modifier on otherwise-successful extractions. It is omitted on clean, non-tagged success cases.
 
 ### Cell Type/Tissue Extraction Output  
 ```json
@@ -483,7 +568,8 @@ The `factor_status` field only appears when `extracted_factor` is `"N/A"`.
 {
   "GSM1007988": {
       "factor": {
-          "extracted_factor": "H3K27me3"
+          "extracted_factor": "H3K27me3",
+          "factor_type": "histone_modification"
       },
       "ontology": {
           "extracted_ontologies": {
@@ -563,6 +649,9 @@ Please generate a Python function that reads my data structure and creates these
 
 ### Added
 
+- (5/10/26) **Non-human factor support** — added curated synonym DBs for **viral factors** (50 entries across KSHV, EBV, HPV, HBV, HCMV, HIV-1, HTLV-1, Adenovirus, SV40, Influenza A, SARS-CoV-2) and **gene-editing tools** (CRISPR-Cas9 incl. dCas9 fusions / base / prime editors, Cas12a, Cas13, TALEN, ZFN, meganucleases, transposases). The verification cascade now consults these DBs before falling back to human-gene lookup.
+- (5/10/26) **Epitope-tag detection** — when the ChIP antibody is an epitope tag (HA/FLAG/Myc/V5/etc.), the extractor attempts to recover the underlying tagged target from the metadata. Successful recovery returns the real target with `factor_status: "epitope_tagged"`; unrecoverable cases return `factor_status: "incomplete_epitope_tag"`.
+- (5/10/26) **`factor_type` field** — every factor output now carries a `factor_type` classification (`transcription_factor`, `histone_modification`, `chromatin_remodeler`, `viral_factor`, `gene_editing_tool`, `gene`, or `none`). See [Factor Classification Categories](#factor-classification-categories).
 - (5/08/26) **Fetch mode** — pass bare GSM/GSE accession strings; CistromeMetaX pulls MINiML XML directly from NCBI GEO and auto-discovers parent GSEs. Mapping JSONs are now optional. GSE inputs auto-expand to all their child GSMs. Unrecoverable accessions are reported on stderr after 3 retries and emitted as `{accession: {}}` to preserve output positions.
 - (5/08/26) New top-level helpers: `fetch_geo_xml`, `expand_gse_to_gsms` (in `CistromeMetaX.geo_fetch`).
 - (5/08/26) `simplify_gsm_xml_file` and `simplify_gse_xml_file` now accept either a file path **or** an XML string, so they work transparently with fetched payloads.
@@ -612,6 +701,11 @@ Please generate a Python function that reads my data structure and creates these
 - [Cellosaurus](https://www.cellosaurus.org/) - Cell Line Database
 - [EFO](https://github.com/EBISPOT/efo/?tab=readme-ov-file) - Experimental Factor Ontology Database
 - [Uberon](https://obophenotype.github.io/uberon/) - Anatomical Ontology Database
+- [UniProt](https://www.uniprot.org/) - Curated viral protein synonyms and identifiers (viral-factor DB)
+- [ICTV — International Committee on Taxonomy of Viruses](https://ictv.global/) - Authoritative viral nomenclature
+- Qi, L. S., Larson, M. H., Gilbert, L. A., et al. (2013). *Repurposing CRISPR as an RNA-guided platform for sequence-specific control of gene expression.* **Cell**, 152(5), 1173–1183. — foundational dCas9 / CRISPRi reference
+- Anzalone, A. V., Randolph, P. B., Davis, J. R., et al. (2019). *Search-and-replace genome editing without double-strand breaks or donor DNA.* **Nature**, 576, 149–157. — prime editing (PE2/PE3) reference
+- Komor, A. C., Kim, Y. B., Packer, M. S., Zuris, J. A., & Liu, D. R. (2016). *Programmable editing of a target base in genomic DNA without double-stranded DNA cleavage.* **Nature**, 533, 420–424. — base editing (BE3/ABE) reference
 
 ---
 
