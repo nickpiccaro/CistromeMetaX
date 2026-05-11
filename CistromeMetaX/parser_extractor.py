@@ -537,15 +537,23 @@ def _parse_gsm_ids_input(gsm_ids_input):
         print(f"Error parsing GSM IDs input: {e}")
         return []
 
-def _format_output_structure(gsm_id, extracted_factor=None, factor_status=None, extracted_ontology=None):
+def _format_output_structure(gsm_id, extracted_factor=None, factor_status=None,
+                              factor_type=None, extracted_ontology=None):
     """
     Format the output according to the standardized structure.
+
+    A factor entry now always includes ``extracted_factor`` and ``factor_type``
+    (when the latter is supplied), and optionally ``factor_status`` to
+    signal a notable success modifier (e.g., ``epitope_tagged``) or a
+    failure mode (e.g., ``control_sample``, ``verification_failed``).
     """
     result = {gsm_id: {}}
 
     if extracted_factor is not None:
         factor_entry = {"extracted_factor": extracted_factor}
-        if extracted_factor == "N/A" and factor_status:
+        if factor_type is not None:
+            factor_entry["factor_type"] = factor_type
+        if factor_status:
             factor_entry["factor_status"] = factor_status
         result[gsm_id]["factor"] = factor_entry
 
@@ -638,8 +646,16 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
         gse_xml_strings (List[str]): A list of string contents for the GSE XML files.
 
     Returns:
-        str: JSON-compatible string containing the transcription factor along with reasoning. For enhanced model performance. 
-            The format string, e.g., "ER", "FOXA1". If no entities are identified, None.
+        tuple[str, bool]: A two-tuple ``(factor, epitope_tagged)``.
+
+            * ``factor`` is the JSON-extracted target binding protein string
+              (e.g., ``"ER"``, ``"FOXA1"``, ``"H3K27ac"``), or ``"None"`` when no
+              target could be identified.
+            * ``epitope_tagged`` is ``True`` when the LLM determined that the
+              ChIP antibody is against an epitope tag (HA, FLAG, Myc, V5, GFP,
+              etc.). When this is ``True`` and ``factor != "None"``, the factor
+              is the recovered underlying target. When this is ``True`` and
+              ``factor == "None"``, no underlying target was recoverable.
 
     Notes:
         - Transcription factors are extracted based on specific rules:
@@ -660,22 +676,24 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
     I will provide you with GSM XML files (referring to individual samples) and GSE XML files (referring to series of GSM samples). \n\n
 
     In the XML files provided, your task is to identify the Official Gene Symbol being referenced in the experiment. Specifically, you need to find the following:\n
-        1). FACTOR: The Official Gene Symbol of the factor (the target protein that ChIP-seq was conducted on) whose binding sites are being mapped on the genome, 
-        or in the case of histone post-translational modifications, an abbreviated format. If the experiment does not target a factor, write "None". 
-        The Factor is generally found after the cell line ontology in the title or in the chip antibody section. 
+        1). FACTOR: The Official Gene Symbol of the factor (the target protein that ChIP-seq was conducted on) whose binding sites are being mapped on the genome,
+        or in the case of histone post-translational modifications, an abbreviated format. If the experiment does not target a factor, write "None".
+        The Factor is generally found after the cell line ontology in the title or in the chip antibody section.
         A Factor is NOT a cell line, cell, species, or anything else besides a transcription factor gene.\n\n
 
         If the information is not clear from the GSM XML file, you should refer to the corresponding GSE XML file (series document) for additional verification and information.\n
         1). Output Format: Your output must always be a JSON object, structured as follows: \n
             {{\n
                 "factor": "target binding protein/factor identified",\n
+                "epitope_tagged": true_or_false,\n
                 "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
             }}\n
             If no factor is identified, the factor should be "None", but the reasoning must still explain why "None" was selected.\n
         2). Roman Numerals: Convert all roman numeral representations into their corresponding numbers. For example, "Pol II" should be converted to "Pol 2".\n
         3). Official Gene Symbol: All factors produced should be in their Official Gene Symbol used by the NCBI, e.g., "ER", "PLXNB3", "TRF-GAA4-1", "H3K27ac". Not in this form, eg., “RNA polymerase II (920102, Biolegend)”, “estrogen receptor.\n
         4). For Post Translational Histone Modifications leave them in their full format do not simplify them down. eg. "H3K27ac" not "H3". "H3" is incorrect. Also remove punctuation from them eg: "H1.4K34ac" should be converted to "H14K34ac" \n
-        5). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
+        5). Epitope tag detection: If the chip antibody is against an epitope tag (HA, FLAG, Myc, V5, GFP, mCherry, T7, AU1, AU5, OLLAS, His, Strep, Spot, biotin, BirA, SNAP, HALO), set "epitope_tagged": true. Search the title, source name, growth protocol, treatment protocol, description, and series metadata for the underlying tagged target — look for patterns like "X-tag-Y", "Y-X", "tagged Y", "Y fused to X", "DOX-Y-tag-X", where X is the tag and Y is the underlying biological target. Report Y as the factor. If the antibody is against an epitope tag AND no underlying target can be identified anywhere in the metadata, set "factor": "None" and "epitope_tagged": true. For all non-epitope-tag cases, set "epitope_tagged": false.\n
+        6). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
         \n \n
         Example 1:\n
         Input Format: \n
@@ -724,6 +742,7 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
         Sample Output: \n
             {{\n
                 "factor": "ER",\n
+                "epitope_tagged": false,\n
                 "reasoning": "The chip antibody is explicitly listed as 'ER' in the sample metadata, and the series metadata confirms that ER is one of the factors being studied in this ChIP-seq experiment." \n
             }}\n
 
@@ -759,7 +778,34 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
         Sample Output: \n
             {{\n
                 "factor": "POL2",\n
+                "epitope_tagged": false,\n
                 "reasoning": "The chip antibody is listed as 'anti-Pol II', which refers to RNA polymerase II. The official gene symbol for RNA polymerase II is 'POL2'."\n
+            }}\n\n
+
+        Example 2b (Epitope-tagged ChIP):\n
+        Input Format:\n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM6616013 \n
+                Title: ChIP_HA_GI-MEN_ASCL1_HA_tag \n
+                Accession(database="GEO"): GSM6616013 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Description: GIMEN_ASCL1 \n
+                Channel: \n
+                Source: GI-MEN cells \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="cell line"): GI-MEN cells \n
+                Characteristics(tag="cell type"): Neuroblastoma \n
+                Characteristics(tag="chip antibody"): HA \n
+                Growth-Protocol: GI-MEN DOX-ASCL1-tag-HA cells were cultured in RPMI-1640 supplemented with 10% FBS. \n
+                Molecule: genomic DNA \n
+            ''' \n
+        Sample Output: \n
+            {{\n
+                "factor": "ASCL1",\n
+                "epitope_tagged": true,\n
+                "reasoning": "The chip antibody is HA, which is an epitope tag. The title 'ChIP_HA_GI-MEN_ASCL1_HA_tag', growth protocol 'DOX-ASCL1-tag-HA cells', and description 'GIMEN_ASCL1' all converge on ASCL1 as the underlying tagged target."\n
             }}\n\n
 
         Example 3:\n
@@ -789,6 +835,7 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
         Sample Output: \n
             {{\n
                 "factor": "GAPDH",\n
+                "epitope_tagged": false,\n
                 "reasoning": "'GAPDH' is the title of the sample. The series data confirms that 'GAPDH' is a target protein of interest."\n
             }}\n
 
@@ -837,13 +884,15 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
             Sample Output: \n
             {{\n
                 "factor": "H3K4me2",\n
+                "epitope_tagged": false,\n
                 "reasoning": "The chip antibody is explicitly listed as 'H3K4me2' in the sample metadata, indicating that the experiment targets this histone modification."\n
             }}\n\n
 
-             
+
         REMINDER! Your output must always be a JSON object, structured as follows: \n
             {{\n
                 "factor": "target binding protein/factor identified",\n
+                "epitope_tagged": true_or_false,\n
                 "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
             }}\n
         """
@@ -858,6 +907,7 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
     Output Format:
         {{\n
             "factor": "target binding protein/factor identified",\n
+            "epitope_tagged": true_or_false,\n
             "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
         }}\n
     \n
@@ -881,7 +931,7 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
                 content=formatted_prompt
             )
         ]
-    ) 
+    )
 
 
 
@@ -892,7 +942,8 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
         res_content = res.content
         return_dict = _parse_llm_json(res_content)
         result = return_dict.get("factor")
-        return result
+        epitope_tagged = bool(return_dict.get("epitope_tagged", False))
+        return result, epitope_tagged
     except Exception as e:
         raise
 
@@ -977,6 +1028,145 @@ def validate_chromatin_remodelers(matching_factors, CR_db):
     ]
 
     return filtered_factors
+
+def _build_factor_index(db):
+    """
+    Build a flat lookup index from a viral or gene-editing tool DB.
+
+    Returns a dict mapping ``clean_input(synonym)`` to the entry's
+    ``official_symbol`` for O(1) case-insensitive matching that also
+    tolerates dash/underscore/whitespace noise.
+
+    Args:
+        db (dict): Loaded JSON DB with a top-level ``"factors"`` list, where
+            each entry has an ``"official_symbol"`` and optional ``"synonyms"``.
+
+    Returns:
+        dict[str, str]: Cleaned-key to official-symbol lookup.
+    """
+    index = {}
+    if not isinstance(db, dict):
+        return index
+    for entry in db.get("factors", []):
+        official = entry.get("official_symbol")
+        if not official:
+            continue
+        synonyms = list(entry.get("synonyms", [])) + [official]
+        for syn in synonyms:
+            key = clean_input(syn)
+            if key:
+                index[key] = official
+    return index
+
+
+def validate_viral_factor(factor, viral_index):
+    """
+    Look up a candidate factor against the viral factor index.
+
+    Args:
+        factor (str): The candidate factor string (e.g., ``"LANA"``, ``"BZLF1"``).
+        viral_index (dict): A lookup dict produced by :func:`_build_factor_index`.
+
+    Returns:
+        str | None: The official viral symbol if the factor matches, else ``None``.
+    """
+    if not factor or factor == "None":
+        return None
+    if not viral_index:
+        return None
+    key = clean_input(factor)
+    if not key:
+        return None
+    return viral_index.get(key)
+
+
+def validate_gene_editing_tool(factor, editing_index):
+    """
+    Look up a candidate factor against the gene-editing tool index.
+
+    Args:
+        factor (str): The candidate factor string (e.g., ``"Cas9"``, ``"dCas9-KRAB"``).
+        editing_index (dict): Lookup dict produced by :func:`_build_factor_index`.
+
+    Returns:
+        str | None: The official editing tool symbol if matched, else ``None``.
+    """
+    if not factor or factor == "None":
+        return None
+    if not editing_index:
+        return None
+    key = clean_input(factor)
+    if not key:
+        return None
+    return editing_index.get(key)
+
+
+def classify_human_gene(symbol, TF_df, chromatin_df):
+    """
+    Classify a verified human gene symbol as TF, chromatin remodeler, or generic gene.
+
+    The classification mirrors the lookup patterns already used by
+    :func:`validate_transcription_factor` and
+    :func:`validate_chromatin_remodelers` so that downstream behavior is
+    consistent. The function never raises — on unexpected DataFrame
+    contents it falls back to ``"gene"``.
+
+    Args:
+        symbol (str): An official gene symbol (e.g., ``"ESR1"``).
+        TF_df (pd.DataFrame): Human TF table with a ``Symbol`` column.
+        chromatin_df: Chromatin remodeler table (DataFrame or dict-like).
+
+    Returns:
+        str: One of ``"transcription_factor"``, ``"chromatin_remodeler"``,
+        or ``"gene"``.
+    """
+    if not symbol:
+        return "gene"
+
+    try:
+        if symbol in set(TF_df['Symbol']):
+            return "transcription_factor"
+    except Exception:
+        pass
+
+    cleaned_symbol = clean_input(symbol)
+
+    try:
+        for cr_symbol in chromatin_df.get('chromatin remodeling', []) or []:
+            if clean_input(cr_symbol) == cleaned_symbol:
+                return "chromatin_remodeler"
+    except Exception:
+        pass
+
+    try:
+        for syns in chromatin_df.get('synonyms', []) or []:
+            if pd.notna(syns):
+                for s in str(syns).split(','):
+                    if clean_input(s.strip()) == cleaned_symbol:
+                        return "chromatin_remodeler"
+    except Exception:
+        pass
+
+    # Also try the actual underscore-form column ('chromatin_remodeler') in
+    # case the loaded DataFrame keeps the literal CSV header. This lets the
+    # classifier work whether the caller passes a DataFrame whose access
+    # surface exposes that column name or the dict-style "chromatin remodeling"
+    # key used by the legacy validator.
+    try:
+        if 'chromatin_remodeler' in getattr(chromatin_df, 'columns', []):
+            for cr_symbol in chromatin_df['chromatin_remodeler'].dropna().tolist():
+                if clean_input(cr_symbol) == cleaned_symbol:
+                    return "chromatin_remodeler"
+            if 'synonyms' in chromatin_df.columns:
+                for syns in chromatin_df['synonyms'].dropna().tolist():
+                    for s in str(syns).split(','):
+                        if clean_input(s.strip()) == cleaned_symbol:
+                            return "chromatin_remodeler"
+    except Exception:
+        pass
+
+    return "gene"
+
 
 def validate_histone_mark(mark):
     """
@@ -1153,13 +1343,15 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
         1). Output Format: Your output must always be a JSON object, structured as follows: \n
             {{\n
                 "factor": "target binding protein/factor identified",\n
+                "epitope_tagged": true_or_false,\n
                 "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
             }}\n
             If no factor is identified, the factor should be "None", but the reasoning must still explain why "None" was selected.\n
         2). Roman Numerals: Convert all roman numeral representations into their corresponding numbers. For example, "Pol II" should be converted to "Pol 2".\n
         3). Official Gene Symbol: All factors produced should be in their Official Gene Symbol used by the NCBI, e.g., "ER", "PLXNB3", "TRF-GAA4-1", "H3K27ac". Not in this form, eg., “RNA polymerase II (920102, Biolegend)”, “estrogen receptor.\n
         4). For Post Translational Histone Modifications leave them in their full format do not simplify them down. eg. "H3K27ac" not "H3". "H3" is incorrect. Also remove punctuation from them eg: "H1.4K34ac" should be converted to "H14K34ac" \n
-        5). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
+        5). Epitope tag detection: If the chip antibody is against an epitope tag (HA, FLAG, Myc, V5, GFP, mCherry, T7, AU1, AU5, OLLAS, His, Strep, Spot, biotin, BirA, SNAP, HALO), set "epitope_tagged": true and search the title, source name, growth protocol, treatment protocol, description, and series metadata for the underlying tagged target. If no underlying target can be identified, set "factor": "None" with "epitope_tagged": true. Otherwise set "epitope_tagged": false.\n
+        6). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
         \n \n
 
         Example 1:\n
@@ -1216,6 +1408,7 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
         Sample Output: \n
             {{\n
                 "factor": "ZFX",\n
+                "epitope_tagged": false,\n
                 "reasoning": "The chip antibody is explicitly listed as 'ZFX' in the sample metadata. The series also confirms that this is a "ZFX ChIP-seq on human MCF-7"."\n
             }}\n\n
 
@@ -1251,6 +1444,7 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
         Sample Output: \n
             {{\n
                 "factor": "POL2",\n
+                "epitope_tagged": false,\n
                 "reasoning": "The title of the experiment includes POL2 and the chip antibody is confrims 'Pol II' as the expected target protein."\n
             }}\n\n
 
@@ -1281,13 +1475,15 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
         Sample Output: \n
             {{\n
                 "factor": "GAPDH",\n
+                "epitope_tagged": false,\n
                 "reasoning": "'GAPDH' is the title of the sample. The series data confirms that 'GAPDH' is a target protein of interest."\n
             }}\n
-    
+
 
         REMINDER! Your output must always be a JSON object, structured as follows: \n
             {{\n
                 "factor": "target binding protein/factor identified",\n
+                "epitope_tagged": true_or_false,\n
                 "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
             }}\n
         """
@@ -1303,13 +1499,14 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
     Output Format:
         {{\n
             "factor": "target binding protein/factor identified",\n
+            "epitope_tagged": true_or_false,\n
             "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
         }}\n
     \n
 
     \n
     Previously Identified Incorrect Factors: {} \n
-    Please extract the factor from this sample, and Ensure that the factor identified this time does not match 
+    Please extract the factor from this sample, and Ensure that the factor identified this time does not match
     any of the factors listed in the "Previously Identified Incorrect Factors" section:\n
         {}
     \n
@@ -1330,7 +1527,7 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
                 content=formatted_input_prompt
             )
         ]
-    ) 
+    )
 
     try:
         chat_message = setup_messages.format_messages()
@@ -1339,7 +1536,8 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
         res_content = res.content
         return_dict = _parse_llm_json(res_content)
         result = return_dict.get("factor")
-        return result
+        epitope_tagged = bool(return_dict.get("epitope_tagged", False))
+        return result, epitope_tagged
     except Exception as e:
         raise
 
@@ -1622,7 +1820,9 @@ def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, g
 
     if match_count == 1:
         try:
-            result = pd.Series(matches[0])
+            entry = dict(matches[0])
+            entry["factor_type"] = classify_human_gene(entry.get("Symbol"), TF_df, chromatin_df)
+            result = pd.Series(entry)
             satisfied = True
         except Exception as e:
             print(f"Error processing single match: {e}")
@@ -1636,13 +1836,17 @@ def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, g
         try:
             if filtered_matches_tf:
                 if len(filtered_matches_tf) == 1:
-                    result = pd.Series(filtered_matches_tf[0])
+                    entry = dict(filtered_matches_tf[0])
+                    entry["factor_type"] = "transcription_factor"
+                    result = pd.Series(entry)
                     satisfied = True
                 else:
                     selected_factor = tf_picker(filtered_matches_tf, gsm_xml_string, gse_xml_strings, model=model)
                     selected_result = [row for row in filtered_matches_tf if row["Symbol"] == selected_factor]
                     if selected_result:
-                        result = pd.Series(selected_result[0])
+                        entry = dict(selected_result[0])
+                        entry["factor_type"] = "transcription_factor"
+                        result = pd.Series(entry)
                         satisfied = True
             else:
                 try:
@@ -1653,14 +1857,18 @@ def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, g
 
                 if filtered_matches_cr:
                     if len(filtered_matches_cr) == 1:
-                        result = pd.Series(filtered_matches_cr[0])
+                        entry = dict(filtered_matches_cr[0])
+                        entry["factor_type"] = "chromatin_remodeler"
+                        result = pd.Series(entry)
                         satisfied = True
                     else:
                         try:
                             selected_factor = cr_picker(filtered_matches_cr, gsm_xml_string, gse_xml_strings, model=model)
                             selected_result = [row for row in filtered_matches_cr if row["Symbol"] == selected_factor]
                             if selected_result:
-                                result = pd.Series(selected_result[0])
+                                entry = dict(selected_result[0])
+                                entry["factor_type"] = "chromatin_remodeler"
+                                result = pd.Series(entry)
                                 satisfied = True
                         except Exception as e:
                             print(f"Error picking chromatin remodeler: {e}")
@@ -1668,53 +1876,94 @@ def validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, g
                     try:
                         is_HIST = validate_histone_mark(factor)
                         if is_HIST:
-                            result = pd.Series({"Symbol": factor})
+                            result = pd.Series({"Symbol": factor, "factor_type": "histone_modification"})
                             satisfied = True
                         else:
                             selected_factor = gene_picker(matches, gsm_xml_string, gse_xml_strings, model=model)
                             selected_result = [row for row in matches if clean_input(row["Symbol"]) == clean_input(selected_factor)]
                             if selected_result:
-                                result = pd.Series(selected_result[0])
+                                entry = dict(selected_result[0])
+                                entry["factor_type"] = classify_human_gene(entry.get("Symbol"), TF_df, chromatin_df)
+                                result = pd.Series(entry)
                                 satisfied = True
                     except Exception as e:
                         print(f"Error validating histone mark or picking gene: {e}")
         except Exception as e:
-            print(f"Error validating: {e}")                
+            print(f"Error validating: {e}")
     return result, satisfied
 
-def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df, model=None):
+def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df,
+                  viral_index=None, editing_index=None, model=None):
     """
-    Verifies and validates the provided factor (transcription factor, chromatin remodeler, histone modification, or gene) 
-    by checking if it exists in human gene data or through the use of synonyms. It attempts to validate the factor by 
-    calling the `validate_binding_protein` function and retries with synonyms if necessary. The process stops after 
-    a maximum of 3 attempts or when a valid result is found.
+    Verify and classify a candidate factor through a layered cascade.
 
-    Parameters:
-    factor (str): The factor (transcription factor, chromatin remodeler, histone modification, or gene) to verify.
-    gsm_xml_string (str): String content of the GSM XML file.
-    gse_xml_strings (List[str]): A list of string contents for the GSE XML files.
+    Cascade order (first hit wins):
+      1. Histone modification rule (``validate_histone_mark``)
+      2. Viral factor DB (``validate_viral_factor``)
+      3. Gene-editing tool DB (``validate_gene_editing_tool``)
+      4. Human gene DB (``match_human_gene`` + ``validate_binding_protein``,
+         which now classifies the symbol as TF / CR / gene)
+      5. Synonym retry (LLM-generated synonyms, each run through steps 1-4)
+      6. ``factor_recheck`` retry loop (max ``max_loops`` iterations)
+
+    Args:
+        factor (str): Candidate factor from ``extract_factor``.
+        gsm_xml_string (str): GSM MINiML XML (string content).
+        gse_xml_strings (List[str]): Parent GSE XML strings.
+        genes_df (pd.DataFrame): Human gene info table.
+        TF_df (pd.DataFrame): Human TF table.
+        chromatin_df: Chromatin remodeler table (DataFrame or dict-like).
+        viral_index (dict | None): Lookup index from
+            :func:`_build_factor_index` over ``viral_factors.json``.
+        editing_index (dict | None): Lookup index over
+            ``gene_editing_tools.json``.
+        model (str | None): Optional LLM model identifier.
 
     Returns:
-    pd.Series: The validated result containing the factor details (symbol).
+        pd.Series: A Series with at least ``"Symbol"`` and ``"factor_type"``
+        keys on success. Empty Series on full cascade failure.
     """
-    # Initialize variables
     failed_factors = []
     result = pd.Series(dtype='object')
     max_loops = 2
     loop_count = 0
     satisfied = False
+    viral_index = viral_index or {}
+    editing_index = editing_index or {}
+
+    def _check_non_gene_dbs(candidate):
+        """Run histone -> viral -> gene-editing checks; return Series or None."""
+        if not candidate or candidate == "None":
+            return None
+        try:
+            if validate_histone_mark(candidate):
+                return pd.Series({"Symbol": candidate, "factor_type": "histone_modification"})
+        except Exception as e:
+            print(f"Error validating histone mark: {e}")
+        try:
+            viral_match = validate_viral_factor(candidate, viral_index)
+            if viral_match:
+                return pd.Series({"Symbol": viral_match, "factor_type": "viral_factor"})
+        except Exception as e:
+            print(f"Error validating viral factor: {e}")
+        try:
+            editing_match = validate_gene_editing_tool(candidate, editing_index)
+            if editing_match:
+                return pd.Series({"Symbol": editing_match, "factor_type": "gene_editing_tool"})
+        except Exception as e:
+            print(f"Error validating gene-editing tool: {e}")
+        return None
 
     while not satisfied and loop_count < max_loops:
         loop_count += 1
         failed_factors.append(factor)
 
-        try:
-            # Check if the factor is a valid histone modification
-            if validate_histone_mark(factor):
-                return pd.Series({"Symbol": factor})
-        except Exception as e:
-            print(f"Error validating histone mark: {e}")
+        # Steps 1-3: rule-based + curated DB checks
+        pre_match = _check_non_gene_dbs(factor)
+        if pre_match is not None:
+            return pre_match
 
+        # Step 4: human gene DB
         try:
             matches = match_human_gene(genes_df, factor) if factor != "None" else []
         except Exception as e:
@@ -1723,10 +1972,16 @@ def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
 
         try:
             if matches:
-                result, satisfied = validate_binding_protein(factor, gsm_xml_string, gse_xml_strings, matches, genes_df, TF_df, chromatin_df, model=model)
+                result, satisfied = validate_binding_protein(
+                    factor, gsm_xml_string, gse_xml_strings, matches,
+                    genes_df, TF_df, chromatin_df, model=model
+                )
+                if satisfied:
+                    return result
         except Exception as e:
             print(f"Error validating binding protein for factor '{factor}': {e}")
 
+        # Step 5: synonyms (each synonym re-runs steps 1-4)
         if not satisfied and factor != "None":
             try:
                 synonyms = generate_synonyms(factor, model=model)
@@ -1737,63 +1992,108 @@ def verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chro
             for synonym in synonyms:
                 if satisfied:
                     break
+                syn_pre_match = _check_non_gene_dbs(synonym)
+                if syn_pre_match is not None:
+                    return syn_pre_match
                 try:
                     syn_matches = match_human_gene(genes_df, synonym)
                     if syn_matches:
-                        result, satisfied = validate_binding_protein(synonym, gsm_xml_string, gse_xml_strings, syn_matches, genes_df, TF_df, chromatin_df, model=model)
+                        result, satisfied = validate_binding_protein(
+                            synonym, gsm_xml_string, gse_xml_strings, syn_matches,
+                            genes_df, TF_df, chromatin_df, model=model
+                        )
+                        if satisfied:
+                            return result
                 except Exception as e:
                     print(f"Error validating synonym '{synonym}': {e}")
 
+        # Step 6: factor_recheck loop — try a different factor name on the next loop pass
         if not satisfied:
             try:
-                rechecked_result = factor_recheck(gsm_xml_string, gse_xml_strings, failed_factors, model=model)
-                factor = rechecked_result
-                satisfied = False
+                rechecked_factor, _rechecked_epitope = factor_recheck(
+                    gsm_xml_string, gse_xml_strings, failed_factors, model=model
+                )
+                factor = rechecked_factor
             except Exception as e:
                 print(f"Error during factor recheck: {e}")
-                break  # Break the loop if recheck fails
+                break
 
     return result
 
-def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df, model=None):
+def extract_verify_factor(gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df,
+                          viral_index=None, editing_index=None, model=None):
     """
-    Extracts and verifies factors associated with a GEO tag.
+    Extract, verify, and classify the ChIP-seq target for a single GSM.
 
-    This function first extracts factors from the provided GEO tag using a specified extraction method. If successful, the factors are then verified, and for each verified factor, its symbol and Ensembl ID are returned. Any errors during extraction or verification are caught and reported.
+    Wires the epitope-tag boolean from :func:`extract_factor` and the
+    ``factor_type`` from :func:`verify_factor` into a single output dict
+    suitable for :func:`_format_output_structure`.
 
     Args:
-        geo_tag (str): The GEO tag representing the experimental data.
+        gsm_xml_string (str): Simplified GSM XML body.
+        gse_xml_strings (List[str]): Simplified parent GSE XML bodies.
+        genes_df (pd.DataFrame): Human gene info table.
+        TF_df (pd.DataFrame): Human TF table.
+        chromatin_df: Chromatin remodeler table.
+        viral_index (dict | None): Viral factor lookup index.
+        editing_index (dict | None): Gene-editing tool lookup index.
+        model (str | None): Optional LLM model identifier.
 
     Returns:
-        list: A list of dictionaries, each containing the extracted factor's symbol and Ensembl ID.
+        dict: Always contains ``"extracted_factor"`` and ``"factor_type"``.
+        Optionally contains ``"factor_status"`` for notable success modifiers
+        (``epitope_tagged``) or failure modes (``control_sample``,
+        ``no_factor_detected``, ``extraction_failed``, ``verification_failed``,
+        ``incomplete_epitope_tag``).
     """
-
     try:
         control = is_control(gsm_xml_string, model=model)
         if control.strip().lower() == "true":
-            return {"extracted_factor": "N/A", "factor_status": "control_sample"}
+            return {"extracted_factor": "N/A",
+                    "factor_type": "none",
+                    "factor_status": "control_sample"}
     except Exception as e:
         print(f"An error occurred detecting control sample: {e}")
 
     try:
-        actual_factor = extract_factor(gsm_xml_string, gse_xml_strings, model=model)
+        actual_factor, epitope_tagged = extract_factor(gsm_xml_string, gse_xml_strings, model=model)
     except Exception as e:
         print(f"An error occurred Extracting Factor: {e}")
-        return {"extracted_factor": "N/A", "factor_status": "extraction_failed"}
+        return {"extracted_factor": "N/A",
+                "factor_type": "none",
+                "factor_status": "extraction_failed"}
 
     if not actual_factor or actual_factor == "None":
-        return {"extracted_factor": "N/A", "factor_status": "no_factor_detected"}
+        if epitope_tagged:
+            return {"extracted_factor": "N/A",
+                    "factor_type": "none",
+                    "factor_status": "incomplete_epitope_tag"}
+        return {"extracted_factor": "N/A",
+                "factor_type": "none",
+                "factor_status": "no_factor_detected"}
 
     try:
-        factor = actual_factor
-        verified_factor = verify_factor(factor, gsm_xml_string, gse_xml_strings, genes_df, TF_df, chromatin_df, model=model)
-        if verified_factor['Symbol']:
-            verified_object = {"extracted_factor": verified_factor['Symbol']}
+        verified_factor = verify_factor(
+            actual_factor, gsm_xml_string, gse_xml_strings,
+            genes_df, TF_df, chromatin_df,
+            viral_index=viral_index, editing_index=editing_index, model=model
+        )
+        if verified_factor is not None and "Symbol" in verified_factor and verified_factor["Symbol"]:
+            verified_object = {
+                "extracted_factor": verified_factor["Symbol"],
+                "factor_type": verified_factor.get("factor_type", "gene"),
+            }
+            if epitope_tagged:
+                verified_object["factor_status"] = "epitope_tagged"
         else:
-            verified_object = {"extracted_factor": "N/A", "factor_status": "verification_failed"}
+            verified_object = {"extracted_factor": "N/A",
+                               "factor_type": "none",
+                               "factor_status": "verification_failed"}
     except Exception as e:
         print(f"An error occured verifying the factor: {e}")
-        verified_object = {"extracted_factor": "N/A", "factor_status": "verification_failed"}
+        verified_object = {"extracted_factor": "N/A",
+                           "factor_type": "none",
+                           "factor_status": "verification_failed"}
 
     return verified_object
 
@@ -1919,6 +2219,18 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path=None, gsm_paths_path=Non
         print(f"Error parsing CSV files: {e}")
         return []
 
+    try:
+        with open(parsed_factor_dir / "viral_factors.json", "r", encoding='utf-8') as f:
+            viral_db = json.load(f)
+        with open(parsed_factor_dir / "gene_editing_tools.json", "r", encoding='utf-8') as f:
+            editing_db = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading non-human factor DBs: {e}")
+        viral_db, editing_db = {}, {}
+
+    viral_index = _build_factor_index(viral_db)
+    editing_index = _build_factor_index(editing_db)
+
     results = []
 
     if fetch_mode:
@@ -1930,12 +2242,16 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path=None, gsm_paths_path=Non
                 results.append({gsm_id: {}})
                 continue
             try:
-                factor_result = extract_verify_factor(gsm_text, gse_text, genes_df, TF_df, chromatin_df, model=model)
+                factor_result = extract_verify_factor(
+                    gsm_text, gse_text, genes_df, TF_df, chromatin_df,
+                    viral_index=viral_index, editing_index=editing_index, model=model
+                )
                 if factor_result and "extracted_factor" in factor_result:
                     formatted_result = _format_output_structure(
                         gsm_id,
                         extracted_factor=factor_result["extracted_factor"],
-                        factor_status=factor_result.get("factor_status")
+                        factor_status=factor_result.get("factor_status"),
+                        factor_type=factor_result.get("factor_type")
                     )
                     results.append(formatted_result)
                 if verbose:
@@ -1991,12 +2307,16 @@ def meta_extract_factors(gsm_ids_input, gsm_to_gse_path=None, gsm_paths_path=Non
 
         # Extract factor
         try:
-            factor_result = extract_verify_factor(gsm_file, gse_text, genes_df, TF_df, chromatin_df, model=model)
+            factor_result = extract_verify_factor(
+                gsm_file, gse_text, genes_df, TF_df, chromatin_df,
+                viral_index=viral_index, editing_index=editing_index, model=model
+            )
             if factor_result and "extracted_factor" in factor_result:
                 formatted_result = _format_output_structure(
                     gsm_id,
                     extracted_factor=factor_result["extracted_factor"],
-                    factor_status=factor_result.get("factor_status")
+                    factor_status=factor_result.get("factor_status"),
+                    factor_type=factor_result.get("factor_type")
                 )
                 results.append(formatted_result)
             print(f"Extracted factor for {gsm_id}")
@@ -2855,6 +3175,18 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path=None, gsm
         print(f"Error loading validation data: {e}")
         return []
 
+    try:
+        with open(parsed_factor_dir / "viral_factors.json", "r", encoding='utf-8') as f:
+            viral_db = json.load(f)
+        with open(parsed_factor_dir / "gene_editing_tools.json", "r", encoding='utf-8') as f:
+            editing_db = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading non-human factor DBs: {e}")
+        viral_db, editing_db = {}, {}
+
+    viral_index = _build_factor_index(viral_db)
+    editing_index = _build_factor_index(editing_db)
+
     results = []
 
     if fetch_mode:
@@ -2867,11 +3199,16 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path=None, gsm
 
             extracted_factor = None
             factor_status = None
+            factor_type = None
             try:
-                factor_result = extract_verify_factor(gsm_text, gse_text, genes_df, TF_df, chromatin_df, model=model)
+                factor_result = extract_verify_factor(
+                    gsm_text, gse_text, genes_df, TF_df, chromatin_df,
+                    viral_index=viral_index, editing_index=editing_index, model=model
+                )
                 if factor_result and "extracted_factor" in factor_result:
                     extracted_factor = factor_result["extracted_factor"]
                     factor_status = factor_result.get("factor_status")
+                    factor_type = factor_result.get("factor_type")
             except Exception as e:
                 print(f"Error extracting factor from {gsm_id}: {e}", file=sys.stderr)
 
@@ -2892,6 +3229,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path=None, gsm
                     gsm_id,
                     extracted_factor=extracted_factor,
                     factor_status=factor_status,
+                    factor_type=factor_type,
                     extracted_ontology=extracted_ontology
                 )
                 results.append(formatted_result)
@@ -2948,11 +3286,16 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path=None, gsm
         # Extract factor
         extracted_factor = None
         factor_status = None
+        factor_type = None
         try:
-            factor_result = extract_verify_factor(gsm_text, gse_text, genes_df, TF_df, chromatin_df, model=model)
+            factor_result = extract_verify_factor(
+                gsm_text, gse_text, genes_df, TF_df, chromatin_df,
+                viral_index=viral_index, editing_index=editing_index, model=model
+            )
             if factor_result and "extracted_factor" in factor_result:
                 extracted_factor = factor_result["extracted_factor"]
                 factor_status = factor_result.get("factor_status")
+                factor_type = factor_result.get("factor_type")
         except Exception as e:
             print(f"Error extracting factor from {gsm_id}: {e}")
 
@@ -2975,6 +3318,7 @@ def meta_extract_factors_and_ontologies(gsm_ids_input, gsm_to_gse_path=None, gsm
                 gsm_id,
                 extracted_factor=extracted_factor,
                 factor_status=factor_status,
+                factor_type=factor_type,
                 extracted_ontology=extracted_ontology
             )
             results.append(formatted_result)

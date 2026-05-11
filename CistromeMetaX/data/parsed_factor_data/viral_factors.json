@@ -1,0 +1,304 @@
+{
+  "factors": [
+    {
+      "official_symbol": "LANA",
+      "virus": "KSHV/HHV-8",
+      "full_name": "Latency-associated nuclear antigen",
+      "synonyms": ["LANA", "LANA-1", "LANA1", "ORF73", "kaposin", "LNA", "LNA-1"]
+    },
+    {
+      "official_symbol": "vFLIP",
+      "virus": "KSHV/HHV-8",
+      "full_name": "Viral FLICE inhibitory protein",
+      "synonyms": ["vFLIP", "ORF71", "K13"]
+    },
+    {
+      "official_symbol": "vCyclin",
+      "virus": "KSHV/HHV-8",
+      "full_name": "Viral cyclin",
+      "synonyms": ["vCyclin", "v-Cyclin", "ORF72"]
+    },
+    {
+      "official_symbol": "KSHV-RTA",
+      "virus": "KSHV/HHV-8",
+      "full_name": "KSHV Replication and transcription activator",
+      "synonyms": ["KSHV-RTA", "K-RTA", "ORF50"]
+    },
+    {
+      "official_symbol": "K-bZIP",
+      "virus": "KSHV/HHV-8",
+      "full_name": "KSHV basic leucine zipper protein",
+      "synonyms": ["K-bZIP", "K8", "ORF-K8", "ORFK8"]
+    },
+    {
+      "official_symbol": "EBNA1",
+      "virus": "EBV/HHV-4",
+      "full_name": "Epstein-Barr nuclear antigen 1",
+      "synonyms": ["EBNA1", "EBNA-1", "BKRF1"]
+    },
+    {
+      "official_symbol": "EBNA2",
+      "virus": "EBV/HHV-4",
+      "full_name": "Epstein-Barr nuclear antigen 2",
+      "synonyms": ["EBNA2", "EBNA-2", "BYRF1"]
+    },
+    {
+      "official_symbol": "EBNA3A",
+      "virus": "EBV/HHV-4",
+      "full_name": "Epstein-Barr nuclear antigen 3A",
+      "synonyms": ["EBNA3A", "EBNA-3A", "BLRF3"]
+    },
+    {
+      "official_symbol": "EBNA3B",
+      "virus": "EBV/HHV-4",
+      "full_name": "Epstein-Barr nuclear antigen 3B",
+      "synonyms": ["EBNA3B", "EBNA-3B", "BERF2"]
+    },
+    {
+      "official_symbol": "EBNA3C",
+      "virus": "EBV/HHV-4",
+      "full_name": "Epstein-Barr nuclear antigen 3C",
+      "synonyms": ["EBNA3C", "EBNA-3C", "BERF3"]
+    },
+    {
+      "official_symbol": "EBNALP",
+      "virus": "EBV/HHV-4",
+      "full_name": "Epstein-Barr nuclear antigen leader protein",
+      "synonyms": ["EBNALP", "EBNA-LP", "EBNA5", "EBNA-5"]
+    },
+    {
+      "official_symbol": "LMP1",
+      "virus": "EBV/HHV-4",
+      "full_name": "Latent membrane protein 1",
+      "synonyms": ["LMP1", "LMP-1", "BNLF1"]
+    },
+    {
+      "official_symbol": "LMP2A",
+      "virus": "EBV/HHV-4",
+      "full_name": "Latent membrane protein 2A",
+      "synonyms": ["LMP2A", "LMP-2A", "BNLF2a"]
+    },
+    {
+      "official_symbol": "LMP2B",
+      "virus": "EBV/HHV-4",
+      "full_name": "Latent membrane protein 2B",
+      "synonyms": ["LMP2B", "LMP-2B", "BNLF2b"]
+    },
+    {
+      "official_symbol": "ZTA",
+      "virus": "EBV/HHV-4",
+      "full_name": "BZLF1 trans-activator (Zta/ZEBRA)",
+      "synonyms": ["ZTA", "Zta", "BZLF1", "ZEBRA", "EB1", "Z"]
+    },
+    {
+      "official_symbol": "EBV-RTA",
+      "virus": "EBV/HHV-4",
+      "full_name": "EBV Replication and transcription activator (Rta)",
+      "synonyms": ["EBV-RTA", "BRLF1", "Rta", "R"]
+    },
+    {
+      "official_symbol": "BMRF1",
+      "virus": "EBV/HHV-4",
+      "full_name": "BMRF1 / Early antigen D",
+      "synonyms": ["BMRF1", "EA-D", "EAD"]
+    },
+    {
+      "official_symbol": "HPV-E6",
+      "virus": "HPV",
+      "full_name": "Human papillomavirus E6 oncoprotein",
+      "synonyms": ["HPV-E6", "E6", "HPV16-E6", "HPV18-E6", "HPV16E6", "HPV18E6", "HPV31-E6", "HPV45-E6"]
+    },
+    {
+      "official_symbol": "HPV-E7",
+      "virus": "HPV",
+      "full_name": "Human papillomavirus E7 oncoprotein",
+      "synonyms": ["HPV-E7", "E7", "HPV16-E7", "HPV18-E7", "HPV16E7", "HPV18E7", "HPV31-E7", "HPV45-E7"]
+    },
+    {
+      "official_symbol": "HPV-E2",
+      "virus": "HPV",
+      "full_name": "Human papillomavirus E2 protein",
+      "synonyms": ["HPV-E2", "E2", "HPV16-E2", "HPV18-E2", "HPV16E2", "HPV18E2"]
+    },
+    {
+      "official_symbol": "HPV-E1",
+      "virus": "HPV",
+      "full_name": "Human papillomavirus E1 helicase",
+      "synonyms": ["HPV-E1", "HPV16-E1", "HPV18-E1"]
+    },
+    {
+      "official_symbol": "HPV-L1",
+      "virus": "HPV",
+      "full_name": "Human papillomavirus L1 major capsid",
+      "synonyms": ["HPV-L1", "L1", "HPV16-L1", "HPV18-L1"]
+    },
+    {
+      "official_symbol": "HPV-L2",
+      "virus": "HPV",
+      "full_name": "Human papillomavirus L2 minor capsid",
+      "synonyms": ["HPV-L2", "L2", "HPV16-L2", "HPV18-L2"]
+    },
+    {
+      "official_symbol": "HBx",
+      "virus": "HBV",
+      "full_name": "Hepatitis B virus X protein",
+      "synonyms": ["HBx", "HBV-X", "X protein", "HBVX"]
+    },
+    {
+      "official_symbol": "HBcAg",
+      "virus": "HBV",
+      "full_name": "Hepatitis B virus core antigen",
+      "synonyms": ["HBcAg", "HBc", "HBcore", "core antigen"]
+    },
+    {
+      "official_symbol": "HBsAg",
+      "virus": "HBV",
+      "full_name": "Hepatitis B virus surface antigen",
+      "synonyms": ["HBsAg", "HBs", "surface antigen"]
+    },
+    {
+      "official_symbol": "IE1",
+      "virus": "HCMV/HHV-5",
+      "full_name": "Immediate early 1 protein",
+      "synonyms": ["IE1", "UL123", "IE72"]
+    },
+    {
+      "official_symbol": "IE2",
+      "virus": "HCMV/HHV-5",
+      "full_name": "Immediate early 2 protein",
+      "synonyms": ["IE2", "UL122", "IE86"]
+    },
+    {
+      "official_symbol": "pp71",
+      "virus": "HCMV/HHV-5",
+      "full_name": "HCMV tegument protein pp71",
+      "synonyms": ["pp71", "UL82"]
+    },
+    {
+      "official_symbol": "UL44",
+      "virus": "HCMV/HHV-5",
+      "full_name": "HCMV DNA polymerase processivity subunit",
+      "synonyms": ["UL44"]
+    },
+    {
+      "official_symbol": "UL84",
+      "virus": "HCMV/HHV-5",
+      "full_name": "HCMV UL84",
+      "synonyms": ["UL84"]
+    },
+    {
+      "official_symbol": "Tat",
+      "virus": "HIV-1",
+      "full_name": "HIV-1 trans-activator of transcription",
+      "synonyms": ["Tat", "HIV-Tat", "HIV1-Tat"]
+    },
+    {
+      "official_symbol": "Rev",
+      "virus": "HIV-1",
+      "full_name": "HIV-1 Rev protein",
+      "synonyms": ["Rev", "HIV-Rev"]
+    },
+    {
+      "official_symbol": "Nef",
+      "virus": "HIV-1",
+      "full_name": "HIV-1 Nef protein",
+      "synonyms": ["Nef", "HIV-Nef"]
+    },
+    {
+      "official_symbol": "Vpr",
+      "virus": "HIV-1",
+      "full_name": "HIV-1 viral protein R",
+      "synonyms": ["Vpr", "HIV-Vpr"]
+    },
+    {
+      "official_symbol": "Vif",
+      "virus": "HIV-1",
+      "full_name": "HIV-1 viral infectivity factor",
+      "synonyms": ["Vif", "HIV-Vif"]
+    },
+    {
+      "official_symbol": "Vpu",
+      "virus": "HIV-1",
+      "full_name": "HIV-1 viral protein U",
+      "synonyms": ["Vpu", "HIV-Vpu"]
+    },
+    {
+      "official_symbol": "Gag",
+      "virus": "HIV-1",
+      "full_name": "HIV-1 Gag polyprotein",
+      "synonyms": ["Gag", "HIV-Gag"]
+    },
+    {
+      "official_symbol": "Env",
+      "virus": "HIV-1",
+      "full_name": "HIV-1 envelope glycoprotein",
+      "synonyms": ["Env", "HIV-Env", "gp160"]
+    },
+    {
+      "official_symbol": "Tax",
+      "virus": "HTLV-1",
+      "full_name": "HTLV-1 Tax oncoprotein",
+      "synonyms": ["Tax", "Tax1", "HTLV-Tax", "HTLV1-Tax"]
+    },
+    {
+      "official_symbol": "HBZ",
+      "virus": "HTLV-1",
+      "full_name": "HTLV-1 bZIP factor",
+      "synonyms": ["HBZ", "HTLV-1 bZIP factor", "HTLV1-HBZ"]
+    },
+    {
+      "official_symbol": "E1A",
+      "virus": "Adenovirus",
+      "full_name": "Adenovirus early region 1A",
+      "synonyms": ["E1A", "Ad-E1A", "AdE1A"]
+    },
+    {
+      "official_symbol": "E1B-55K",
+      "virus": "Adenovirus",
+      "full_name": "Adenovirus E1B 55kDa protein",
+      "synonyms": ["E1B-55K", "E1B 55kDa", "E1B55K", "E1B-55kDa"]
+    },
+    {
+      "official_symbol": "E1B-19K",
+      "virus": "Adenovirus",
+      "full_name": "Adenovirus E1B 19kDa protein",
+      "synonyms": ["E1B-19K", "E1B 19kDa", "E1B19K", "E1B-19kDa"]
+    },
+    {
+      "official_symbol": "SV40-LT",
+      "virus": "SV40",
+      "full_name": "SV40 large T antigen",
+      "synonyms": ["SV40-LT", "Large T antigen", "LT", "TAg", "SV40-Large-T", "SV40-T-antigen", "Large T"]
+    },
+    {
+      "official_symbol": "SV40-st",
+      "virus": "SV40",
+      "full_name": "SV40 small t antigen",
+      "synonyms": ["SV40-st", "small t antigen", "st", "Small t"]
+    },
+    {
+      "official_symbol": "NS1",
+      "virus": "Influenza A",
+      "full_name": "Influenza A non-structural protein 1",
+      "synonyms": ["NS1", "Influenza-NS1", "IAV-NS1"]
+    },
+    {
+      "official_symbol": "NP",
+      "virus": "Influenza A",
+      "full_name": "Influenza A nucleoprotein",
+      "synonyms": ["NP", "Influenza-NP", "IAV-NP"]
+    },
+    {
+      "official_symbol": "SARS-CoV-2-N",
+      "virus": "SARS-CoV-2",
+      "full_name": "SARS-CoV-2 nucleocapsid protein",
+      "synonyms": ["SARS-CoV-2-N", "N", "nucleocapsid", "SARS2-N", "SARS-N"]
+    },
+    {
+      "official_symbol": "SARS-CoV-2-Spike",
+      "virus": "SARS-CoV-2",
+      "full_name": "SARS-CoV-2 Spike protein",
+      "synonyms": ["SARS-CoV-2-Spike", "Spike", "S", "SARS2-Spike", "SARS-Spike", "SARS-CoV-2-S"]
+    }
+  ]
+}

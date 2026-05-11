@@ -1,0 +1,71 @@
+{
+  "factors": [
+    {
+      "official_symbol": "CAS9",
+      "system": "CRISPR-Cas9",
+      "full_name": "CRISPR-associated protein 9",
+      "synonyms": [
+        "Cas9", "CAS9", "SpCas9", "Sp-Cas9", "dCas9", "dCAS9",
+        "dCas9-KRAB", "KRAB-dCas9", "dCas9-VP64", "dCas9-VPR",
+        "dCas9-KRAB-MeCP2", "Cas9n", "Cas9-D10A", "nCas9",
+        "FLAG-Cas9", "HA-Cas9", "3xFLAG-dCas9",
+        "BE3", "ABE7.10", "ABE8e", "CBE", "ABE",
+        "prime editor", "PE2", "PE3", "PEmax",
+        "SaCas9", "Sa-Cas9", "dSaCas9"
+      ]
+    },
+    {
+      "official_symbol": "CAS12A",
+      "system": "CRISPR-Cas12a",
+      "full_name": "CRISPR-associated protein 12a",
+      "synonyms": [
+        "CAS12A", "Cas12a", "Cpf1", "AsCas12a", "LbCas12a",
+        "dCas12a", "dCpf1", "FnCas12a"
+      ]
+    },
+    {
+      "official_symbol": "CAS13",
+      "system": "CRISPR-Cas13",
+      "full_name": "CRISPR-associated protein 13",
+      "synonyms": [
+        "CAS13", "Cas13", "Cas13a", "Cas13b", "Cas13d",
+        "dCas13", "C2c2"
+      ]
+    },
+    {
+      "official_symbol": "TALEN",
+      "system": "TALEN",
+      "full_name": "Transcription activator-like effector nuclease",
+      "synonyms": [
+        "TALEN", "dTALEN", "TALE", "TALE-KRAB",
+        "TAL effector nuclease", "TAL-effector-nuclease"
+      ]
+    },
+    {
+      "official_symbol": "ZFN",
+      "system": "Zinc Finger Nuclease",
+      "full_name": "Zinc finger nuclease",
+      "synonyms": [
+        "ZFN", "zinc finger nuclease", "dZFN", "ZF-KRAB"
+      ]
+    },
+    {
+      "official_symbol": "MEGANUCLEASE",
+      "system": "Meganuclease",
+      "full_name": "Meganuclease / homing endonuclease",
+      "synonyms": [
+        "MEGANUCLEASE", "meganuclease", "homing endonuclease",
+        "I-SceI", "I-CreI"
+      ]
+    },
+    {
+      "official_symbol": "TRANSPOSASE_GENOMIC",
+      "system": "Transposase (genome editing)",
+      "full_name": "Genomic transposase",
+      "synonyms": [
+        "TRANSPOSASE_GENOMIC", "PiggyBac", "SleepingBeauty",
+        "Sleeping Beauty", "Tn5"
+      ]
+    }
+  ]
+}
