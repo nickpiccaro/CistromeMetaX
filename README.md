@@ -63,6 +63,18 @@ CistromeMetaX uses [LangChain's `init_chat_model`](https://python.langchain.com/
 
 By default, CistromeMetaX uses OpenAI's `gpt-4o-mini`, but you can use any supported LLM provider by specifying the `--model` flag on the CLI or passing the `model` parameter in the Python API.
 
+### Prompt Caching
+
+The large guideline prompts that drive factor and ontology extraction are structured as byte-identical static prefixes so they can be served from each provider's prompt cache whenever possible. This happens automatically — no configuration required:
+
+- **OpenAI**, **Google Gemini**, and **DeepSeek** apply prompt caching server-side when a sufficiently long static prefix is reused.
+- **Anthropic** receives an explicit `cache_control` marker on the static guidelines so cache reads can be billed at the discounted rate.
+- **Mistral** and any other provider fall back to a plain system message with no cache marker — output is unchanged, just no caching discount.
+
+In addition, the factor extractor and its fallback recheck step share the **same** static prefix, so a fallback invocation is a cache hit rather than a fresh cache write. To see cache-usage telemetry from your LLM provider on stderr during a run, set `CISTROMEMX_CACHE_DEBUG=1` in your environment.
+
+> Note: Google Gemini's implicit caching is server-side best-effort — a `cache_read` of zero in telemetry doesn't indicate a problem with CistromeMetaX and may simply reflect Google's caching heuristics on a given run.
+
 ---
 
 ## Requirements
