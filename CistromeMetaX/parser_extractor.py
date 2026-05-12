@@ -194,6 +194,586 @@ def _parse_llm_list(content):
     
     raise ValueError(f"Could not parse list from LLM response: {text[:200]}")
 
+
+def _make_cached_system_message(text, model):
+    """
+    Build a SystemMessage that opts into prompt caching where the provider
+    supports it explicitly (Anthropic). For every other LangChain-supported
+    provider (OpenAI, Google GenAI, DeepSeek, Mistral, ...) prompt caching is
+    either applied automatically server-side or simply unavailable, so a plain
+    text SystemMessage is the correct and safe representation.
+
+    Why provider branching: ``langchain-anthropic``'s ``ChatAnthropic`` honors
+    ``cache_control`` markers attached to text content blocks and forwards them
+    to Anthropic, which yields ~90% input-token discounts on cache hits. Other
+    LangChain integrations may not know what to do with a ``cache_control`` key
+    inside a content-block list, so we hand them a plain string.
+
+    Static prefix discipline matters across ALL providers: OpenAI auto-caches
+    any prefix >=1024 tokens, Google Gemini caches implicitly, and DeepSeek
+    has automatic context caching. Keeping the guidelines block byte-identical
+    across calls is what unlocks those benefits.
+
+    Args:
+        text (str): Static system-prompt text. Must be byte-identical across
+            calls that should share the same cache entry.
+        model (str): The same ``provider:model`` string passed to ``_init_llm``.
+
+    Returns:
+        SystemMessage: Ready to send to ``llm.invoke([...])``.
+    """
+    provider = (model or _DEFAULT_MODEL).split(":", 1)[0].lower()
+    if provider == "anthropic":
+        return SystemMessage(content=[{
+            "type": "text",
+            "text": text,
+            "cache_control": {"type": "ephemeral"},
+        }])
+    return SystemMessage(content=text)
+
+
+def _log_cache_usage(response, label=""):
+    """
+    Print LLM response ``usage_metadata`` to stderr when the
+    ``CISTROMEMX_CACHE_DEBUG`` environment variable is set. Lets users confirm
+    that prompt caching is firing for their provider without changing any
+    function signatures. No-op when the env var is unset.
+
+    Anthropic populates ``cache_creation_input_tokens`` and
+    ``cache_read_input_tokens``; OpenAI surfaces cached tokens under
+    ``input_token_details``. Both show up in ``usage_metadata`` on the
+    LangChain response object.
+    """
+    if not os.environ.get("CISTROMEMX_CACHE_DEBUG"):
+        return
+    usage = getattr(response, "usage_metadata", None)
+    if not usage:
+        usage = getattr(response, "response_metadata", {}).get("usage") or getattr(response, "response_metadata", {}).get("token_usage")
+    if usage:
+        prefix = f"[cache:{label}] " if label else "[cache] "
+        print(f"{prefix}{usage}", file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
+# Module-level prompt constants used by extract_factor, factor_recheck, and
+# extract_structured_ontology.
+#
+# These were previously inlined inside each function. Hoisting them to module
+# scope makes the strings byte-identical across calls (so OpenAI/Gemini/
+# DeepSeek auto-caching has something to hash) and lets extract_factor and
+# factor_recheck SHARE the same cached prefix on Anthropic. The dynamic
+# "previously failed factors" context that used to live inside the factor
+# recheck system prompt now lives in the human input template, so the system
+# prompt is identical for both call sites.
+#
+# These strings are inlined into SystemMessage / HumanMessage directly and so
+# use single braces (no Python format-string escaping). The HumanMessage
+# templates below still go through ``.format()`` so they retain ``{{`` ``}}``
+# escapes around literal JSON braces and positional ``{}`` for substitutions.
+# ---------------------------------------------------------------------------
+
+_FACTOR_GUIDELINES_BASE = (
+"""
+    You are an intelligent and accurate Named Entity Recognition (NER) system with a specialization in Genomics and Biology.\n\n
+
+    I will provide you with GSM XML files (referring to individual samples) and GSE XML files (referring to series of GSM samples). \n\n
+
+    In the XML files provided, your task is to identify the Official Gene Symbol being referenced in the experiment. Specifically, you need to find the following:\n
+        1). FACTOR: The Official Gene Symbol of the factor (the target protein that ChIP-seq was conducted on) whose binding sites are being mapped on the genome,
+        or in the case of histone post-translational modifications, an abbreviated format. If the experiment does not target a factor, write "None".
+        The Factor is generally found after the cell line ontology in the title or in the chip antibody section.
+        A Factor is NOT a cell line, cell, species, or anything else besides a transcription factor gene.\n\n
+
+        If the information is not clear from the GSM XML file, you should refer to the corresponding GSE XML file (series document) for additional verification and information.\n
+        1). Output Format: Your output must always be a JSON object, structured as follows: \n
+            {\n
+                "factor": "target binding protein/factor identified",\n
+                "epitope_tagged": true_or_false,\n
+                "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
+            }\n
+            If no factor is identified, the factor should be "None", but the reasoning must still explain why "None" was selected.\n
+        2). Roman Numerals: Convert all roman numeral representations into their corresponding numbers. For example, "Pol II" should be converted to "Pol 2".\n
+        3). Official Gene Symbol: All factors produced should be in their Official Gene Symbol used by the NCBI, e.g., "ER", "PLXNB3", "TRF-GAA4-1", "H3K27ac". Not in this form, eg., “RNA polymerase II (920102, Biolegend)”, “estrogen receptor.\n
+        4). For Post Translational Histone Modifications leave them in their full format do not simplify them down. eg. "H3K27ac" not "H3". "H3" is incorrect. Also remove punctuation from them eg: "H1.4K34ac" should be converted to "H14K34ac" \n
+        5). Epitope tag detection: If the chip antibody is against an epitope tag (HA, FLAG, Myc, V5, GFP, mCherry, T7, AU1, AU5, OLLAS, His, Strep, Spot, biotin, BirA, SNAP, HALO), set "epitope_tagged": true. Search the title, source name, growth protocol, treatment protocol, description, and series metadata for the underlying tagged target — look for patterns like "X-tag-Y", "Y-X", "tagged Y", "Y fused to X", "DOX-Y-tag-X", where X is the tag and Y is the underlying biological target. Report Y as the factor. If the antibody is against an epitope tag AND no underlying target can be identified anywhere in the metadata, set "factor": "None" and "epitope_tagged": true. For all non-epitope-tag cases, set "epitope_tagged": false.\n
+        6). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
+        \n \n
+        Example 1:\n
+        Input Format: \n
+            \n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM631489 \n
+                Status(database="GEO"): \n
+                Title: [E-MTAB-223] full_ER_ChIP_T47D_exp1_lane1 \n
+                Accession(database="GEO"): GSM631489 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Description: Performer: CRUK-CRI \n
+                Channel: \n
+                Source: ER_T47D_CRI01 \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="material type"): cell_line \n
+                Characteristics(tag="cellline"): T74-D \n
+                Characteristics(tag="Sex"): female \n
+                Characteristics(tag="diseasestate"): breast cancer \n
+                Characteristics(tag="chip antibody"): ER \n
+                Growth-Protocol: grow | RPMI 1640 medium por DMEM supplemented with 10% inactivated FBS, l-glutamine and PEST at 37C with 5% CO2. \n
+                Molecule: genomic DNA \n
+                \n
+            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+                Title: [E-MTAB-223] ChIP-seq for FOXA1, ER and CTCF in breast cancer cell lines \n
+                Accession(database="GEO"): GSE25710 \n
+                Summary: Growth cells and map of ER, FoxA1 and CTCF binding at whole genome level. \n
+
+                ArrayExpress Release Date: 2010-10-29 \n
+
+                Person Roles: submitter \n
+                Person Last Name: Hurtado \n
+                Person First Name: Antoni \n
+                Person Email: toni.hurtado@cancer.org.uk \n
+                Person Affiliation: Uppsala University \n
+                Overall-Design: Experimental Design: high_throughput_sequencing_design \n
+                Experimental Design: binding_site_identification_design \n
+                Experimental Factor Name: IMMUNOPRECIPITATE \n
+                Experimental Factor Name: CELL_LINE \n
+                Experimental Factor Type: immunoprecipitate \n
+                Experimental Factor Type: cell_line \n
+                Type: Genome binding/occupancy profiling by high throughput sequencing \n
+            ''' \n
+        \n
+        Sample Output: \n
+            {\n
+                "factor": "ER",\n
+                "epitope_tagged": false,\n
+                "reasoning": "The chip antibody is explicitly listed as 'ER' in the sample metadata, and the series metadata confirms that ER is one of the factors being studied in this ChIP-seq experiment." \n
+            }\n
+
+        Example 2:\n
+        Input Format:\n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM3395078 \n
+                Status(database="GEO"): \n
+                Title: T47D_POL2_noSerum_ChIP-seq \n
+                Accession(database="GEO"): GSM3395078 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Description: ChIP-seq single end (SE) \n
+                Channel: \n
+                Source: T47D \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="cell line"): T47D \n
+                Characteristics(tag="media"): RPMI supplemented with 10% charcoal-treated (CT) FBS for 48 h and starvation was achieved by culturing cells in the absence of FBS for 16 h \n
+                Characteristics(tag="serum"): serum-starved \n
+                Characteristics(tag="chip-antibody"): rabbit polyclonal antibody anti-Pol II Santa Cruz (N20) (sc-899) \n
+                Molecule: genomic DNA \n
+
+            \n
+            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+                Title: TFIIIC binding to Alu elements controls gene expression via chromatin looping and histone acetylation \n
+                Accession(database="GEO"): GSE120162 \n
+                Pubmed-ID: 31759822 \n
+                Summary: How repetitive elements, epigenetic modifications and architectural proteins interact ensuring proper genome expression remains poorly understood. Here we report regulatory mechanisms unveiling a central role of Alu elements (AEs) and RNA polymerase III transcription factor C (TFIIIC) in structurally and functionally modulating the genome via chromatin looping and histone acetylation. Upon serum deprivation, a subset of AEs pre-marked by the Activity-Dependent Neuroprotector Homeobox protein (ADNP) and located near cell cycle genes recruits TFIIIC, which alters their chromatin accessibility by direct acetylation of histone H3 lysine-18 (H3K18). This facilitates the contacts of AEs with distant CTCF sites near promoter of other cell cycle genes, which also become hyperacetylated at H3K18. These changes ensure basal transcription of cell cycle genes and are critical for their re-activation upon serum re-exposure. Our study reveals how direct manipulation of the epigenetic state of AEs by a general transcription factor regulates 3D genome folding and expression. \n
+                Overall-Design: Examination of TFIIIC binding and action during cellular Serum Starvation (SS) \n
+                Type: Other \n
+            ''' \n
+        Sample Output: \n
+            {\n
+                "factor": "POL2",\n
+                "epitope_tagged": false,\n
+                "reasoning": "The chip antibody is listed as 'anti-Pol II', which refers to RNA polymerase II. The official gene symbol for RNA polymerase II is 'POL2'."\n
+            }\n\n
+
+        Example 2b (Epitope-tagged ChIP):\n
+        Input Format:\n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM6616013 \n
+                Title: ChIP_HA_GI-MEN_ASCL1_HA_tag \n
+                Accession(database="GEO"): GSM6616013 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Description: GIMEN_ASCL1 \n
+                Channel: \n
+                Source: GI-MEN cells \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="cell line"): GI-MEN cells \n
+                Characteristics(tag="cell type"): Neuroblastoma \n
+                Characteristics(tag="chip antibody"): HA \n
+                Growth-Protocol: GI-MEN DOX-ASCL1-tag-HA cells were cultured in RPMI-1640 supplemented with 10% FBS. \n
+                Molecule: genomic DNA \n
+            ''' \n
+        Sample Output: \n
+            {\n
+                "factor": "ASCL1",\n
+                "epitope_tagged": true,\n
+                "reasoning": "The chip antibody is HA, which is an epitope tag. The title 'ChIP_HA_GI-MEN_ASCL1_HA_tag', growth protocol 'DOX-ASCL1-tag-HA cells', and description 'GIMEN_ASCL1' all converge on ASCL1 as the underlying tagged target."\n
+            }\n\n
+
+        Example 3:\n
+        Input Format:\n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM4480 \n
+                Status(database="GEO"):  \n
+                Title: GAPDH \n
+                Accession(database="GEO"): GSM4480 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Channel: \n
+                Source: cell line \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="cell line"): HeLa \n
+                Molecule: genomic DNA \n
+            \n
+            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+                Title: 	Comparing genome-wide chromatin profiles using ChIP-chip or ChIP-seq \n
+                Accession(database="GEO"): GSE179 \n
+                Pubmed-ID: 202080 \n
+                Summary: The goal of the ChIP-seq study was to investigate the distribution of the TATA-binding protein (TBP) across the human genome. TBP is the DNA-binding subunit of the basal transcription factor TFIID for RNA polymerase II (pol II) and it also participates in other complexes for the other RNA polymerase. The BTAF1 ATPase forms a stable complex with TBP and regulates its activity in pol II transcription. BTAF1 is believed to mobilize TBP from promoter and non-promoter sites. To test this hypothesis, TBP ChIP samples were prepared from human HeLa cervix carcinoma cells after knock-down of BTAF1 expression and compared to HeLa cells with a control knock-down of GAPDH. GAPDH is a cytosolic enzyme that participates in glycolysis, and its inactivation is not expected to affect the genomic distribution of TBP, and acts as negative control. ChIP samples were sequenced using SOLiD technology along with the INPUT sample to normalize the distribution of background signals within each of the two chromatin samples. \n
+                Overall-Design: 2 ChIP samples + one input sample \n
+                Type: Genome binding/occupancy profiling by high throughput sequencing \n
+            ''' \n
+        Sample Output: \n
+            {\n
+                "factor": "GAPDH",\n
+                "epitope_tagged": false,\n
+                "reasoning": "'GAPDH' is the title of the sample. The series data confirms that 'GAPDH' is a target protein of interest."\n
+            }\n
+
+        Example 4:\n
+        Input Format:\n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM6869 \n
+                Status(database="GEO"): \n
+                Title: LNCaP-H3K4me2-vehicle-siCTRL-Mnase-ChIP-Seq \n
+                Accession(database="GEO"): GSM6869 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Description: Chromatin IP against H3K4me2 mononucleosomes in LNCaP cells treated with control siRNA and with vehicle for 4 hrs \n
+                Channel: \n
+                Source: Prostate cancer cell line (LNCaP) \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="cell line"): LNCaP \n
+                Characteristics(tag="sirna transfection"): siCTRL (1027280) \n
+                Characteristics(tag="agent"): vehicle \n
+                Characteristics(tag="mnase digestion"): yes \n
+                Characteristics(tag="chip antibody"): H3K4me2 \n
+                Characteristics(tag="chip antibody vendor"): Upstate \n
+                Characteristics(tag="chip antibody catalog#"): 07-030 \n
+                Characteristics(tag="transgenes"): none \n
+                Treatment-Protocol: LNCaP cells were cultured in RPMI 1640 supplemented with 10% FBS.  Control (1027280) and the specific siRNA against  FOXA1 (M-010319) were purchased from Qiagen or Dharmacon. One day prior to transfection, LNCaP cells were seeded in RPMI 1640 medium. Six hours after transfection with Lipofectamine 2000 (Invitrogen), cells were washed twice with PBS and then maintained in hormone-deprived phenol-free RPMI 1640 media.  Cells were then cultured for 96 hours following transfection and then treated with DHT or vehicle for 4 hrs. \n
+                Molecule: genomic DNA \n
+                \n
+            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+                Title: Reprogramming Transcriptional Responses through Functionally-Distinct Classes of Enhancers in Prostate Cancer Cells [ChIP-Seq, Gro-Seq] \n
+                Accession(database="GEO"): GSE27823 \n
+                Pubmed-ID: 21572438 \n
+                Summary: Mammalian genomes are populated with thousands of transcriptional enhancers that orchestrate cell type-specific gene expression programs; however, the potential that there are pre-established enhancers in different functional classes that permit alternative signal-dependent transcriptional responses has remained unexplored. Here we present evidence that cell lineage-specific factors, such as FoxA1, can simultaneously facilitate and restrict key regulated transcription factors, exemplified by the androgen receptor (AR), acting at structurally- and functionally-distinct classes of pre-established enhancers, thus licensing specific signal-activated responses while restricting others. Consequently, FoxA1 down-regulation, an unfavorable prognostic sign in advanced prostate tumors, causes a massive switch in AR binding from one functional class of enhancers to another, with a parallel switch in levels of enhancer-templated non-coding RNAs (eRNAs) revealed by the global run-on assay (GRO-seq), which documents the dramatic reprogramming of the hormonal response.  The molecular basis for this switch lies in the release of FoxA1-mediated restriction of AR binding to the new enhancer class with no apparent nucleosome remodeling, which is required for stimulating their eRNA transcription and/or enhancing enhancer:promoter looping and gene activation. Together, these findings reveal a large repository of pre-determined enhancers in the human genome that can be dynamically tuned to induce their transcription and activation of alternative gene expression programs, which may underlie many sequential gene expression events in development or during disease progression. \n
+                Overall-Design: ChIP-Seq, Gro-Seq, and gene expression profiling was performed in LNCaP cells with hormone treatment and siRNA against FoxA1 \n
+                ChIP-Seq and Gro-Seq data presented here. Supplementary file GroSeq.denovo.transcripts.hg18.bed represents analysis using GSM686948-GSM686950. \n
+                Type: Expression profiling by high throughput sequencing \n
+                \n
+                Title: Reprogramming Transcriptional Responses through Functionally-Distinct Classes of Enhancers in Prostate Cancer Cells \n
+                Accession(database="GEO"): GSE27824 \n
+                Pubmed-ID: 21572438 \n
+                Summary: This SuperSeries is composed of the SubSeries listed below. \n
+                Overall-Design: Refer to individual Series \n
+                Type: Expression profiling by high throughput sequencing \n
+                \n
+                ''' \n
+            Sample Output: \n
+            {\n
+                "factor": "H3K4me2",\n
+                "epitope_tagged": false,\n
+                "reasoning": "The chip antibody is explicitly listed as 'H3K4me2' in the sample metadata, indicating that the experiment targets this histone modification."\n
+            }\n\n
+
+
+        REMINDER! Your output must always be a JSON object, structured as follows: \n
+            {\n
+                "factor": "target binding protein/factor identified",\n
+                "epitope_tagged": true_or_false,\n
+                "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
+            }\n
+        """
+)
+
+_FACTOR_INPUT_TEMPLATE = (
+"""
+    Please only return the factor that the GSM metadata is referencing use the series metadata to validate your answer. USE only the official gene Symbol used by NCBI as seen in the examples above.
+    The official gene symbol is a collection of Letters and Numbers, not words, eg. ESR1, ZFX, RAD51, POL2. ONLY RETURN THE GENE SYMBOL
+    \n
+    The output should only follow the output format. THE FACTOR SECTION SHOULD NOT HAVE ANY ADDITIONAL WORDS BESIDES THE OFFICIAL GENE NAME FOR THE TARGET PROTEIN. \n
+    Output Format:
+        {{\n
+            "factor": "target binding protein/factor identified",\n
+            "epitope_tagged": true_or_false,\n
+            "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
+        }}\n
+    \n
+    Please extract the factor or target protein from this sample:\n
+        {}
+    \n
+    The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+        {}
+    \n
+    """
+)
+
+_FACTOR_RECHECK_INPUT_TEMPLATE = (
+"""
+    Please only return the factor that the GSM metadata is referencing use the series metadata to validate your answer. USE only the official gene Symbol as seen in the examples above.
+    The official gene symbol is a collection of Letters and Numbers, not words, eg. ESR1, ZFX, RAD51, POL2. ONLY RETURN THE GENE SYMBOL
+    \n
+    NOTE: The factors extracted in previous attempts did NOT match any of the verification checks (gene dataset, transcription factor, chromatin remodeler, histone modification, viral factor, or gene-editing tool). Please reanalyze the metadata and identify the correct Official Gene Symbol. The factor identified this time MUST NOT match any factor in the "Previously Identified Incorrect Factors" list below.\n
+    \n
+    Previously Identified Incorrect Factors: {}\n
+    \n
+    The output should only follow the output format. THE FACTOR SECTION SHOULD NOT HAVE ANY ADDITIONAL WORDS BESIDES THE OFFICIAL GENE NAME FOR THE TARGET PROTEIN. \n
+    Output Format:
+        {{\n
+            "factor": "target binding protein/factor identified",\n
+            "epitope_tagged": true_or_false,\n
+            "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
+        }}\n
+    \n
+    Please extract the factor or target protein from this sample, ensuring the result is NOT one of the previously identified incorrect factors above:\n
+        {}
+    \n
+    The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+        {}
+    \n
+    """
+)
+
+_ONTOLOGY_GUIDELINES = (
+"""
+    You are an intelligent and accurate Named Entity Recognition (NER) system with a specialization in Genomics and Biology.\n\n
+
+    I will provide you with GSM XML files (referring to individual samples) and GSE XML files (referring to series of GSM samples). \n\n
+
+    In the XML files provided, your task is to identify the Official Gene Symbol being referenced in the experiment. Specifically, you need to find the following:\n
+        1). CELL LINE: The Official Cell Line Symbol of the cell line that ChIP-seq was conducted on, it needs to be in the same format that is found in the Cellosaurus database.\n
+        2). CELL TYPE: The official Cell Type of the cell used in the experiment. This should describe the biological characteristics and classification of the cell, such as 'T-cell', 'fibroblast', or 'neuron'.\n
+        3). TISSUE: The offical tissue ontology that the ChIP-seq experiment refers to, this describes the anatomical source or origin of the cells, validated against the Uberon and Experiment Factor Ontology. This should describe the tissue type, such as 'lung', 'brain', or 'liver', from which the cells were derived.\n
+        4). DISEASE: The offical disease ontology that the ChIP-seq experiment refers to, this is the disease or pathological condition associated with the cell line or tissue.
+
+        Guidelines for Ontologies \n
+            1). ONLY Use Official Ontologies provided by Cellosaurus, Experimental Factor Ontology, and Uberon. Also following their naming conventions.\n
+            2). Names should NOT be placed in parentheses. If a name is in parentheses, choose the one that best fits the category. For example, 'breast cancer (adenocarcinoma)' should become 'adenocarcinoma'.\n
+            3). If the ChIP-seq experiment does not contain information on the given field, use N/A in place.\n
+        \n \n
+        Example 1:\n
+        Input Format: \n
+            \n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM631483 \n
+                Status(database="GEO"): \n
+                Title: [E-MTAB-223] full_ER_ChIP_MCF7_exp2_lane1 \n
+                Accession(database="GEO"): GSM631483 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Channel: \n
+                Source: JC29_MCF7_ER_full_media_rep2_CRI01 \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="material type"): cell_line \n
+                Characteristics(tag="cellline"): MCF-7 \n
+                Characteristics(tag="Sex"): female \n
+                Characteristics(tag="diseasestate"): breast cancer \n
+                Characteristics(tag="chip antibody"): ER \n
+                Growth-Protocol: grow | RPMI 1640 medium por DMEM supplemented with 10% inactivated FBS, l-glutamine and PEST at 37C with 5% CO2. \n
+                Molecule: genomic DNA \n
+                Performer: CRUK-CRI
+                \n
+                \n
+            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+                Title: [E-MTAB-223] ChIP-seq for FOXA1, ER and CTCF in breast cancer cell lines \n
+                Accession(database="GEO"): GSE25710 \n
+                Summary: Growth cells and map of ER, FoxA1 and CTCF binding at whole genome level. \n
+                ArrayExpress Release Date: 2010-10-29 \n
+                Person Roles: submitter \n
+                Person Last Name: Hurtado \n
+                Person First Name: Antoni \n
+                Person Email: toni.hurtado@cancer.org.uk \n
+                Person Affiliation: Uppsala University \n
+                Overall-Design: Experimental Design: high_throughput_sequencing_design \n
+                Experimental Design: binding_site_identification_design \n
+                Experimental Factor Name: IMMUNOPRECIPITATE \n
+                Experimental Factor Name: CELL_LINE \n
+                Experimental Factor Type: immunoprecipitate \n
+                Experimental Factor Type: cell_line \n
+                Type: Genome binding/occupancy profiling by high throughput sequencing \n
+            ''' \n
+        \n
+        Sample Output: \n
+        {\n
+            cell_line: "MCF7", \n
+            cell_type: "N/A", \n
+            tissue: "breast",\n
+            disease: "breast cancer"\n
+        }\n\n
+
+        Example 2:\n
+        Input Format:\n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM3486913 \n
+                Status(database="GEO"): \n
+                Title: T47D_EV_aHA_rep2 \n
+                Accession(database="GEO"): GSM3486913 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Channel: \n
+                Source: T47D_EV_aHA \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="cell line"): T47D \n
+                Characteristics(tag="cell type"): Breast cancer cell line \n
+                Characteristics(tag="chip antibody"): aHA (05-904, Millipore) \n
+                Characteristics(tag="plasmid"): control plasmid \n
+                Molecule: genomic DNA \n
+            \n
+            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+                Title: Cistromic re-programming by truncating GATA3 mutations promotes mesenchymal transformation in vitro, but not mammary tumour formation in mice [ChIP-seq] \n
+                Accession(database="GEO"): GSE122847 \n
+                Pubmed-ID: 31218575 \n
+                Summary: Heterozygous mutations in the transcription factor GATA3 are identified in 10-15% of all breast cancer cases. Most of these are protein-truncating mutations, concentrated within or downstream of the second GATA-type zinc-finger domain. Here, we investigated the functional consequences of expression of two truncated GATA3 mutants, in vitro in breast cancer cell lines and in vivo in the mouse mammary gland. We found that the truncated GATA3 mutants display altered DNA binding activity caused by preferred tethering through FOXA1. In addition, expression of the truncated GATA3 mutants reduces E-cadherin expression and promotes anchorage-independent growth in vitro. However, we could not identify any effects of truncated GATA3 expression on mammary gland development or mammary tumor formation in mice. Together, our results demonstrate that both truncated GATA3 mutants promote cistromic re-programming of GATA3 in vitro, but these mutants are not sufficient to induce tumor formation in mice. \n
+                Overall-Design: Binding of HA-tagged wild-type GATA3 (HA_GATA3_wt) and two truncated variants (HA_GATA3_TR1 and HA_GATA3_TR2) exogenously introduced in T47D cells profiled by ChIP-seq (Chromatin Immunoprecipitation followed by deep sequencing). \n
+                Type: Genome binding/occupancy profiling by high throughput sequencing \n
+            ''' \n
+        \n
+        Sample Output: \n
+        {\n
+            cell_line: "T47D", \n
+            cell_type: "N/A", \n
+            tissue: "breast",\n
+            disease: "breast cancer"\n
+        }\n\n
+
+        Example 3:\n
+        Input Format:\n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM5048518 \n
+                Status(database="GEO"): \n
+                Title: ChIP-Seq Healthy control sample 10, Alveolar macrophage, Mycobacterium tuberculosis non-challenged library \n
+                Accession(database="GEO"): GSM5048518 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Channel: \n
+                Source: bronchoalveolar lavage \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="ethnicity"): Caucasian \n
+                Characteristics(tag="Sex"): M \n
+                Characteristics(tag="age"): 29 \n
+                Characteristics(tag="medical.history"): None \n
+                Characteristics(tag="sexually transmitted infections"): no \n
+                Characteristics(tag="quantiferon tb reagent"): no \n
+                Characteristics(tag="cd4 count"): 1091 \n
+                Characteristics(tag="prescription drugs"): none \n
+                Characteristics(tag="active ingredient"): none \n
+                Characteristics(tag="art start year"): none \n
+                Characteristics(tag="recreational drugs"): no \n
+                Characteristics(tag="cigarette smoker"): no \n
+                Characteristics(tag="bal sampling date"): 2017/01/11 \n
+                Characteristics(tag="mtb challenged"): no \n
+                Characteristics(tag="fragments in clean bam"): 1 \n
+                Molecule: genomic DNA \n
+                Description: Healthy control sample 10, Alveolar macrophage, Mycobacterium tuberculosis non-challenged library \n
+                \n
+            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+                Title: Epigenetic impairment and blunted transcriptional response to Mycobacterium tuberculosis of alveolar macrophages from persons living with HIV (ChIP-Seq) \n
+                Accession(database="GEO"): GSE165705 \n
+                Pubmed-ID: 34473646 \n
+                Summary: Persons living with HIV (PLWH) are at increased risk of tuberculosis (TB). HIV-associated TB is mainly the result of recent infection with Mycobacterium tuberculosis (Mtb) followed by rapid progression to disease. Alveolar macrophages (AM) are the first cells of the innate immune system that engage Mtb, but how HIV and antiretroviral therapy (ART) impact on the anti-mycobacterial response of AM is not known. In this study AM were challenged in vitro with Mtb, and their epigenetic and transcriptomic responses were determined for PLWH receiving ART, control subjects who were HIV-free (HC) and subjects who received pre-exposure prophylaxis (PrEP) with ART to prevent HIV infection. Compared to HC subjects’ response to Mtb, we showed that AM isolated from PLWH and PrEP subjects displayed substantially weaker transcriptomic response and no significant changes in their chromatin state. These findings revealed a previously unknown adverse effect of ART. \n
+                Overall-Design: AM cells were challenged with Mtb at a multiplicity of infection (MOI) of 5:1 or kept in sterile medium for 18-20hrs. Cells were then processed to perform RNA-seq, ATAC-seq and ChIP-seq \n
+                Type: Genome binding/occupancy profiling by high throughput sequencing \n
+            '''
+            \n
+        Sample Output: \n
+        {\n
+            cell_line: "N/A", \n
+            cell_type: "alveolar macrophages", \n
+            tissue: "lung",\n
+            disease: "N/A"\n
+        }\n\n
+
+        Example 4:\n
+        Input Format:\n
+            ''' \n
+            This is metadata related to the specific sample:\n
+                GSM: GSM6869 \n
+                Status(database="GEO"): \n
+                Title: LNCaP-H3K4me2-vehicle-siCTRL-Mnase-ChIP-Seq \n
+                Accession(database="GEO"): GSM6869 \n
+                Type: SRA \n
+                Channel-Count: 1 \n
+                Description: Chromatin IP against H3K4me2 mononucleosomes in LNCaP cells treated with control siRNA and with vehicle for 4 hrs \n
+                Channel: \n
+                Source: Prostate cancer cell line (LNCaP) \n
+                Organism(taxid="9606"): Homo sapiens \n
+                Characteristics(tag="cell line"): LNCaP \n
+                Characteristics(tag="sirna transfection"): siCTRL (1027280) \n
+                Characteristics(tag="agent"): vehicle \n
+                Characteristics(tag="mnase digestion"): yes \n
+                Characteristics(tag="chip antibody"): H3K4me2 \n
+                Characteristics(tag="chip antibody vendor"): Upstate \n
+                Characteristics(tag="chip antibody catalog#"): 07-030 \n
+                Characteristics(tag="transgenes"): none \n
+                Treatment-Protocol: LNCaP cells were cultured in RPMI 1640 supplemented with 10% FBS.  Control (1027280) and the specific siRNA against  FOXA1 (M-010319) were purchased from Qiagen or Dharmacon. One day prior to transfection, LNCaP cells were seeded in RPMI 1640 medium. Six hours after transfection with Lipofectamine 2000 (Invitrogen), cells were washed twice with PBS and then maintained in hormone-deprived phenol-free RPMI 1640 media.  Cells were then cultured for 96 hours following transfection and then treated with DHT or vehicle for 4 hrs. \n
+                Molecule: genomic DNA \n
+                \n
+            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+                Title: Reprogramming Transcriptional Responses through Functionally-Distinct Classes of Enhancers in Prostate Cancer Cells [ChIP-Seq, Gro-Seq] \n
+                Accession(database="GEO"): GSE27823 \n
+                Pubmed-ID: 21572438 \n
+                Summary: Mammalian genomes are populated with thousands of transcriptional enhancers that orchestrate cell type-specific gene expression programs; however, the potential that there are pre-established enhancers in different functional classes that permit alternative signal-dependent transcriptional responses has remained unexplored. Here we present evidence that cell lineage-specific factors, such as FoxA1, can simultaneously facilitate and restrict key regulated transcription factors, exemplified by the androgen receptor (AR), acting at structurally- and functionally-distinct classes of pre-established enhancers, thus licensing specific signal-activated responses while restricting others. Consequently, FoxA1 down-regulation, an unfavorable prognostic sign in advanced prostate tumors, causes a massive switch in AR binding from one functional class of enhancers to another, with a parallel switch in levels of enhancer-templated non-coding RNAs (eRNAs) revealed by the global run-on assay (GRO-seq), which documents the dramatic reprogramming of the hormonal response.  The molecular basis for this switch lies in the release of FoxA1-mediated restriction of AR binding to the new enhancer class with no apparent nucleosome remodeling, which is required for stimulating their eRNA transcription and/or enhancing enhancer:promoter looping and gene activation. Together, these findings reveal a large repository of pre-determined enhancers in the human genome that can be dynamically tuned to induce their transcription and activation of alternative gene expression programs, which may underlie many sequential gene expression events in development or during disease progression. \n
+                Overall-Design: ChIP-Seq, Gro-Seq, and gene expression profiling was performed in LNCaP cells with hormone treatment and siRNA against FoxA1 \n
+                ChIP-Seq and Gro-Seq data presented here. Supplementary file GroSeq.denovo.transcripts.hg18.bed represents analysis using GSM686948-GSM686950. \n
+                Type: Expression profiling by high throughput sequencing \n
+                \n
+                Title: Reprogramming Transcriptional Responses through Functionally-Distinct Classes of Enhancers in Prostate Cancer Cells \n
+                Accession(database="GEO"): GSE27824 \n
+                Pubmed-ID: 21572438 \n
+                Summary: This SuperSeries is composed of the SubSeries listed below. \n
+                Overall-Design: Refer to individual Series \n
+                Type: Expression profiling by high throughput sequencing \n
+                \n
+                ''' \n
+            Sample Output: \n
+            {\n
+                cell_line: "LNCaP", \n
+                cell_type: "prostate cancer cell", \n
+                tissue: "prostate",\n
+                disease: "prostate cancer"\n
+            }\n\n
+        """
+)
+
+_ONTOLOGY_INPUT_TEMPLATE = (
+"""
+    You are to identify the cell line, cell type, tissue, and disease of the cell that the ChIP-seq experiment was performed on. \n
+    Please return the officical symbol names for the ontologies, please use the naming conventions from Cellosaurus, Experimental Factor Ontology, and Uberon. \n
+    Extract the following information from the ChIP-seq experiment metadata:\n
+        1). CELL LINE: The official Cell Line Symbol of the cell line that ChIP-seq was conducted on. \n
+        2). CELL TYPE: The official Cell Type of the cell used in the experiment. \n
+        3). TISSUE: The offical tissue ontology that the ChIP-seq experiment refers to, this describes the anatomical source or origin of the cells.\n
+        4). DISEASE: The offical disease ontology that the ChIP-seq experiment refers to. \n
+
+    \n
+    Please extract the ontologies from this sample:\n
+        {}
+    \n
+    The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
+        {}
+    \n
+    """
+)
+
+
 ### General Functionality ###
 def get_data_dir():
     """Returns the path to the data directory within the installed package."""
@@ -669,276 +1249,19 @@ def extract_factor(gsm_xml_string, gse_xml_strings, model=None):
     xml_prompt = gsm_xml_string
     gse_prompts = "\n\n".join(gse_xml_strings)
 
-    GUIDELINES_PROMPT = (
-    """
-    You are an intelligent and accurate Named Entity Recognition (NER) system with a specialization in Genomics and Biology.\n\n
-
-    I will provide you with GSM XML files (referring to individual samples) and GSE XML files (referring to series of GSM samples). \n\n
-
-    In the XML files provided, your task is to identify the Official Gene Symbol being referenced in the experiment. Specifically, you need to find the following:\n
-        1). FACTOR: The Official Gene Symbol of the factor (the target protein that ChIP-seq was conducted on) whose binding sites are being mapped on the genome,
-        or in the case of histone post-translational modifications, an abbreviated format. If the experiment does not target a factor, write "None".
-        The Factor is generally found after the cell line ontology in the title or in the chip antibody section.
-        A Factor is NOT a cell line, cell, species, or anything else besides a transcription factor gene.\n\n
-
-        If the information is not clear from the GSM XML file, you should refer to the corresponding GSE XML file (series document) for additional verification and information.\n
-        1). Output Format: Your output must always be a JSON object, structured as follows: \n
-            {{\n
-                "factor": "target binding protein/factor identified",\n
-                "epitope_tagged": true_or_false,\n
-                "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
-            }}\n
-            If no factor is identified, the factor should be "None", but the reasoning must still explain why "None" was selected.\n
-        2). Roman Numerals: Convert all roman numeral representations into their corresponding numbers. For example, "Pol II" should be converted to "Pol 2".\n
-        3). Official Gene Symbol: All factors produced should be in their Official Gene Symbol used by the NCBI, e.g., "ER", "PLXNB3", "TRF-GAA4-1", "H3K27ac". Not in this form, eg., “RNA polymerase II (920102, Biolegend)”, “estrogen receptor.\n
-        4). For Post Translational Histone Modifications leave them in their full format do not simplify them down. eg. "H3K27ac" not "H3". "H3" is incorrect. Also remove punctuation from them eg: "H1.4K34ac" should be converted to "H14K34ac" \n
-        5). Epitope tag detection: If the chip antibody is against an epitope tag (HA, FLAG, Myc, V5, GFP, mCherry, T7, AU1, AU5, OLLAS, His, Strep, Spot, biotin, BirA, SNAP, HALO), set "epitope_tagged": true. Search the title, source name, growth protocol, treatment protocol, description, and series metadata for the underlying tagged target — look for patterns like "X-tag-Y", "Y-X", "tagged Y", "Y fused to X", "DOX-Y-tag-X", where X is the tag and Y is the underlying biological target. Report Y as the factor. If the antibody is against an epitope tag AND no underlying target can be identified anywhere in the metadata, set "factor": "None" and "epitope_tagged": true. For all non-epitope-tag cases, set "epitope_tagged": false.\n
-        6). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
-        \n \n
-        Example 1:\n
-        Input Format: \n
-            \n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM631489 \n
-                Status(database="GEO"): \n
-                Title: [E-MTAB-223] full_ER_ChIP_T47D_exp1_lane1 \n
-                Accession(database="GEO"): GSM631489 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Description: Performer: CRUK-CRI \n
-                Channel: \n
-                Source: ER_T47D_CRI01 \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="material type"): cell_line \n
-                Characteristics(tag="cellline"): T74-D \n
-                Characteristics(tag="Sex"): female \n
-                Characteristics(tag="diseasestate"): breast cancer \n
-                Characteristics(tag="chip antibody"): ER \n
-                Growth-Protocol: grow | RPMI 1640 medium por DMEM supplemented with 10% inactivated FBS, l-glutamine and PEST at 37C with 5% CO2. \n
-                Molecule: genomic DNA \n
-                \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: [E-MTAB-223] ChIP-seq for FOXA1, ER and CTCF in breast cancer cell lines \n
-                Accession(database="GEO"): GSE25710 \n
-                Summary: Growth cells and map of ER, FoxA1 and CTCF binding at whole genome level. \n
-
-                ArrayExpress Release Date: 2010-10-29 \n
-
-                Person Roles: submitter \n
-                Person Last Name: Hurtado \n
-                Person First Name: Antoni \n
-                Person Email: toni.hurtado@cancer.org.uk \n
-                Person Affiliation: Uppsala University \n
-                Overall-Design: Experimental Design: high_throughput_sequencing_design \n
-                Experimental Design: binding_site_identification_design \n
-                Experimental Factor Name: IMMUNOPRECIPITATE \n
-                Experimental Factor Name: CELL_LINE \n
-                Experimental Factor Type: immunoprecipitate \n
-                Experimental Factor Type: cell_line \n
-                Type: Genome binding/occupancy profiling by high throughput sequencing \n
-            ''' \n
-        \n
-        Sample Output: \n
-            {{\n
-                "factor": "ER",\n
-                "epitope_tagged": false,\n
-                "reasoning": "The chip antibody is explicitly listed as 'ER' in the sample metadata, and the series metadata confirms that ER is one of the factors being studied in this ChIP-seq experiment." \n
-            }}\n
-
-        Example 2:\n
-        Input Format:\n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM3395078 \n
-                Status(database="GEO"): \n
-                Title: T47D_POL2_noSerum_ChIP-seq \n
-                Accession(database="GEO"): GSM3395078 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Description: ChIP-seq single end (SE) \n
-                Channel: \n
-                Source: T47D \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="cell line"): T47D \n
-                Characteristics(tag="media"): RPMI supplemented with 10% charcoal-treated (CT) FBS for 48 h and starvation was achieved by culturing cells in the absence of FBS for 16 h \n
-                Characteristics(tag="serum"): serum-starved \n
-                Characteristics(tag="chip-antibody"): rabbit polyclonal antibody anti-Pol II Santa Cruz (N20) (sc-899) \n
-                Molecule: genomic DNA \n
-
-            \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: TFIIIC binding to Alu elements controls gene expression via chromatin looping and histone acetylation \n
-                Accession(database="GEO"): GSE120162 \n
-                Pubmed-ID: 31759822 \n
-                Summary: How repetitive elements, epigenetic modifications and architectural proteins interact ensuring proper genome expression remains poorly understood. Here we report regulatory mechanisms unveiling a central role of Alu elements (AEs) and RNA polymerase III transcription factor C (TFIIIC) in structurally and functionally modulating the genome via chromatin looping and histone acetylation. Upon serum deprivation, a subset of AEs pre-marked by the Activity-Dependent Neuroprotector Homeobox protein (ADNP) and located near cell cycle genes recruits TFIIIC, which alters their chromatin accessibility by direct acetylation of histone H3 lysine-18 (H3K18). This facilitates the contacts of AEs with distant CTCF sites near promoter of other cell cycle genes, which also become hyperacetylated at H3K18. These changes ensure basal transcription of cell cycle genes and are critical for their re-activation upon serum re-exposure. Our study reveals how direct manipulation of the epigenetic state of AEs by a general transcription factor regulates 3D genome folding and expression. \n
-                Overall-Design: Examination of TFIIIC binding and action during cellular Serum Starvation (SS) \n
-                Type: Other \n
-            ''' \n
-        Sample Output: \n
-            {{\n
-                "factor": "POL2",\n
-                "epitope_tagged": false,\n
-                "reasoning": "The chip antibody is listed as 'anti-Pol II', which refers to RNA polymerase II. The official gene symbol for RNA polymerase II is 'POL2'."\n
-            }}\n\n
-
-        Example 2b (Epitope-tagged ChIP):\n
-        Input Format:\n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM6616013 \n
-                Title: ChIP_HA_GI-MEN_ASCL1_HA_tag \n
-                Accession(database="GEO"): GSM6616013 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Description: GIMEN_ASCL1 \n
-                Channel: \n
-                Source: GI-MEN cells \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="cell line"): GI-MEN cells \n
-                Characteristics(tag="cell type"): Neuroblastoma \n
-                Characteristics(tag="chip antibody"): HA \n
-                Growth-Protocol: GI-MEN DOX-ASCL1-tag-HA cells were cultured in RPMI-1640 supplemented with 10% FBS. \n
-                Molecule: genomic DNA \n
-            ''' \n
-        Sample Output: \n
-            {{\n
-                "factor": "ASCL1",\n
-                "epitope_tagged": true,\n
-                "reasoning": "The chip antibody is HA, which is an epitope tag. The title 'ChIP_HA_GI-MEN_ASCL1_HA_tag', growth protocol 'DOX-ASCL1-tag-HA cells', and description 'GIMEN_ASCL1' all converge on ASCL1 as the underlying tagged target."\n
-            }}\n\n
-
-        Example 3:\n
-        Input Format:\n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM4480 \n
-                Status(database="GEO"):  \n
-                Title: GAPDH \n
-                Accession(database="GEO"): GSM4480 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Channel: \n
-                Source: cell line \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="cell line"): HeLa \n
-                Molecule: genomic DNA \n
-            \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: 	Comparing genome-wide chromatin profiles using ChIP-chip or ChIP-seq \n
-                Accession(database="GEO"): GSE179 \n
-                Pubmed-ID: 202080 \n
-                Summary: The goal of the ChIP-seq study was to investigate the distribution of the TATA-binding protein (TBP) across the human genome. TBP is the DNA-binding subunit of the basal transcription factor TFIID for RNA polymerase II (pol II) and it also participates in other complexes for the other RNA polymerase. The BTAF1 ATPase forms a stable complex with TBP and regulates its activity in pol II transcription. BTAF1 is believed to mobilize TBP from promoter and non-promoter sites. To test this hypothesis, TBP ChIP samples were prepared from human HeLa cervix carcinoma cells after knock-down of BTAF1 expression and compared to HeLa cells with a control knock-down of GAPDH. GAPDH is a cytosolic enzyme that participates in glycolysis, and its inactivation is not expected to affect the genomic distribution of TBP, and acts as negative control. ChIP samples were sequenced using SOLiD technology along with the INPUT sample to normalize the distribution of background signals within each of the two chromatin samples. \n
-                Overall-Design: 2 ChIP samples + one input sample \n
-                Type: Genome binding/occupancy profiling by high throughput sequencing \n
-            ''' \n
-        Sample Output: \n
-            {{\n
-                "factor": "GAPDH",\n
-                "epitope_tagged": false,\n
-                "reasoning": "'GAPDH' is the title of the sample. The series data confirms that 'GAPDH' is a target protein of interest."\n
-            }}\n
-
-        Example 4:\n
-        Input Format:\n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM6869 \n
-                Status(database="GEO"): \n 
-                Title: LNCaP-H3K4me2-vehicle-siCTRL-Mnase-ChIP-Seq \n
-                Accession(database="GEO"): GSM6869 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Description: Chromatin IP against H3K4me2 mononucleosomes in LNCaP cells treated with control siRNA and with vehicle for 4 hrs \n
-                Channel: \n
-                Source: Prostate cancer cell line (LNCaP) \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="cell line"): LNCaP \n
-                Characteristics(tag="sirna transfection"): siCTRL (1027280) \n
-                Characteristics(tag="agent"): vehicle \n
-                Characteristics(tag="mnase digestion"): yes \n
-                Characteristics(tag="chip antibody"): H3K4me2 \n
-                Characteristics(tag="chip antibody vendor"): Upstate \n
-                Characteristics(tag="chip antibody catalog#"): 07-030 \n
-                Characteristics(tag="transgenes"): none \n
-                Treatment-Protocol: LNCaP cells were cultured in RPMI 1640 supplemented with 10% FBS.  Control (1027280) and the specific siRNA against  FOXA1 (M-010319) were purchased from Qiagen or Dharmacon. One day prior to transfection, LNCaP cells were seeded in RPMI 1640 medium. Six hours after transfection with Lipofectamine 2000 (Invitrogen), cells were washed twice with PBS and then maintained in hormone-deprived phenol-free RPMI 1640 media.  Cells were then cultured for 96 hours following transfection and then treated with DHT or vehicle for 4 hrs. \n
-                Molecule: genomic DNA \n
-                \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: Reprogramming Transcriptional Responses through Functionally-Distinct Classes of Enhancers in Prostate Cancer Cells [ChIP-Seq, Gro-Seq] \n
-                Accession(database="GEO"): GSE27823 \n
-                Pubmed-ID: 21572438 \n
-                Summary: Mammalian genomes are populated with thousands of transcriptional enhancers that orchestrate cell type-specific gene expression programs; however, the potential that there are pre-established enhancers in different functional classes that permit alternative signal-dependent transcriptional responses has remained unexplored. Here we present evidence that cell lineage-specific factors, such as FoxA1, can simultaneously facilitate and restrict key regulated transcription factors, exemplified by the androgen receptor (AR), acting at structurally- and functionally-distinct classes of pre-established enhancers, thus licensing specific signal-activated responses while restricting others. Consequently, FoxA1 down-regulation, an unfavorable prognostic sign in advanced prostate tumors, causes a massive switch in AR binding from one functional class of enhancers to another, with a parallel switch in levels of enhancer-templated non-coding RNAs (eRNAs) revealed by the global run-on assay (GRO-seq), which documents the dramatic reprogramming of the hormonal response.  The molecular basis for this switch lies in the release of FoxA1-mediated restriction of AR binding to the new enhancer class with no apparent nucleosome remodeling, which is required for stimulating their eRNA transcription and/or enhancing enhancer:promoter looping and gene activation. Together, these findings reveal a large repository of pre-determined enhancers in the human genome that can be dynamically tuned to induce their transcription and activation of alternative gene expression programs, which may underlie many sequential gene expression events in development or during disease progression. \n
-                Overall-Design: ChIP-Seq, Gro-Seq, and gene expression profiling was performed in LNCaP cells with hormone treatment and siRNA against FoxA1 \n
-                ChIP-Seq and Gro-Seq data presented here. Supplementary file GroSeq.denovo.transcripts.hg18.bed represents analysis using GSM686948-GSM686950. \n
-                Type: Expression profiling by high throughput sequencing \n
-                \n
-                Title: Reprogramming Transcriptional Responses through Functionally-Distinct Classes of Enhancers in Prostate Cancer Cells \n
-                Accession(database="GEO"): GSE27824 \n
-                Pubmed-ID: 21572438 \n
-                Summary: This SuperSeries is composed of the SubSeries listed below. \n
-                Overall-Design: Refer to individual Series \n
-                Type: Expression profiling by high throughput sequencing \n
-                \n
-                ''' \n
-            Sample Output: \n
-            {{\n
-                "factor": "H3K4me2",\n
-                "epitope_tagged": false,\n
-                "reasoning": "The chip antibody is explicitly listed as 'H3K4me2' in the sample metadata, indicating that the experiment targets this histone modification."\n
-            }}\n\n
-
-
-        REMINDER! Your output must always be a JSON object, structured as follows: \n
-            {{\n
-                "factor": "target binding protein/factor identified",\n
-                "epitope_tagged": true_or_false,\n
-                "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
-            }}\n
-        """
-    )
-
-    INPUT_PROMPT = (
-    """
-    Please only return the factor that the GSM metadata is referencing use the series metadata to validate your answer. USE only the official gene Symbol used by NCBI as seen in the examples above.
-    The official gene symbol is a collection of Letters and Numbers, not words, eg. ESR1, ZFX, RAD51, POL2. ONLY RETURN THE GENE SYMBOL
-    \n
-    The output should only follow the output format. THE FACTOR SECTION SHOULD NOT HAVE ANY ADDITIONAL WORDS BESIDES THE OFFICIAL GENE NAME FOR THE TARGET PROTEIN. \n
-    Output Format:
-        {{\n
-            "factor": "target binding protein/factor identified",\n
-            "epitope_tagged": true_or_false,\n
-            "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
-        }}\n
-    \n
-    Please extract the factor or target protein from this sample:\n
-        {}
-    \n
-    The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-        {}
-    \n
-    """
-    )
-
-    formatted_prompt = INPUT_PROMPT.format(xml_prompt, gse_prompts)
-
-    setup_messages = ChatPromptTemplate.from_messages(
-        [
-            SystemMessage(
-                content=GUIDELINES_PROMPT
-            ),
-            HumanMessage(
-                content=formatted_prompt
-            )
-        ]
-    )
-
-
+    # System prompt is byte-identical across all extract_factor and
+    # factor_recheck calls so providers that cache by prefix hash (Anthropic
+    # explicitly, OpenAI/Gemini/DeepSeek automatically) share one cache entry.
+    formatted_input = _FACTOR_INPUT_TEMPLATE.format(xml_prompt, gse_prompts)
+    chat_message = [
+        _make_cached_system_message(_FACTOR_GUIDELINES_BASE, model),
+        HumanMessage(content=formatted_input),
+    ]
 
     try:
-        chat_message = setup_messages.format_messages()
         llm = _init_llm(model)
         res = llm.invoke(chat_message)
+        _log_cache_usage(res, label="extract_factor")
         res_content = res.content
         return_dict = _parse_llm_json(res_content)
         result = return_dict.get("factor")
@@ -1328,211 +1651,23 @@ def factor_recheck(gsm_xml_string, gse_xml_strings, factor_fails, model=None):
     xml_prompt = gsm_xml_string
     gse_prompts = "\n\n".join(gse_xml_strings)
 
-    GUIDELINES_PROMPT = (
-    """
-        You are an intelligent and accurate Named Entity Recognition (NER) system with a specialization in Genomics and Biology.\n\n
-
-        The factors extracted in previous attempts did not match any of the verification checks (gene dataset, transcription factor, chromatin remodeler, or histone modification). Below is a list of these factors:\n\n
-
-        Previously Identified Incorrect Factors: {} \n\n
-
-        Please reanalyze the provided metadata to identify the correct Official Gene Symbol of the factor being referenced in the experiment. Ensure that this factor is the target protein of the ChIP-seq experiment or the histone post-translational modification being studied.\n\n
-
-        If the information is not clear from the GSM XML file, you should refer to the corresponding GSE XML file (series document) for additional verification and information.\n
-
-        1). Output Format: Your output must always be a JSON object, structured as follows: \n
-            {{\n
-                "factor": "target binding protein/factor identified",\n
-                "epitope_tagged": true_or_false,\n
-                "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
-            }}\n
-            If no factor is identified, the factor should be "None", but the reasoning must still explain why "None" was selected.\n
-        2). Roman Numerals: Convert all roman numeral representations into their corresponding numbers. For example, "Pol II" should be converted to "Pol 2".\n
-        3). Official Gene Symbol: All factors produced should be in their Official Gene Symbol used by the NCBI, e.g., "ER", "PLXNB3", "TRF-GAA4-1", "H3K27ac". Not in this form, eg., “RNA polymerase II (920102, Biolegend)”, “estrogen receptor.\n
-        4). For Post Translational Histone Modifications leave them in their full format do not simplify them down. eg. "H3K27ac" not "H3". "H3" is incorrect. Also remove punctuation from them eg: "H1.4K34ac" should be converted to "H14K34ac" \n
-        5). Epitope tag detection: If the chip antibody is against an epitope tag (HA, FLAG, Myc, V5, GFP, mCherry, T7, AU1, AU5, OLLAS, His, Strep, Spot, biotin, BirA, SNAP, HALO), set "epitope_tagged": true and search the title, source name, growth protocol, treatment protocol, description, and series metadata for the underlying tagged target. If no underlying target can be identified, set "factor": "None" with "epitope_tagged": true. Otherwise set "epitope_tagged": false.\n
-        6). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
-        \n \n
-
-        Example 1:\n
-        Input Format:\n
-            ''' \n
-            Here are the Previously Identified Incorrect Factors: MCF-7, ChIP \n
-            \n
-            This is metadata related to the specific sample:\n
-                Title: ChIP-seq from MCF-7 (ENCLB914ZWE) \n
-                Accession (database="GEO"): GSM2827307 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Source: Homo sapiens MCF-7 immortalized cell line \n
-                Organism (taxid="9606"): Homo sapiens \n
-                Characteristics (tag="antibody"): ZFX \n
-                Characteristics (tag="line"): MCF-7 \n
-                Characteristics (tag="biomaterial_type"): immortalized cell line \n
-                Characteristics (tag="biosample encode accession"): ENCBS351GKC (SAMN07790942) \n
-                Characteristics (tag="Sex"): female \n
-                Characteristics (tag="lab"): Michael Snyder, Stanford \n
-                Characteristics (tag="health state"): breast cancer (adenocarcinoma) \n
-                Characteristics (tag="age"): 69 year \n
-                Characteristics (tag="dev stage"): adult \n
-                Characteristics (tag="link"): ENCBS351GKC at ENCODE; https://www.encodeproject.org/ENCBS351GKC/ \n
-                Characteristics (tag="link"): derived from ENCODE donor ENCDO000AAE; https://www.encodeproject.org/ENCDO000AAE/ \n
-                Characteristics (tag="link"): growth protocol; https://www.encodeproject.org/documents/c9abf007-bb14-4f62-b9ca-a55f4262889e/@@download/attachment/MCF%3F7_Cell_Culture_Farnham.pdf \n
-                Molecule: genomic DNA \n
-                Description:
-                https://www.encodeproject.org/experiments/ENCSR435OQD/
-                ***************
-                biological replicate number: 2
-                technical replicate number: 1
-                description: ZFX ChIP-seq on human MCF-7
-                experiment encode accession: ENCSR435OQD
-                assay title: ChIP-seq
-                assembly: GRCh38
-                possible controls: ENCSR239POD
-                encode release date: 2017-07-21
-                lab: Michael Snyder, Stanford
-                library encode accession: ENCLB914ZWE
-                size range: 450-650
-                \n
-                \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: ChIP-seq from MCF-7 (ENCSR435OQD) \n
-                Accession(database="GEO"): GSE105562 \n
-                Pubmed-ID: 22955616 \n
-                Summary: ZFX ChIP-seq on human MCF-7
-
-                For data usage terms and conditions, please refer to http://www.genome.gov/27528022 and http://www.genome.gov/Pages/Research/ENCODE/ENCODE_Data_Use_Policy_for_External_Users_03-07-14.pdf \n
-                Overall-Design: https://www.encodeproject.org/ENCSR435OQD/ \n
-                Type: Genome binding/occupancy profiling by high throughput sequencing \n
-            ''' \n
-        Sample Output: \n
-            {{\n
-                "factor": "ZFX",\n
-                "epitope_tagged": false,\n
-                "reasoning": "The chip antibody is explicitly listed as 'ZFX' in the sample metadata. The series also confirms that this is a "ZFX ChIP-seq on human MCF-7"."\n
-            }}\n\n
-
-        Example 2:\n
-        Input Format:\n
-            ''' \n
-            Here are the Previously Identified Incorrect Factors: ADNP, TFIIIC \n
-            This is metadata related to the specific sample: \n
-                GSM: GSM3395078 \n
-                Status(database="GEO"):  \n
-                Title: T47D_POL2_noSerum_ChIP-seq \n
-                Accession(database="GEO"): GSM3395078 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Description: ChIP-seq single end (SE) \n
-                Channel: \n
-                Source: T47D \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="cell line"): T47D \n
-                Characteristics(tag="media"): RPMI supplemented with 10% charcoal-treated (CT) FBS for 48 h and starvation was achieved by culturing cells in the absence of FBS for 16 h \n
-                Characteristics(tag="serum"): serum-starved \n
-                Characteristics(tag="chip-antibody"): rabbit polyclonal antibody anti-Pol II Santa Cruz (N20) (sc-899) \n
-                Molecule: genomic DNA \n
-            \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: TFIIIC binding to Alu elements controls gene expression via chromatin looping and histone acetylation \n
-                Accession(database="GEO"): GSE120162 \n
-                Pubmed-ID: 31759822 \n
-                Summary: How repetitive elements, epigenetic modifications and architectural proteins interact ensuring proper genome expression remains poorly understood. Here we report regulatory mechanisms unveiling a central role of Alu elements (AEs) and RNA polymerase III transcription factor C (TFIIIC) in structurally and functionally modulating the genome via chromatin looping and histone acetylation. Upon serum deprivation, a subset of AEs pre-marked by the Activity-Dependent Neuroprotector Homeobox protein (ADNP) and located near cell cycle genes recruits TFIIIC, which alters their chromatin accessibility by direct acetylation of histone H3 lysine-18 (H3K18). This facilitates the contacts of AEs with distant CTCF sites near promoter of other cell cycle genes, which also become hyperacetylated at H3K18. These changes ensure basal transcription of cell cycle genes and are critical for their re-activation upon serum re-exposure. Our study reveals how direct manipulation of the epigenetic state of AEs by a general transcription factor regulates 3D genome folding and expression. \n
-                Overall-Design: Examination of TFIIIC binding and action during cellular Serum Starvation (SS) \n
-                Type: Other \n
-            '''
-        Sample Output: \n
-            {{\n
-                "factor": "POL2",\n
-                "epitope_tagged": false,\n
-                "reasoning": "The title of the experiment includes POL2 and the chip antibody is confrims 'Pol II' as the expected target protein."\n
-            }}\n\n
-
-        Example 3:\n
-        Input Format:\n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM4480 \n
-                Status(database="GEO"):  \n
-                Title: GAPDH \n
-                Accession(database="GEO"): GSM4480 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Channel: \n
-                Source: cell line \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="cell line"): HeLa \n
-                Molecule: genomic DNA \n
-            \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: 	Comparing genome-wide chromatin profiles using ChIP-chip or ChIP-seq \n
-                Accession(database="GEO"): GSE17937 \n
-                Pubmed-ID: 20208068 \n
-                Summary: The goal of the ChIP-seq study was to investigate the distribution of the TATA-binding protein (TBP) across the human genome. TBP is the DNA-binding subunit of the basal transcription factor TFIID for RNA polymerase II (pol II) and it also participates in other complexes for the other RNA polymerase. The BTAF1 ATPase forms a stable complex with TBP and regulates its activity in pol II transcription. BTAF1 is believed to mobilize TBP from promoter and non-promoter sites. To test this hypothesis, TBP ChIP samples were prepared from human HeLa cervix carcinoma cells after knock-down of BTAF1 expression and compared to HeLa cells with a control knock-down of GAPDH. GAPDH is a cytosolic enzyme that participates in glycolysis, and its inactivation is not expected to affect the genomic distribution of TBP, and acts as negative control. ChIP samples were sequenced using SOLiD technology along with the INPUT sample to normalize the distribution of background signals within each of the two chromatin samples. \n
-                Overall-Design: 2 ChIP samples + one input sample \n
-                Type: Genome binding/occupancy profiling by high throughput sequencing \n
-            ''' \n
-        Sample Output: \n
-            {{\n
-                "factor": "GAPDH",\n
-                "epitope_tagged": false,\n
-                "reasoning": "'GAPDH' is the title of the sample. The series data confirms that 'GAPDH' is a target protein of interest."\n
-            }}\n
-
-
-        REMINDER! Your output must always be a JSON object, structured as follows: \n
-            {{\n
-                "factor": "target binding protein/factor identified",\n
-                "epitope_tagged": true_or_false,\n
-                "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
-            }}\n
-        """
+    # Reuse the same system prompt that extract_factor uses so the cached
+    # prefix is shared. The "previously rejected factors" context lives in
+    # the human message (which is dynamic per-sample anyway).
+    formatted_input = _FACTOR_RECHECK_INPUT_TEMPLATE.format(
+        ", ".join(factor_fails),
+        xml_prompt,
+        gse_prompts,
     )
-    formatted_guidelines_prompt = GUIDELINES_PROMPT.format(", ".join(factor_fails))
-
-    INPUT_PROMPT = (
-    """
-    Please only return the factor that the GSM metadata is referencing use the series metadata to validate your answer. USE only the official gene Symbol as seen in the examples above.
-    The official gene symbol is a collection of Letters and Numbers, not words, eg. ESR1, ZFX, RAD51, POL2. ONLY RETURN THE GENE SYMBOL
-    \n
-    The output should only follow the output format. THE FACTOR SECTION SHOULD NOT HAVE ANY ADDITIONAL WORDS BESIDES THE OFFICIAL GENE NAME FOR THE TARGET PROTEIN. \n
-    Output Format:
-        {{\n
-            "factor": "target binding protein/factor identified",\n
-            "epitope_tagged": true_or_false,\n
-            "reasoning": "evidence on why this was selected as the target protein for this ChIP-seq experiment"\n
-        }}\n
-    \n
-
-    \n
-    Previously Identified Incorrect Factors: {} \n
-    Please extract the factor from this sample, and Ensure that the factor identified this time does not match
-    any of the factors listed in the "Previously Identified Incorrect Factors" section:\n
-        {}
-    \n
-    The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-        {}
-    \n
-    """
-    )
-
-    formatted_input_prompt = INPUT_PROMPT.format(", ".join(factor_fails),xml_prompt, gse_prompts)
-
-    setup_messages = ChatPromptTemplate.from_messages(
-        [
-            SystemMessage(
-                content=formatted_guidelines_prompt
-            ),
-            HumanMessage(
-                content=formatted_input_prompt
-            )
-        ]
-    )
+    chat_message = [
+        _make_cached_system_message(_FACTOR_GUIDELINES_BASE, model),
+        HumanMessage(content=formatted_input),
+    ]
 
     try:
-        chat_message = setup_messages.format_messages()
         llm = _init_llm(model)
         res = llm.invoke(chat_message)
+        _log_cache_usage(res, label="factor_recheck")
         res_content = res.content
         return_dict = _parse_llm_json(res_content)
         result = return_dict.get("factor")
@@ -2355,251 +2490,22 @@ def extract_structured_ontology(gsm_xml_string, gse_xml_strings, model=None):
         tissue: str = Field(description="The anatomical source or origin of the cells, validated against the Experimental Factor Ontology (EFO) and Uberon Ontology. This should describe the tissue type, such as 'lung', 'brain', or 'liver', from which the cells were derived.")
         disease: str = Field(description="The disease or pathological condition associated with the cell line or tissue, validated against the Experimental Factor Ontology (EFO) and Uberon Ontology. This should describe the disease context, such as 'breast cancer', 'Alzheimer's disease', or 'type 2 diabetes'.")
         
-    # Construct paths to GSM and GSE directories
     # Simplify GSM XML file
     xml_prompt = gsm_xml_string
     gse_prompts = "\n\n".join(gse_xml_strings)
 
-    GUIDELINES_PROMPT = (
-    """
-    You are an intelligent and accurate Named Entity Recognition (NER) system with a specialization in Genomics and Biology.\n\n
-
-    I will provide you with GSM XML files (referring to individual samples) and GSE XML files (referring to series of GSM samples). \n\n
-
-    In the XML files provided, your task is to identify the Official Gene Symbol being referenced in the experiment. Specifically, you need to find the following:\n
-        1). CELL LINE: The Official Cell Line Symbol of the cell line that ChIP-seq was conducted on, it needs to be in the same format that is found in the Cellosaurus database.\n 
-        2). CELL TYPE: The official Cell Type of the cell used in the experiment. This should describe the biological characteristics and classification of the cell, such as 'T-cell', 'fibroblast', or 'neuron'.\n
-        3). TISSUE: The offical tissue ontology that the ChIP-seq experiment refers to, this describes the anatomical source or origin of the cells, validated against the Uberon and Experiment Factor Ontology. This should describe the tissue type, such as 'lung', 'brain', or 'liver', from which the cells were derived.\n
-        4). DISEASE: The offical disease ontology that the ChIP-seq experiment refers to, this is the disease or pathological condition associated with the cell line or tissue.
-        
-        Guidelines for Ontologies \n
-            1). ONLY Use Official Ontologies provided by Cellosaurus, Experimental Factor Ontology, and Uberon. Also following their naming conventions.\n
-            2). Names should NOT be placed in parentheses. If a name is in parentheses, choose the one that best fits the category. For example, 'breast cancer (adenocarcinoma)' should become 'adenocarcinoma'.\n
-            3). If the ChIP-seq experiment does not contain information on the given field, use N/A in place.\n
-        \n \n
-        Example 1:\n
-        Input Format: \n
-            \n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM631483 \n
-                Status(database="GEO"): \n
-                Title: [E-MTAB-223] full_ER_ChIP_MCF7_exp2_lane1 \n
-                Accession(database="GEO"): GSM631483 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Channel: \n
-                Source: JC29_MCF7_ER_full_media_rep2_CRI01 \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="material type"): cell_line \n
-                Characteristics(tag="cellline"): MCF-7 \n
-                Characteristics(tag="Sex"): female \n
-                Characteristics(tag="diseasestate"): breast cancer \n
-                Characteristics(tag="chip antibody"): ER \n
-                Growth-Protocol: grow | RPMI 1640 medium por DMEM supplemented with 10% inactivated FBS, l-glutamine and PEST at 37C with 5% CO2. \n
-                Molecule: genomic DNA \n
-                Performer: CRUK-CRI
-                \n
-                \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: [E-MTAB-223] ChIP-seq for FOXA1, ER and CTCF in breast cancer cell lines \n
-                Accession(database="GEO"): GSE25710 \n
-                Summary: Growth cells and map of ER, FoxA1 and CTCF binding at whole genome level. \n
-                ArrayExpress Release Date: 2010-10-29 \n
-                Person Roles: submitter \n
-                Person Last Name: Hurtado \n
-                Person First Name: Antoni \n
-                Person Email: toni.hurtado@cancer.org.uk \n
-                Person Affiliation: Uppsala University \n
-                Overall-Design: Experimental Design: high_throughput_sequencing_design \n
-                Experimental Design: binding_site_identification_design \n
-                Experimental Factor Name: IMMUNOPRECIPITATE \n
-                Experimental Factor Name: CELL_LINE \n
-                Experimental Factor Type: immunoprecipitate \n
-                Experimental Factor Type: cell_line \n
-                Type: Genome binding/occupancy profiling by high throughput sequencing \n
-            ''' \n
-        \n
-        Sample Output: \n
-        {\n
-            cell_line: "MCF7", \n
-            cell_type: "N/A", \n
-            tissue: "breast",\n
-            disease: "breast cancer"\n
-        }\n\n
-
-        Example 2:\n
-        Input Format:\n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM3486913 \n
-                Status(database="GEO"): \n
-                Title: T47D_EV_aHA_rep2 \n
-                Accession(database="GEO"): GSM3486913 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Channel: \n
-                Source: T47D_EV_aHA \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="cell line"): T47D \n
-                Characteristics(tag="cell type"): Breast cancer cell line \n
-                Characteristics(tag="chip antibody"): aHA (05-904, Millipore) \n
-                Characteristics(tag="plasmid"): control plasmid \n
-                Molecule: genomic DNA \n
-            \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: Cistromic re-programming by truncating GATA3 mutations promotes mesenchymal transformation in vitro, but not mammary tumour formation in mice [ChIP-seq] \n
-                Accession(database="GEO"): GSE122847 \n
-                Pubmed-ID: 31218575 \n
-                Summary: Heterozygous mutations in the transcription factor GATA3 are identified in 10-15% of all breast cancer cases. Most of these are protein-truncating mutations, concentrated within or downstream of the second GATA-type zinc-finger domain. Here, we investigated the functional consequences of expression of two truncated GATA3 mutants, in vitro in breast cancer cell lines and in vivo in the mouse mammary gland. We found that the truncated GATA3 mutants display altered DNA binding activity caused by preferred tethering through FOXA1. In addition, expression of the truncated GATA3 mutants reduces E-cadherin expression and promotes anchorage-independent growth in vitro. However, we could not identify any effects of truncated GATA3 expression on mammary gland development or mammary tumor formation in mice. Together, our results demonstrate that both truncated GATA3 mutants promote cistromic re-programming of GATA3 in vitro, but these mutants are not sufficient to induce tumor formation in mice. \n
-                Overall-Design: Binding of HA-tagged wild-type GATA3 (HA_GATA3_wt) and two truncated variants (HA_GATA3_TR1 and HA_GATA3_TR2) exogenously introduced in T47D cells profiled by ChIP-seq (Chromatin Immunoprecipitation followed by deep sequencing). \n
-                Type: Genome binding/occupancy profiling by high throughput sequencing \n
-            ''' \n
-        \n
-        Sample Output: \n
-        {\n
-            cell_line: "T47D", \n
-            cell_type: "N/A", \n
-            tissue: "breast",\n
-            disease: "breast cancer"\n
-        }\n\n
-
-        Example 3:\n
-        Input Format:\n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM5048518 \n
-                Status(database="GEO"): \n
-                Title: ChIP-Seq Healthy control sample 10, Alveolar macrophage, Mycobacterium tuberculosis non-challenged library \n
-                Accession(database="GEO"): GSM5048518 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Channel: \n
-                Source: bronchoalveolar lavage \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="ethnicity"): Caucasian \n
-                Characteristics(tag="Sex"): M \n
-                Characteristics(tag="age"): 29 \n
-                Characteristics(tag="medical.history"): None \n
-                Characteristics(tag="sexually transmitted infections"): no \n
-                Characteristics(tag="quantiferon tb reagent"): no \n
-                Characteristics(tag="cd4 count"): 1091 \n
-                Characteristics(tag="prescription drugs"): none \n
-                Characteristics(tag="active ingredient"): none \n
-                Characteristics(tag="art start year"): none \n
-                Characteristics(tag="recreational drugs"): no \n
-                Characteristics(tag="cigarette smoker"): no \n
-                Characteristics(tag="bal sampling date"): 2017/01/11 \n
-                Characteristics(tag="mtb challenged"): no \n
-                Characteristics(tag="fragments in clean bam"): 1 \n
-                Molecule: genomic DNA \n
-                Description: Healthy control sample 10, Alveolar macrophage, Mycobacterium tuberculosis non-challenged library \n
-                \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: Epigenetic impairment and blunted transcriptional response to Mycobacterium tuberculosis of alveolar macrophages from persons living with HIV (ChIP-Seq) \n
-                Accession(database="GEO"): GSE165705 \n
-                Pubmed-ID: 34473646 \n
-                Summary: Persons living with HIV (PLWH) are at increased risk of tuberculosis (TB). HIV-associated TB is mainly the result of recent infection with Mycobacterium tuberculosis (Mtb) followed by rapid progression to disease. Alveolar macrophages (AM) are the first cells of the innate immune system that engage Mtb, but how HIV and antiretroviral therapy (ART) impact on the anti-mycobacterial response of AM is not known. In this study AM were challenged in vitro with Mtb, and their epigenetic and transcriptomic responses were determined for PLWH receiving ART, control subjects who were HIV-free (HC) and subjects who received pre-exposure prophylaxis (PrEP) with ART to prevent HIV infection. Compared to HC subjects’ response to Mtb, we showed that AM isolated from PLWH and PrEP subjects displayed substantially weaker transcriptomic response and no significant changes in their chromatin state. These findings revealed a previously unknown adverse effect of ART. \n
-                Overall-Design: AM cells were challenged with Mtb at a multiplicity of infection (MOI) of 5:1 or kept in sterile medium for 18-20hrs. Cells were then processed to perform RNA-seq, ATAC-seq and ChIP-seq \n
-                Type: Genome binding/occupancy profiling by high throughput sequencing \n
-            '''
-            \n
-        Sample Output: \n
-        {\n
-            cell_line: "N/A", \n
-            cell_type: "alveolar macrophages", \n
-            tissue: "lung",\n
-            disease: "N/A"\n
-        }\n\n
-
-        Example 4:\n
-        Input Format:\n
-            ''' \n
-            This is metadata related to the specific sample:\n
-                GSM: GSM6869 \n
-                Status(database="GEO"): \n 
-                Title: LNCaP-H3K4me2-vehicle-siCTRL-Mnase-ChIP-Seq \n
-                Accession(database="GEO"): GSM6869 \n
-                Type: SRA \n
-                Channel-Count: 1 \n
-                Description: Chromatin IP against H3K4me2 mononucleosomes in LNCaP cells treated with control siRNA and with vehicle for 4 hrs \n
-                Channel: \n
-                Source: Prostate cancer cell line (LNCaP) \n
-                Organism(taxid="9606"): Homo sapiens \n
-                Characteristics(tag="cell line"): LNCaP \n
-                Characteristics(tag="sirna transfection"): siCTRL (1027280) \n
-                Characteristics(tag="agent"): vehicle \n
-                Characteristics(tag="mnase digestion"): yes \n
-                Characteristics(tag="chip antibody"): H3K4me2 \n
-                Characteristics(tag="chip antibody vendor"): Upstate \n
-                Characteristics(tag="chip antibody catalog#"): 07-030 \n
-                Characteristics(tag="transgenes"): none \n
-                Treatment-Protocol: LNCaP cells were cultured in RPMI 1640 supplemented with 10% FBS.  Control (1027280) and the specific siRNA against  FOXA1 (M-010319) were purchased from Qiagen or Dharmacon. One day prior to transfection, LNCaP cells were seeded in RPMI 1640 medium. Six hours after transfection with Lipofectamine 2000 (Invitrogen), cells were washed twice with PBS and then maintained in hormone-deprived phenol-free RPMI 1640 media.  Cells were then cultured for 96 hours following transfection and then treated with DHT or vehicle for 4 hrs. \n
-                Molecule: genomic DNA \n
-                \n
-            The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-                Title: Reprogramming Transcriptional Responses through Functionally-Distinct Classes of Enhancers in Prostate Cancer Cells [ChIP-Seq, Gro-Seq] \n
-                Accession(database="GEO"): GSE27823 \n
-                Pubmed-ID: 21572438 \n
-                Summary: Mammalian genomes are populated with thousands of transcriptional enhancers that orchestrate cell type-specific gene expression programs; however, the potential that there are pre-established enhancers in different functional classes that permit alternative signal-dependent transcriptional responses has remained unexplored. Here we present evidence that cell lineage-specific factors, such as FoxA1, can simultaneously facilitate and restrict key regulated transcription factors, exemplified by the androgen receptor (AR), acting at structurally- and functionally-distinct classes of pre-established enhancers, thus licensing specific signal-activated responses while restricting others. Consequently, FoxA1 down-regulation, an unfavorable prognostic sign in advanced prostate tumors, causes a massive switch in AR binding from one functional class of enhancers to another, with a parallel switch in levels of enhancer-templated non-coding RNAs (eRNAs) revealed by the global run-on assay (GRO-seq), which documents the dramatic reprogramming of the hormonal response.  The molecular basis for this switch lies in the release of FoxA1-mediated restriction of AR binding to the new enhancer class with no apparent nucleosome remodeling, which is required for stimulating their eRNA transcription and/or enhancing enhancer:promoter looping and gene activation. Together, these findings reveal a large repository of pre-determined enhancers in the human genome that can be dynamically tuned to induce their transcription and activation of alternative gene expression programs, which may underlie many sequential gene expression events in development or during disease progression. \n
-                Overall-Design: ChIP-Seq, Gro-Seq, and gene expression profiling was performed in LNCaP cells with hormone treatment and siRNA against FoxA1 \n
-                ChIP-Seq and Gro-Seq data presented here. Supplementary file GroSeq.denovo.transcripts.hg18.bed represents analysis using GSM686948-GSM686950. \n
-                Type: Expression profiling by high throughput sequencing \n
-                \n
-                Title: Reprogramming Transcriptional Responses through Functionally-Distinct Classes of Enhancers in Prostate Cancer Cells \n
-                Accession(database="GEO"): GSE27824 \n
-                Pubmed-ID: 21572438 \n
-                Summary: This SuperSeries is composed of the SubSeries listed below. \n
-                Overall-Design: Refer to individual Series \n
-                Type: Expression profiling by high throughput sequencing \n
-                \n
-                ''' \n
-            Sample Output: \n
-            {\n
-                cell_line: "LNCaP", \n
-                cell_type: "prostate cancer cell", \n
-                tissue: "prostate",\n
-                disease: "prostate cancer"\n
-            }\n\n 
-        """
-    )
-
-    INPUT_PROMPT = (
-    """
-    You are to identify the cell line, cell type, tissue, and disease of the cell that the ChIP-seq experiment was performed on. \n
-    Please return the officical symbol names for the ontologies, please use the naming conventions from Cellosaurus, Experimental Factor Ontology, and Uberon. \n
-    Extract the following information from the ChIP-seq experiment metadata:\n
-        1). CELL LINE: The official Cell Line Symbol of the cell line that ChIP-seq was conducted on. \n
-        2). CELL TYPE: The official Cell Type of the cell used in the experiment. \n
-        3). TISSUE: The offical tissue ontology that the ChIP-seq experiment refers to, this describes the anatomical source or origin of the cells.\n
-        4). DISEASE: The offical disease ontology that the ChIP-seq experiment refers to. \n
-
-    \n
-    Please extract the ontologies from this sample:\n
-        {}
-    \n
-    The sample is one of several in a series of related experiments. The sample belongs to this series' metadata:\n
-        {}
-    \n
-    """
-    )
-
-    formatted_prompt = INPUT_PROMPT.format(xml_prompt, gse_prompts)
-
-    setup_messages = ChatPromptTemplate.from_messages(
-        [
-            SystemMessage(
-                content=GUIDELINES_PROMPT
-            ),
-            HumanMessage(
-                content=formatted_prompt
-            )
-        ]
-    ) 
-
+    # Ontology guidelines are byte-identical across calls so caching kicks in
+    # on every supported provider. Note: structured_output returns the parsed
+    # Pydantic model directly, so we don't attempt _log_cache_usage on the
+    # result (no usage_metadata is attached) — the factor calls already prove
+    # the cache is firing when CISTROMEMX_CACHE_DEBUG is set.
+    formatted_input = _ONTOLOGY_INPUT_TEMPLATE.format(xml_prompt, gse_prompts)
+    chat_message = [
+        _make_cached_system_message(_ONTOLOGY_GUIDELINES, model),
+        HumanMessage(content=formatted_input),
+    ]
 
     try:
-        chat_message = setup_messages.format_messages()
         llm = _init_llm(model)
         structured_llm = llm.with_structured_output(ChIPSeqMetadata)
         res = structured_llm.invoke(chat_message)
