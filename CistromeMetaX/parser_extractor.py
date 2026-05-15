@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from rapidfuzz import fuzz
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
 
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
@@ -41,6 +42,8 @@ def _init_llm(model=None):
         ValueError: If the model or provider is invalid.
         RuntimeError: If the required API key is missing or authentication fails.
     """
+    load_dotenv(dotenv_path=Path.cwd() / ".env")
+
     model = model or _DEFAULT_MODEL
     
     try:
@@ -2507,7 +2510,14 @@ def extract_structured_ontology(gsm_xml_string, gse_xml_strings, model=None):
 
     try:
         llm = _init_llm(model)
-        structured_llm = llm.with_structured_output(ChIPSeqMetadata)
+        # OpenAI's default "json_schema" structured output path can attach the
+        # parsed Pydantic object to the raw SDK response and trigger noisy
+        # Pydantic serializer warnings. Tool/function calling returns the same
+        # validated model without that raw parsed-response serialization.
+        structured_llm = llm.with_structured_output(
+            ChIPSeqMetadata,
+            method="function_calling",
+        )
         res = structured_llm.invoke(chat_message)
         return res
     except Exception as e:
