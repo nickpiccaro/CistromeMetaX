@@ -2751,7 +2751,14 @@ def verify_ontology(
     """
     def is_incomplete(validated):
         return any(value is None for key, value in validated.items() if key not in ("geo", "extracted"))
-    
+
+    def _collapse_in_place(output):
+        for key in ["cell_line", "cell_type", "tissue", "disease"]:
+            value = output.get(key)
+            if isinstance(value, list):
+                output[key] = collapse_ontology_terms(value)
+        return output
+
     # Initial attempt
     validated = process_ontology(
         input_ontology,
@@ -2760,7 +2767,7 @@ def verify_ontology(
         cellosaurus_fuzzy_index, efo_fuzzy_index, uberon_fuzzy_index
     )
     if not is_incomplete(validated):
-        return validated
+        return _collapse_in_place(validated)
 
     completed_output = validated
     extracted = validated.get("extracted", {})
@@ -2797,12 +2804,7 @@ def verify_ontology(
                     completed_output[key] = result[key]
                     break
 
-    for key in ["cell_line", "cell_type", "tissue", "disease"]:
-        value = completed_output.get(key)
-        if isinstance(value, list):
-            completed_output[key] = collapse_ontology_terms(value)
-             
-    return completed_output
+    return _collapse_in_place(completed_output)
 
 def extract_verify_ontology(gsm_id, gsm_xml_string, gse_xml_strings,
                             cellosaurus_index, efo_index, uberon_index,
