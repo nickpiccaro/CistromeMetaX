@@ -11,7 +11,21 @@
         "FLAG-Cas9", "HA-Cas9", "3xFLAG-dCas9",
         "BE3", "ABE7.10", "ABE8e", "CBE", "ABE",
         "prime editor", "PE2", "PE3", "PEmax",
-        "SaCas9", "Sa-Cas9", "dSaCas9"
+        "SaCas9", "Sa-Cas9", "dSaCas9",
+        "NmCas9", "Nme-Cas9", "NmeCas9", "Nm2Cas9",
+        "CjCas9", "Cj-Cas9",
+        "St1Cas9", "SthCas9", "St3Cas9",
+        "FnCas9", "Fn-Cas9",
+        "GeoCas9",
+        "xCas9", "SpCas9-NG", "SpG", "SpRY",
+        "eSpCas9", "SpCas9-HF1", "HiFi-Cas9", "HypaCas9", "evoCas9",
+        "Cas9-VPH", "Cas9-p300", "Cas9-TET1", "Cas9-DNMT3A",
+        "dCas9-p300", "dCas9-TET1", "dCas9-DNMT3A",
+        "dCas9-LSD1", "dCas9-HDAC", "dCas9-EZH2",
+        "Cas9-MS2", "MS2-p65-HSF1", "SAM-Cas9",
+        "Suntag-dCas9", "dCas9-SunTag",
+        "ABE8.20", "ABEmax", "BE4", "BE4max", "CBE4", "AID-BE",
+        "PE4", "PE5", "twinPE"
       ]
     },
     {
@@ -20,7 +34,10 @@
       "full_name": "CRISPR-associated protein 12a",
       "synonyms": [
         "CAS12A", "Cas12a", "Cpf1", "AsCas12a", "LbCas12a",
-        "dCas12a", "dCpf1", "FnCas12a"
+        "dCas12a", "dCpf1", "FnCas12a",
+        "enAsCas12a", "AsCas12a-Ultra", "Mb2Cas12a", "MbCas12a",
+        "TtCas12a", "BhCas12a", "BvCas12a",
+        "Cas12a-VPR", "dCas12a-KRAB", "dCas12a-VP64"
       ]
     },
     {
@@ -29,7 +46,12 @@
       "full_name": "CRISPR-associated protein 13",
       "synonyms": [
         "CAS13", "Cas13", "Cas13a", "Cas13b", "Cas13d",
-        "dCas13", "C2c2"
+        "dCas13", "C2c2",
+        "LwaCas13a", "Lwa-Cas13a", "LbuCas13a",
+        "PspCas13b", "Psp-Cas13b",
+        "RfxCas13d", "CasRx", "Rfx-Cas13d",
+        "Cas13X", "Cas13Y",
+        "dCas13-ADAR", "REPAIR", "RESCUE"
       ]
     },
     {
@@ -38,7 +60,11 @@
       "full_name": "Transcription activator-like effector nuclease",
       "synonyms": [
         "TALEN", "dTALEN", "TALE", "TALE-KRAB",
-        "TAL effector nuclease", "TAL-effector-nuclease"
+        "TAL effector nuclease", "TAL-effector-nuclease",
+        "TALE-VP64", "TALE-VPR", "TALE-p300", "TALE-TET1",
+        "TALE-DNMT3A", "TALE-LSD1", "TALE-HDAC", "TALE-VP16",
+        "dTALE-KRAB", "dTALE-VP64", "TALER",
+        "AvrBs3", "PthXo1", "Xanthomonas-TALE"
       ]
     },
     {
@@ -46,7 +72,11 @@
       "system": "Zinc Finger Nuclease",
       "full_name": "Zinc finger nuclease",
       "synonyms": [
-        "ZFN", "zinc finger nuclease", "dZFN", "ZF-KRAB"
+        "ZFN", "zinc finger nuclease", "dZFN", "ZF-KRAB",
+        "ZF-VP64", "ZF-VPR", "ZF-p300", "ZF-TET1", "ZF-DNMT3A",
+        "ZFP", "zinc-finger-protein-fusion", "ZF-FokI",
+        "ZFA", "ZF-array", "ZFP-TF",
+        "Sp1-ZF", "engineered-ZFP"
       ]
     },
     {
@@ -55,7 +85,9 @@
       "full_name": "Meganuclease / homing endonuclease",
       "synonyms": [
         "MEGANUCLEASE", "meganuclease", "homing endonuclease",
-        "I-SceI", "I-CreI"
+        "I-SceI", "I-CreI", "I-DmoI", "I-AniI", "I-OnuI",
+        "I-PpoI", "I-TevI", "I-CeuI", "I-LtrI",
+        "megaTAL", "mega-TAL"
       ]
     },
     {
@@ -64,7 +96,324 @@
       "full_name": "Genomic transposase",
       "synonyms": [
         "TRANSPOSASE_GENOMIC", "PiggyBac", "SleepingBeauty",
-        "Sleeping Beauty", "Tn5"
+        "Sleeping Beauty", "Tn5", "Tn5-transposase",
+        "PBase", "piggyBac-transposase",
+        "SB100X", "SB-transposase",
+        "Mariner", "Hsmar1", "Tol2",
+        "Himar1", "TcBuster"
+      ]
+    },
+    {
+      "official_symbol": "CAS12B",
+      "system": "CRISPR-Cas12b",
+      "full_name": "CRISPR-associated protein 12b (C2c1)",
+      "synonyms": [
+        "CAS12B", "Cas12b", "C2c1", "AacCas12b",
+        "BhCas12b", "Bh-Cas12b", "BvCas12b", "AaCas12b",
+        "dCas12b"
+      ]
+    },
+    {
+      "official_symbol": "CAS12C",
+      "system": "CRISPR-Cas12c",
+      "full_name": "CRISPR-associated protein 12c (C2c3)",
+      "synonyms": [
+        "CAS12C", "Cas12c", "C2c3", "dCas12c"
+      ]
+    },
+    {
+      "official_symbol": "CAS12E",
+      "system": "CRISPR-Cas12e",
+      "full_name": "CRISPR-associated protein 12e (CasX)",
+      "synonyms": [
+        "CAS12E", "Cas12e", "CasX", "DpbCasX", "PlmCasX",
+        "dCasX", "dCas12e"
+      ]
+    },
+    {
+      "official_symbol": "CAS12F",
+      "system": "CRISPR-Cas12f",
+      "full_name": "CRISPR-associated protein 12f (Cas14)",
+      "synonyms": [
+        "CAS12F", "Cas12f", "Cas14", "Cas14a", "Cas14a1",
+        "Un1Cas12f1", "AsCas12f1", "miniCas",
+        "dCas12f", "dCas14"
+      ]
+    },
+    {
+      "official_symbol": "CAS12J",
+      "system": "CRISPR-Cas12j (CasΦ)",
+      "full_name": "CRISPR-associated protein 12j (CasPhi)",
+      "synonyms": [
+        "CAS12J", "Cas12j", "CasPhi", "CasΦ", "Casphi",
+        "dCas12j", "dCasPhi"
+      ]
+    },
+    {
+      "official_symbol": "CAS3",
+      "system": "CRISPR-Cas3 (Type I)",
+      "full_name": "Type I CRISPR-associated helicase-nuclease Cas3",
+      "synonyms": [
+        "CAS3", "Cas3", "EcoCas3", "Eco-Cas3", "TfuCas3",
+        "Cas3-HD", "Type-I-Cas3"
+      ]
+    },
+    {
+      "official_symbol": "CASCADE",
+      "system": "CRISPR-Cascade (Type I)",
+      "full_name": "Type I CRISPR Cascade surveillance complex",
+      "synonyms": [
+        "CASCADE", "Cascade", "Cascade-complex",
+        "Cas5", "Cas6", "Cas6e", "Cas6f", "Csy4",
+        "Cas7", "Cas8", "Cas8e", "Cse1", "Cse2",
+        "Cas11", "Csa5"
+      ]
+    },
+    {
+      "official_symbol": "CSM_COMPLEX",
+      "system": "CRISPR-Csm (Type III-A)",
+      "full_name": "Type III-A CRISPR Csm effector complex (Cas10)",
+      "synonyms": [
+        "CSM_COMPLEX", "Csm", "Csm-complex",
+        "Cas10", "Csm1", "Csm2", "Csm3", "Csm4", "Csm5"
+      ]
+    },
+    {
+      "official_symbol": "CMR_COMPLEX",
+      "system": "CRISPR-Cmr (Type III-B)",
+      "full_name": "Type III-B CRISPR Cmr effector complex",
+      "synonyms": [
+        "CMR_COMPLEX", "Cmr", "Cmr-complex",
+        "Cmr1", "Cmr2", "Cmr3", "Cmr4", "Cmr5", "Cmr6"
+      ]
+    },
+    {
+      "official_symbol": "ISCB",
+      "system": "IscB (RNA-guided OMEGA nuclease)",
+      "full_name": "IscB RNA-guided DNA endonuclease (Cas9 ancestor)",
+      "synonyms": [
+        "ISCB", "IscB", "OMEGA-IscB", "OgeuIscB",
+        "dIscB", "IS200/IS605-IscB"
+      ]
+    },
+    {
+      "official_symbol": "TNPB",
+      "system": "TnpB (RNA-guided nuclease)",
+      "full_name": "TnpB RNA-guided DNA endonuclease (Cas12 ancestor)",
+      "synonyms": [
+        "TNPB", "TnpB", "OMEGA-TnpB", "DrTnpB",
+        "ISDra2-TnpB", "dTnpB"
+      ]
+    },
+    {
+      "official_symbol": "FANZOR",
+      "system": "Fanzor (eukaryotic TnpB)",
+      "full_name": "Fanzor RNA-guided endonuclease",
+      "synonyms": [
+        "FANZOR", "Fanzor", "Fz1", "Fz2",
+        "SpuFz1", "eukaryotic-TnpB"
+      ]
+    },
+    {
+      "official_symbol": "TADA",
+      "system": "ABE base editor (TadA deaminase)",
+      "full_name": "E. coli tRNA adenosine deaminase (ABE component)",
+      "synonyms": [
+        "TADA", "TadA", "TadA-7.10", "TadA7.10",
+        "TadA-8e", "TadA8e", "TadA*", "evoTadA",
+        "ABE-TadA", "ecTadA"
+      ]
+    },
+    {
+      "official_symbol": "DAM",
+      "system": "DamID (DNA adenine methyltransferase)",
+      "full_name": "E. coli DNA adenine methyltransferase (DamID fusion)",
+      "synonyms": [
+        "DAM", "Dam", "Dam-methylase", "E.coli-Dam",
+        "Dam-ID", "DamID", "Dam-fusion",
+        "GFP-Dam", "Dam-LMNB1", "Dam-Pol2", "Dam-Only",
+        "TaDa", "Targeted-DamID"
+      ]
+    },
+    {
+      "official_symbol": "MNASE",
+      "system": "Micrococcal nuclease (CUT&RUN)",
+      "full_name": "Staphylococcus aureus micrococcal nuclease (CUT&RUN effector)",
+      "synonyms": [
+        "MNASE", "MNase", "Micrococcal nuclease",
+        "Micrococcal-nuclease", "Nuclease-S7",
+        "pA-MNase", "pA-MNAse", "ProteinA-MNase",
+        "pAG-MNase", "ProteinAG-MNase", "pA/G-MNase",
+        "CUT-and-RUN-MNase", "CUTandRUN-MNase"
+      ]
+    },
+    {
+      "official_symbol": "PA_TN5",
+      "system": "Protein A-Tn5 (CUT&Tag)",
+      "full_name": "Staphylococcus aureus Protein A fused to Tn5 transposase (CUT&Tag effector)",
+      "synonyms": [
+        "PA_TN5", "pA-Tn5", "ProteinA-Tn5", "pA/Tn5",
+        "pAG-Tn5", "pA-G-Tn5", "ProteinAG-Tn5", "pA/G-Tn5",
+        "CUT-and-Tag-Tn5", "CUTandTag-Tn5"
+      ]
+    },
+    {
+      "official_symbol": "PROTEIN_A",
+      "system": "Staphylococcus aureus Protein A",
+      "full_name": "Staphylococcus aureus Protein A (CUT&RUN/CUT&Tag scaffold)",
+      "synonyms": [
+        "PROTEIN_A", "Protein-A", "SpA", "S.aureus-ProteinA",
+        "Staphylococcal-Protein-A", "rProteinA"
+      ]
+    },
+    {
+      "official_symbol": "PROTEIN_G",
+      "system": "Streptococcus Protein G",
+      "full_name": "Streptococcal Protein G (CUT&RUN/CUT&Tag scaffold)",
+      "synonyms": [
+        "PROTEIN_G", "Protein-G", "SpG-protein", "Streptococcal-Protein-G",
+        "rProteinG"
+      ]
+    },
+    {
+      "official_symbol": "LACI",
+      "system": "Bacterial DNA-binding scaffold (Lac repressor)",
+      "full_name": "Escherichia coli lac repressor (tethering / chromatin imaging)",
+      "synonyms": [
+        "LACI", "LacI", "Lac-repressor", "Lac-I",
+        "GFP-LacI", "mCherry-LacI", "LacI-fusion",
+        "LacO-LacI", "LacI-VP16", "LacI-VP64"
+      ]
+    },
+    {
+      "official_symbol": "TETR",
+      "system": "Bacterial DNA-binding scaffold (Tet repressor)",
+      "full_name": "Escherichia coli Tn10 Tet repressor (tethering / inducible systems)",
+      "synonyms": [
+        "TETR", "TetR", "Tet-repressor", "rtTA", "tTA",
+        "TetR-VP16", "TetR-KRAB", "GFP-TetR",
+        "TetO-TetR"
+      ]
+    },
+    {
+      "official_symbol": "LEXA",
+      "system": "Bacterial DNA-binding scaffold (LexA repressor)",
+      "full_name": "Escherichia coli LexA SOS-response repressor (tethering scaffold)",
+      "synonyms": [
+        "LEXA", "LexA", "LexA-DBD", "LexA-fusion",
+        "LexA-VP16", "LexA-Gal4", "LexAop-LexA"
+      ]
+    },
+    {
+      "official_symbol": "CRE_RECOMBINASE",
+      "system": "Site-specific recombinase (Cre)",
+      "full_name": "Bacteriophage P1 Cre recombinase",
+      "synonyms": [
+        "CRE_RECOMBINASE", "Cre", "Cre-recombinase",
+        "Cre-ERT2", "CreERT2", "tamoxifen-Cre",
+        "loxP-Cre", "iCre"
+      ]
+    },
+    {
+      "official_symbol": "PHIC31_INTEGRASE",
+      "system": "Phage integrase (PhiC31)",
+      "full_name": "Streptomyces phage φC31 integrase",
+      "synonyms": [
+        "PHIC31_INTEGRASE", "phiC31", "φC31", "PhiC31",
+        "phiC31-integrase", "ϕC31-integrase", "Streptomyces-phiC31"
+      ]
+    },
+    {
+      "official_symbol": "BXB1_INTEGRASE",
+      "system": "Phage integrase (Bxb1)",
+      "full_name": "Mycobacteriophage Bxb1 integrase",
+      "synonyms": [
+        "BXB1_INTEGRASE", "Bxb1", "Bxb1-integrase",
+        "Mycobacteriophage-Bxb1", "Bxb1-int"
+      ]
+    },
+    {
+      "official_symbol": "LAMBDA_INTEGRASE",
+      "system": "Phage integrase (lambda)",
+      "full_name": "Bacteriophage lambda integrase",
+      "synonyms": [
+        "LAMBDA_INTEGRASE", "lambda-integrase", "λ-integrase",
+        "Int-lambda", "phage-lambda-Int"
+      ]
+    },
+    {
+      "official_symbol": "HALOTAG",
+      "system": "Bacterial-derived covalent tag",
+      "full_name": "Rhodococcus haloalkane dehalogenase HaloTag (DNA-binding tethering scaffold)",
+      "synonyms": [
+        "HALOTAG", "HaloTag", "Halo-tag", "Halo",
+        "HaloTag7", "HaloTag-fusion", "Halo-CTCF",
+        "Halo-ligand"
+      ]
+    },
+    {
+      "official_symbol": "BIRA",
+      "system": "Bacterial biotin ligase (BioID/proximity labeling)",
+      "full_name": "Escherichia coli biotin ligase BirA (BioID/TurboID scaffold)",
+      "synonyms": [
+        "BIRA", "BirA", "BirA*", "BirA-R118G",
+        "TurboID", "Turbo-ID", "miniTurbo", "BioID",
+        "BioID2", "BASU"
+      ]
+    },
+    {
+      "official_symbol": "ECOGII",
+      "system": "Bacterial N6-adenine methyltransferase (DiMeLo-seq / EcoGII profiling)",
+      "full_name": "Escherichia coli N6-adenine DNA methyltransferase EcoGII",
+      "synonyms": [
+        "ECOGII", "EcoGII", "EcoGII-Mtase", "EcoGII-fusion",
+        "EcoGII-ChIP", "DiMeLo-EcoGII"
+      ]
+    },
+    {
+      "official_symbol": "MSSSI",
+      "system": "Bacterial CpG methyltransferase (M.SssI)",
+      "full_name": "Spiroplasma sp. CpG methyltransferase M.SssI (targeted methylation)",
+      "synonyms": [
+        "MSSSI", "M.SssI", "M-SssI", "MSssI",
+        "CpG-methylase", "MSssI-fusion", "dCas9-MSssI"
+      ]
+    },
+    {
+      "official_symbol": "MHHAI",
+      "system": "Bacterial CpG methyltransferase (M.HhaI)",
+      "full_name": "Haemophilus haemolyticus CpG methyltransferase M.HhaI (targeted methylation)",
+      "synonyms": [
+        "MHHAI", "M.HhaI", "MHhaI", "HhaI-methylase",
+        "M.HhaI-fusion", "dCas9-M.HhaI"
+      ]
+    },
+    {
+      "official_symbol": "DPNI",
+      "system": "Methylation-dependent endonuclease (DpnI)",
+      "full_name": "Diplococcus pneumoniae DpnI restriction enzyme (DamID profiling)",
+      "synonyms": [
+        "DPNI", "DpnI", "Dpn-I", "DpnII"
+      ]
+    },
+    {
+      "official_symbol": "APOBEC_CBE",
+      "system": "Cytidine deaminase base editor (APOBEC/AID)",
+      "full_name": "APOBEC1/AID cytidine deaminase (cytosine base editor component)",
+      "synonyms": [
+        "APOBEC_CBE", "APOBEC1", "rAPOBEC1", "rAPOBEC",
+        "APOBEC3A", "AID", "AID-deaminase",
+        "evoCDA1", "PmCDA1", "Pmcda1",
+        "CBE-APOBEC", "BE3-APOBEC"
+      ]
+    },
+    {
+      "official_symbol": "M2_TAG",
+      "system": "Synthetic chromatin profiling fusion",
+      "full_name": "Engineered chromatin-profiling fusion tags (general)",
+      "synonyms": [
+        "M2_TAG", "dCas9-tag", "dCas9-fusion",
+        "TALE-tag", "ZF-tag"
       ]
     }
   ]

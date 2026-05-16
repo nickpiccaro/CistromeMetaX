@@ -13,16 +13,16 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 ## Table of Contents
 
 - [About](#about)
-- [Factor Classification Categories](#factor-classification-categories)
-- [The Model](#the-model)
 - [Requirements](#requirements)
 - [Installation](#installation)
+- [The Model](#the-model)
 - [Model Configuration](#model-configuration)
 - [Usage](#usage)
   - [Quick Start: Accession IDs (Fetch from GEO)](#quick-start-accession-ids-fetch-from-geo)
   - [Local-File Mode](#local-file-mode)
 - [Input File Structure (Local-File Mode Only)](#input-file-structure-local-file-mode-only)
 - [Expected Output](#expected-output)
+- [Factor Classification Categories](#factor-classification-categories)
 - [Generating Input Files](#generating-input-files)
 - [Changelog](#changelog)
 - [Future Goals](#future-goals)
@@ -36,44 +36,6 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 CistromeMetaX streamlines the extraction of critical metadata from ChIP-seq experiments, including experimental factors, cell types, tissues, and target proteins from GEO (Gene Expression Omnibus) records. The default workflow takes a list of GSM/GSE accession strings and fetches the MINiML XML directly from NCBI GEO — no pre-downloaded files or mapping JSONs required. For pipelines with locally cached XMLs, the package also accepts pre-built mapping files. CistromeMetaX supports multiple LLM providers out of the box and validates its LLM outputs against established databases to ensure extracted cell types, tissues, cell lines, and target proteins are biologically valid and standardized.
 
 The tool is designed to integrate seamlessly with existing bioinformatics pipelines, providing highly accurate and consistent outputs suitable for resources like Cistrome and other ChIP-seq analysis platforms.
-
----
-
-## Factor Classification Categories
-
-Every successfully extracted factor is now annotated with a `factor_type` field that classifies the factor into one of several biological/experimental categories. This makes downstream filtering and analysis (e.g., separating histone-modification studies from transcription-factor ChIPs, or flagging non-human/viral targets) straightforward.
-
-| `factor_type` | Description | Example factors |
-|---|---|---|
-| `transcription_factor` | Human transcription factor validated against AnimalTFDB | `ESR1`, `FOXA1`, `MYC`, `TP53` |
-| `histone_modification` | Histone mark validated against the canonical histone-mark grammar | `H3K27ac`, `H3K4me3`, `H3K9me2` |
-| `chromatin_remodeler` | Chromatin-remodeling factor validated against Harmonizome | `BRD4`, `EZH2`, `SMARCA4` |
-| `viral_factor` | Viral protein from the curated viral-factor DB (KSHV, EBV, HPV, HBV, HCMV, HIV-1, HTLV-1, Adenovirus, SV40, Influenza, SARS-CoV-2) | `LANA`, `EBNA3A`, `ZTA`, `HBx`, `SARS-CoV-2-N` |
-| `gene_editing_tool` | CRISPR-family enzymes and other programmable nucleases (incl. dCas9 fusions, base/prime editors, TALENs, ZFNs) | `CAS9`, `CAS12A`, `TALEN`, `ZFN` |
-| `gene` | A human gene present in NCBI Gene but not in any specialized DB | `ACTB`, `GAPDH` |
-| `none` | No extractable factor (control, missing metadata, or unresolved) | — |
-
-The `factor_type` field always travels alongside `extracted_factor` in factor output. See [Expected Output](#expected-output) for examples.
-
----
-
-## The Model
-
-CistromeMetaX uses [LangChain's `init_chat_model`](https://python.langchain.com/docs/how_to/chat_models_universal_init/) to provide a unified interface across LLM providers. It performs semantic parsing and context-aware extraction to generate structured metadata from ChIP-seq experiment descriptions. The results are validated against established biological databases and optimized for minimal post-processing, allowing direct integration into downstream databases or analytical tools.
-
-By default, CistromeMetaX uses OpenAI's `gpt-4o-mini`, but you can use any supported LLM provider by specifying the `--model` flag on the CLI or passing the `model` parameter in the Python API.
-
-### Prompt Caching
-
-The large guideline prompts that drive factor and ontology extraction are structured as byte-identical static prefixes so they can be served from each provider's prompt cache whenever possible. This happens automatically — no configuration required:
-
-- **OpenAI**, **Google Gemini**, and **DeepSeek** apply prompt caching server-side when a sufficiently long static prefix is reused.
-- **Anthropic** receives an explicit `cache_control` marker on the static guidelines so cache reads can be billed at the discounted rate.
-- **Mistral** and any other provider fall back to a plain system message with no cache marker — output is unchanged, just no caching discount.
-
-In addition, the factor extractor and its fallback recheck step share the **same** static prefix, so a fallback invocation is a cache hit rather than a fresh cache write. To see cache-usage telemetry from your LLM provider on stderr during a run, set `CISTROMEMX_CACHE_DEBUG=1` in your environment.
-
-> Note: Google Gemini's implicit caching is server-side best-effort — a `cache_read` of zero in telemetry doesn't indicate a problem with CistromeMetaX and may simply reflect Google's caching heuristics on a given run.
 
 ---
 
@@ -126,6 +88,26 @@ pip install git+https://github.com/nickpiccaro/CistromeMetaX.git
     ```
     OPENAI_API_KEY=your_openai_api_key_here
     ```
+
+---
+
+## The Model
+
+CistromeMetaX uses [LangChain's `init_chat_model`](https://python.langchain.com/docs/how_to/chat_models_universal_init/) to provide a unified interface across LLM providers. It performs semantic parsing and context-aware extraction to generate structured metadata from ChIP-seq experiment descriptions. The results are validated against established biological databases and optimized for minimal post-processing, allowing direct integration into downstream databases or analytical tools.
+
+By default, CistromeMetaX uses OpenAI's `gpt-4o-mini`, but you can use any supported LLM provider by specifying the `--model` flag on the CLI or passing the `model` parameter in the Python API.
+
+### Prompt Caching
+
+The large guideline prompts that drive factor and ontology extraction are structured as byte-identical static prefixes so they can be served from each provider's prompt cache whenever possible. This happens automatically — no configuration required:
+
+- **OpenAI**, **Google Gemini**, and **DeepSeek** apply prompt caching server-side when a sufficiently long static prefix is reused.
+- **Anthropic** receives an explicit `cache_control` marker on the static guidelines so cache reads can be billed at the discounted rate.
+- **Mistral** and any other provider fall back to a plain system message with no cache marker — output is unchanged, just no caching discount.
+
+In addition, the factor extractor and its fallback recheck step share the **same** static prefix, so a fallback invocation is a cache hit rather than a fresh cache write. To see cache-usage telemetry from your LLM provider on stderr during a run, set `CISTROMEMX_CACHE_DEBUG=1` in your environment.
+
+> Note: Google Gemini's implicit caching is server-side best-effort — a `cache_read` of zero in telemetry doesn't indicate a problem with CistromeMetaX and may simply reflect Google's caching heuristics on a given run.
 
 ---
 
@@ -631,6 +613,24 @@ When a factor cannot be determined, `extracted_factor` is set to `"N/A"`, `facto
   }
 }
 ```
+
+---
+
+## Factor Classification Categories
+
+Every successfully extracted factor is now annotated with a `factor_type` field that classifies the factor into one of several biological/experimental categories. This makes downstream filtering and analysis (e.g., separating histone-modification studies from transcription-factor ChIPs, or flagging non-human/viral targets) straightforward.
+
+| `factor_type` | Description | Example factors |
+|---|---|---|
+| `transcription_factor` | Human transcription factor validated against AnimalTFDB | `ESR1`, `FOXA1`, `MYC`, `TP53` |
+| `histone_modification` | Histone mark validated against the canonical histone-mark grammar | `H3K27ac`, `H3K4me3`, `H3K9me2` |
+| `chromatin_remodeler` | Chromatin-remodeling factor validated against Harmonizome | `BRD4`, `EZH2`, `SMARCA4` |
+| `viral_factor` | Viral protein from the curated viral-factor DB (KSHV, EBV, HPV, HBV, HCMV, HIV-1, HTLV-1, Adenovirus, SV40, Influenza, SARS-CoV-2) | `LANA`, `EBNA3A`, `ZTA`, `HBx`, `SARS-CoV-2-N` |
+| `gene_editing_tool` | CRISPR-family enzymes and other programmable nucleases (incl. dCas9 fusions, base/prime editors, TALENs, ZFNs) | `CAS9`, `CAS12A`, `TALEN`, `ZFN` |
+| `gene` | A human gene present in NCBI Gene but not in any specialized DB | `ACTB`, `GAPDH` |
+| `none` | No extractable factor (control, missing metadata, or unresolved) | — |
+
+The `factor_type` field always travels alongside `extracted_factor` in factor output. See [Expected Output](#expected-output) for examples.
 
 ---
 

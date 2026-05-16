@@ -285,8 +285,9 @@ _FACTOR_GUIDELINES_BASE = (
         1). FACTOR: The Official Gene Symbol of the factor (the target protein that ChIP-seq was conducted on) whose binding sites are being mapped on the genome,
         or in the case of histone post-translational modifications, an abbreviated format. If the experiment does not target a factor, write "None".
         The Factor is generally found after the cell line ontology in the title or in the chip antibody section.
-        A Factor is NOT a cell line, cell, species, or anything else besides a transcription factor gene.\n\n
-
+        A Factor is NOT a cell line, cell, species, or anything else besides a transcription factor gene or target protein.\n
+        Factors can occasionally be viral proteins or engineered chromatin tools rather than human proteins — see rule 6 below.\n
+        \n
         If the information is not clear from the GSM XML file, you should refer to the corresponding GSE XML file (series document) for additional verification and information.\n
         1). Output Format: Your output must always be a JSON object, structured as follows: \n
             {\n
@@ -299,7 +300,8 @@ _FACTOR_GUIDELINES_BASE = (
         3). Official Gene Symbol: All factors produced should be in their Official Gene Symbol used by the NCBI, e.g., "ER", "PLXNB3", "TRF-GAA4-1", "H3K27ac". Not in this form, eg., “RNA polymerase II (920102, Biolegend)”, “estrogen receptor.\n
         4). For Post Translational Histone Modifications leave them in their full format do not simplify them down. eg. "H3K27ac" not "H3". "H3" is incorrect. Also remove punctuation from them eg: "H1.4K34ac" should be converted to "H14K34ac" \n
         5). Epitope tag detection: If the chip antibody is against an epitope tag (HA, FLAG, Myc, V5, GFP, mCherry, T7, AU1, AU5, OLLAS, His, Strep, Spot, biotin, BirA, SNAP, HALO), set "epitope_tagged": true. Search the title, source name, growth protocol, treatment protocol, description, and series metadata for the underlying tagged target — look for patterns like "X-tag-Y", "Y-X", "tagged Y", "Y fused to X", "DOX-Y-tag-X", where X is the tag and Y is the underlying biological target. Report Y as the factor. If the antibody is against an epitope tag AND no underlying target can be identified anywhere in the metadata, set "factor": "None" and "epitope_tagged": true. For all non-epitope-tag cases, set "epitope_tagged": false.\n
-        6). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
+        6). Non-human targets: Viral proteins (e.g., LANA, EBNA1, ZTA, HBx) and engineered/bacterial tools expressed in human cells (e.g., Cas9, dCas9, dCas9-KRAB, TALEN, ZFN, Tn5, MNase, Dam) are valid factors when they are the clear ChIP target. Default to human transcription factors, chromatin remodelers, or histone modifications; only fall back to these when no human-protein interpretation fits.\n
+        7). Empty List: If no entities are presented in any categories, return "None" for the factor but provide reasoning for why "None" was selected.
         \n \n
         Example 1:\n
         Input Format: \n
