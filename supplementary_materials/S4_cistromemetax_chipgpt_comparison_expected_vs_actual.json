@@ -1,23 +1,4 @@
 {
-  "metadata": {
-    "dataset": "chipGPT_benchmark_subset",
-    "source_benchmark_xlsx": "benchmark_chipGPT.xlsx",
-    "source_scrub_json": "SCRUB_gsm_ids_output_gpt5.1.json",
-    "created_at": "2026-05-15T22:05:49+00:00",
-    "benchmark_record_count": 40,
-    "benchmark_unique_gsm_count": 39,
-    "subset_entry_count": 39,
-    "missing_from_source_count": 0,
-    "missing_from_source_gsm_ids": [],
-    "duplicate_benchmark_gsm_ids": [
-      "GSM1782741"
-    ],
-    "missing_gsm_extracted_at": "2026-05-15T22:08:43+00:00",
-    "missing_gsm_source_output": "SCRUB_chipGPT_missing_output_gpt5.1.json",
-    "missing_gsm_appended_count": 2,
-    "missing_gsm_replaced_count": 0,
-    "missing_gsm_backup_before_append": "SCRUB_chipGPT_output_gpt5.1.backup_20260515T220843Z.json"
-  },
   "entries": {
     "GSM1782741": {
       "factor": "H3K4ME3",
