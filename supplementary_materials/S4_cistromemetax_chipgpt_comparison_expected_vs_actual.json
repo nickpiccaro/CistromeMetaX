@@ -1,0 +1,3943 @@
+{
+  "metadata": {
+    "dataset": "chipGPT_benchmark_subset",
+    "source_benchmark_xlsx": "benchmark_chipGPT.xlsx",
+    "source_scrub_json": "SCRUB_gsm_ids_output_gpt5.1.json",
+    "created_at": "2026-05-15T22:05:49+00:00",
+    "benchmark_record_count": 40,
+    "benchmark_unique_gsm_count": 39,
+    "subset_entry_count": 39,
+    "missing_from_source_count": 0,
+    "missing_from_source_gsm_ids": [],
+    "duplicate_benchmark_gsm_ids": [
+      "GSM1782741"
+    ],
+    "missing_gsm_extracted_at": "2026-05-15T22:08:43+00:00",
+    "missing_gsm_source_output": "SCRUB_chipGPT_missing_output_gpt5.1.json",
+    "missing_gsm_appended_count": 2,
+    "missing_gsm_replaced_count": 0,
+    "missing_gsm_backup_before_append": "SCRUB_chipGPT_output_gpt5.1.backup_20260515T220843Z.json"
+  },
+  "entries": {
+    "GSM1782741": {
+      "factor": "H3K4ME3",
+      "cell_line": "K562",
+      "cell_type": "N/A",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T16:03:00+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:43:19+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K4me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "K562",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0002067",
+                  "term": "K-562",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "myeloid leukemia",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "MONDO_0004643",
+                  "term": "myelogenous leukemia cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "chronic myelogenous leukemia",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000339",
+                  "term": "chronic myelogenous leukemia",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:12:29+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:21:53+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 34,
+        "geo": "GSM1782741",
+        "expected_factor": "H3K4ME3",
+        "expected_ontologies": "K562",
+        "duplicate_in_benchmark": true
+      }
+    },
+    "GSM605318": {
+      "factor": "H3K79me1",
+      "cell_line": "H1",
+      "cell_type": "embryonic stem cell",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T18:30:25+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:17:43+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K79me1",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "H20961",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_HA53",
+                  "term": "H1",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "K562/Vin",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_5145",
+                  "term": "H1",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "H1-hESC",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0003042",
+                  "term": "H1",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "embryonic stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0002322",
+                  "term": "embryonic stem cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": "N/A",
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:36:48+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:21:59+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 3,
+        "geo": "GSM605318",
+        "expected_factor": "H3K79me1",
+        "expected_ontologies": "H1, Embryonic Stem Cell",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM621431": {
+      "factor": "H3K27me3",
+      "cell_line": "N/A",
+      "cell_type": "Mobilized CD34",
+      "tissue": "peripheral blood",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T18:38:24+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:18:25+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K27me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "CD34-positive, CD38-negative hematopoietic stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0001024",
+                  "term": "CD34-positive hematopoietic stem cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "obsolete_blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0000296",
+                  "term": "peripheral blood",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:37:07+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:01+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 4,
+        "geo": "GSM621431",
+        "expected_factor": "H3K27me3",
+        "expected_ontologies": "CD34",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM669936": {
+      "factor": "H3K4me3",
+      "cell_line": "HUES48",
+      "cell_type": "embryonic stem cell",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T19:00:20+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:23:58+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K4me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HUES 48",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_B181",
+                  "term": "HUES48",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "HUES48",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0007083",
+                  "term": "HUES48",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "embryonic stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0002322",
+                  "term": "embryonic stem cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": "N/A",
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:37:48+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:03+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 5,
+        "geo": "GSM669936",
+        "expected_factor": "H3K4me3",
+        "expected_ontologies": "HUES48 stem cells",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM669955": {
+      "factor": "H3K36me3",
+      "cell_line": "N/A",
+      "cell_type": "CD34 cells",
+      "tissue": "cord blood",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T19:00:41+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:24:08+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K36me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "hematopoietic stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000037",
+                  "term": "hematopoietic stem cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:37:49+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:04+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 6,
+        "geo": "GSM669955",
+        "expected_factor": "H3K36me3",
+        "expected_ontologies": "CD34+ cells",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM721138": {
+      "factor": "H3K36me3",
+      "cell_line": "HCC1954",
+      "cell_type": "breast cancer cells",
+      "tissue": "breast",
+      "disease": "breast cancer",
+      "verified": true,
+      "verified_at": "2026-05-12T19:08:40+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:27:49+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K36me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HCC1954",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0001175",
+                  "term": "HCC1954",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "breast carcinoma",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000305",
+                  "term": "breast cancer cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast cancer",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "MONDO_0007254",
+                  "term": "breast cancer cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "obsolete_mammary gland",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0000854",
+                  "term": "breast",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000310",
+                  "term": "breast",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "breast carcinoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000305",
+                  "term": "breast cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast cancer",
+                  "term_identity": "disease",
+                  "ontology_accession": "MONDO_0007254",
+                  "term": "breast cancer",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:38:18+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:05+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 7,
+        "geo": "GSM721138",
+        "expected_factor": "H3K36me3",
+        "expected_ontologies": "HCC1954, breast cancer cells",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM727572": {
+      "factor": "H3K4me3",
+      "cell_line": "H9",
+      "cell_type": "embryonic stem cells",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T19:08:48+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:27:59+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K4me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "H9",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0003045",
+                  "term": "H9",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "embryonic stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0002322",
+                  "term": "embryonic stem cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "animal developmental tissue",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0000795",
+                  "term": "embryonic structure",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "embryonic structure",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002050",
+                  "term": "embryonic structure",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:38:19+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:07+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 8,
+        "geo": "GSM727572",
+        "expected_factor": "H3K4me3",
+        "expected_ontologies": "H9, embryonic stem cells",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM700360": {
+      "factor": "ELK4",
+      "cell_line": "HEK293",
+      "cell_type": "embryonic kidney cell",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T19:08:02+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:27:29+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "ELK4",
+            "factor_type": "transcription_factor"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HEK293",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0001182",
+                  "term": "HEK293",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "obsolete_pronephros",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000927",
+                  "term": "embryonic kidney cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "pronephros",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "UBERON_0002120",
+                  "term": "embryonic kidney cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "kidney",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002113",
+                  "term": "kidney",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:38:15+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:09+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 9,
+        "geo": "GSM700360",
+        "expected_factor": "ELK4",
+        "expected_ontologies": "HEK293",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM749701": {
+      "factor": "control",
+      "cell_line": "GM12801",
+      "cell_type": "B-Lymphocyte",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T19:08:57+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:28:09+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "N/A",
+            "factor_type": "none",
+            "factor_status": "control_sample"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "GM12801",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0005353",
+                  "term": "GM12801",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "B cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000236",
+                  "term": "B cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:38:23+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:12+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 10,
+        "geo": "GSM749701",
+        "expected_factor": "control",
+        "expected_ontologies": "GM12801",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM752974": {
+      "factor": "H3K36me3",
+      "cell_line": "iPS 19.11",
+      "cell_type": "induced pluripotent stem cell",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T19:09:24+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:28:19+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K36me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "iPS-DF19-9-11T.H",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_K054",
+                  "term": "iPS DF 19.11",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "iPS DF 19.11",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0007096",
+                  "term": "iPS DF 19.11",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "induced pluripotent stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0004905",
+                  "term": "induced pluripotent stem cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "prepuce of penis",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0001332",
+                  "term": "foreskin",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:38:26+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:14+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 11,
+        "geo": "GSM752974",
+        "expected_factor": "H3K36me3",
+        "expected_ontologies": "pluripotent stem cell line derived from foreskin fibroblasts",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM771029": {
+      "factor": "H3K4me2",
+      "cell_line": "MCF-7",
+      "cell_type": "N/A",
+      "tissue": "breast",
+      "disease": "breast cancer",
+      "verified": true,
+      "verified_at": "2026-05-12T19:11:32+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:29:41+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K4me2",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "MCF-7",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0001203",
+                  "term": "MCF7",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "breast carcinoma",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000305",
+                  "term": "breast cancer cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast cancer",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "MONDO_0007254",
+                  "term": "breast cancer cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "obsolete_mammary gland",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0000854",
+                  "term": "breast",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000310",
+                  "term": "breast",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "breast carcinoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000305",
+                  "term": "breast cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast cancer",
+                  "term_identity": "disease",
+                  "ontology_accession": "MONDO_0007254",
+                  "term": "breast cancer",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:39:08+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:16+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 12,
+        "geo": "GSM771029",
+        "expected_factor": "H3K4me2",
+        "expected_ontologies": "MCF7",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM803470": {
+      "factor": "YY1",
+      "cell_line": "K562",
+      "cell_type": "N/A",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T19:19:23+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:32:46+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "YY1",
+            "factor_type": "transcription_factor"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "K562",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0002067",
+                  "term": "K-562",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "myeloid leukemia",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "MONDO_0004643",
+                  "term": "myelogenous leukemia cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "chronic myelogenous leukemia",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000339",
+                  "term": "chronic myeloid leukemia",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:40:40+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:17+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 13,
+        "geo": "GSM803470",
+        "expected_factor": "YY1",
+        "expected_ontologies": "K562",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM697625": {
+      "factor": "SetDB1",
+      "cell_line": "WM262",
+      "cell_type": "melanoma cell",
+      "tissue": "N/A",
+      "disease": "melanoma",
+      "verified": true,
+      "verified_at": "2026-05-12T19:06:51+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T17:26:49+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "SETDB1",
+            "factor_type": "transcription_factor"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "WM266-2",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_RN58",
+                  "term": "WM262",
+                  "ontology_type": "Cellosaurus"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "melanoma",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000756",
+                  "term": "melanoma cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "skin neoplasm",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0004198",
+                  "term": "skin",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "skin epidermis",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0001003",
+                  "term": "skin",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                },
+                {
+                  "official_term": "zone of skin",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000014",
+                  "term": "skin",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                },
+                {
+                  "official_term": "skin of body",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002097",
+                  "term": "skin",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                },
+                {
+                  "official_term": "integument",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002199",
+                  "term": "skin",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "melanoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000756",
+                  "term": "melanoma",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:38:03+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:20+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 14,
+        "geo": "GSM697625",
+        "expected_factor": "SetDB1",
+        "expected_ontologies": "WM262 melanoma cells",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1006151": {
+      "factor": "H3K27me3",
+      "cell_line": "KARPAS-422",
+      "cell_type": "DLBCL cell",
+      "tissue": "N/A",
+      "disease": "diffuse large B-cell lymphoma",
+      "verified": true,
+      "verified_at": "2026-05-11T22:44:47+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:28:34+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K27me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "Karpas 422",
+                  "term": "KARPAS-422",
+                  "ontology_accession": "EFO_0005719",
+                  "ontology_type": "EFO",
+                  "term_identity": "cell_line"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "diffuse large B-cell lymphoma",
+                  "term": "diffuse large B-cell lymphoma cell",
+                  "ontology_accession": "EFO_0000403",
+                  "ontology_type": "EFO",
+                  "term_identity": "cell_type"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term": "blood",
+                  "ontology_accession": "UBERON_0000178",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ],
+                  "term_identity": "tissue"
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "diffuse large B-cell lymphoma",
+                  "term": "diffuse large B-cell lymphoma",
+                  "ontology_accession": "EFO_0000403",
+                  "ontology_type": "EFO",
+                  "term_identity": "disease"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T18:57:48+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:21+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 15,
+        "geo": "GSM1006151",
+        "expected_factor": "H3K27me3",
+        "expected_ontologies": "KARPAS-422",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1007988": {
+      "factor": "H3K27me3",
+      "cell_line": "WI-38",
+      "cell_type": "primary human lung fibroblasts",
+      "tissue": "lung",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-11T22:45:03+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:29:03+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K27me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "WI38",
+                  "term": "WI-38",
+                  "ontology_accession": "EFO_0001260",
+                  "ontology_type": "EFO",
+                  "term_identity": "cell_line"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "fibroblast",
+                  "term": "fibroblast",
+                  "ontology_accession": "CL_0000057",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ],
+                  "term_identity": "cell_type"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "lung neoplasm",
+                  "term": "lung",
+                  "ontology_accession": "MONDO_0021117",
+                  "ontology_type": "EFO",
+                  "term_identity": "tissue"
+                },
+                {
+                  "official_term": "lung",
+                  "term": "lung",
+                  "ontology_accession": "UBERON_0002048",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ],
+                  "term_identity": "tissue"
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T18:57:58+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:23+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 16,
+        "geo": "GSM1007988",
+        "expected_factor": "H3K27me3",
+        "expected_ontologies": "WI-38 primary human lung fibroblasts",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1013129": {
+      "factor": "H3K27ac",
+      "cell_line": "N/A",
+      "cell_type": "N/A",
+      "tissue": "Pancreas",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-11T22:48:10+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:29:14+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K27ac",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": "N/A",
+              "tissue": [
+                {
+                  "official_term": "pancreatic neoplasm",
+                  "term": "pancreas",
+                  "ontology_accession": "EFO_0003860",
+                  "ontology_type": "EFO",
+                  "term_identity": "tissue"
+                },
+                {
+                  "official_term": "pancreas",
+                  "term": "pancreas",
+                  "ontology_accession": "UBERON_0001264",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ],
+                  "term_identity": "tissue"
+                },
+                {
+                  "official_term": "first pancreatic bud",
+                  "term": "pancreas",
+                  "ontology_accession": "UBERON_3011040",
+                  "ontology_type": "Uberon",
+                  "term_identity": "tissue"
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "cutaneous porphyria",
+                  "term": "iron deficiency",
+                  "ontology_accession": "MONDO_0009902",
+                  "ontology_type": "EFO",
+                  "term_identity": "disease"
+                },
+                {
+                  "official_term": "MACS syndrome",
+                  "term": "iron deficiency",
+                  "ontology_accession": "Orphanet_217335",
+                  "ontology_type": "EFO",
+                  "term_identity": "disease"
+                },
+                {
+                  "official_term": "RIN2 syndrome",
+                  "term": "iron deficiency",
+                  "ontology_accession": "MONDO_0013115",
+                  "ontology_type": "EFO",
+                  "term_identity": "disease"
+                },
+                {
+                  "official_term": "Zinc deficiency",
+                  "term": "iron deficiency",
+                  "ontology_accession": "EFO_1000003",
+                  "ontology_type": "EFO",
+                  "term_identity": "disease"
+                },
+                {
+                  "official_term": "Familial porphyria cutanea tarda",
+                  "term": "iron deficiency",
+                  "ontology_accession": "EFO_0009043",
+                  "ontology_type": "EFO",
+                  "term_identity": "disease"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T18:58:11+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:27+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 18,
+        "geo": "GSM1013129",
+        "expected_factor": "H3K27ac",
+        "expected_ontologies": "Pancreas",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1056844": {
+      "factor": "EPAS1",
+      "cell_line": "N/A",
+      "cell_type": "macrophage",
+      "tissue": "blood",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-11T22:54:48+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:29:35+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "EPAS1",
+            "factor_type": "transcription_factor"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "macrophage",
+                  "term": "macrophage",
+                  "ontology_accession": "CL_0000235",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ],
+                  "term_identity": "cell_type"
+                },
+                {
+                  "official_term": "embryonic/larval plasmatocyte",
+                  "term": "macrophage",
+                  "ontology_accession": "FBbt_00001685",
+                  "ontology_type": "EFO",
+                  "term_identity": "cell_type"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term": "blood",
+                  "ontology_accession": "UBERON_0000178",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ],
+                  "term_identity": "tissue"
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T18:58:28+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:29+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 19,
+        "geo": "GSM1056844",
+        "expected_factor": "EPAS1",
+        "expected_ontologies": "macrophage",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1113431": {
+      "factor": "CONTROL",
+      "cell_line": "Kasumi-1",
+      "cell_type": "N/A",
+      "tissue": "N/A",
+      "disease": "Acute Myeloid Leukemia",
+      "verified": true,
+      "verified_at": "2026-05-11T22:58:39+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:35:47+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "N/A",
+            "factor_type": "none",
+            "factor_status": "control_sample"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "Kasumi-1",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0006607",
+                  "term": "Kasumi-1",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "acute myeloid leukemia",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000222",
+                  "term": "acute myeloid leukemia cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "acute myeloid leukemia by FAB classification",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "MONDO_0015667",
+                  "term": "acute myeloid leukemia cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "acute myeloid leukemia",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000222",
+                  "term": "acute myeloid leukemia",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "acute myeloid leukemia by FAB classification",
+                  "term_identity": "disease",
+                  "ontology_accession": "MONDO_0015667",
+                  "term": "acute myeloid leukemia",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T18:59:39+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:31+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 20,
+        "geo": "GSM1113431",
+        "expected_factor": "RUNX1",
+        "expected_ontologies": "Kasumi",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1127171": {
+      "factor": "H3K27ac",
+      "cell_line": "N/A",
+      "cell_type": "N/A",
+      "tissue": "Psoas Muscle",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-11T23:04:34+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:35:57+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K27ac",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "cell of skeletal muscle",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000188",
+                  "term": "skeletal muscle cell",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "psoas major muscle",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0001298",
+                  "term": "psoas major",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T18:59:44+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:33+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 21,
+        "geo": "GSM1127171",
+        "expected_factor": "H3K27ac",
+        "expected_ontologies": "Psoas Muscle",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1233900": {
+      "factor": "H3K36me3",
+      "cell_line": "12878",
+      "cell_type": "lymphoblastoid cell line",
+      "tissue": "lymphoid",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-11T23:15:34+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:36:09+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K36me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "GM12878",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0002784",
+                  "term": "GM12878",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "lymphoblastoid cell line",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0005292",
+                  "term": "lymphoblastoid cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T18:59:51+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:35+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 22,
+        "geo": "GSM1233900",
+        "expected_factor": "H3K36me3",
+        "expected_ontologies": "Lymphoblastoid Cell Lines",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1262403": {
+      "factor": "Control",
+      "cell_line": "N/A",
+      "cell_type": "Mesenchymal stem cell",
+      "tissue": "bone marrow",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T15:05:48+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:36:48+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "N/A",
+            "factor_type": "none",
+            "factor_status": "control_sample"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "mesenchymal stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000586",
+                  "term": "mesenchymal stem cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "mesenchymal stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000134",
+                  "term": "mesenchymal stem cell",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "bone marrow",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002371",
+                  "term": "bone marrow",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "Werner syndrome",
+                  "term_identity": "disease",
+                  "ontology_accession": "MONDO_0010196",
+                  "term": "Werner syndrome",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:00:50+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:22:36+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 23,
+        "geo": "GSM1262403",
+        "expected_factor": "Control",
+        "expected_ontologies": "Mesenchymal stem cell",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1295078": {
+      "factor": "CBX8",
+      "cell_line": "BF",
+      "cell_type": "fibroblast",
+      "tissue": "breast",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T15:06:23+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:37:00+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "CBX8",
+            "factor_type": "gene"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "fibroblast",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000057",
+                  "term": "fibroblast",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "obsolete_mammary gland",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0000854",
+                  "term": "breast",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000310",
+                  "term": "breast",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:06:03+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": false,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": false
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:00+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": false,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": false
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 24,
+        "geo": "GSM1295078",
+        "expected_factor": "CBX8",
+        "expected_ontologies": "normal breast",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1340090": {
+      "factor": "pDNA-PKcs",
+      "cell_line": "Hs68",
+      "cell_type": "fibroblast",
+      "tissue": "foreskin",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T15:07:49+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:37:23+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "PRKDC",
+            "factor_type": "gene"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HS-68 cell",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0022453",
+                  "term": "Hs 68",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "fibroblast",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000057",
+                  "term": "fibroblast",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "prepuce of penis",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0001332",
+                  "term": "foreskin",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:06:56+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:02+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 25,
+        "geo": "GSM1340090",
+        "expected_factor": "DNA-PKcs",
+        "expected_ontologies": "normal foreskin",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1422984": {
+      "factor": "H3K36AC",
+      "cell_line": "PMEL",
+      "cell_type": "melanocytic cell",
+      "tissue": "Melanocyte",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T15:22:19+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:38:24+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K36AC",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "PD-Mel",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_M743",
+                  "term": "PMEL",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "PR-Mel",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_7113",
+                  "term": "PMEL",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "SK-MEL-23",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_6027",
+                  "term": "PMEL",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "SK-MEL-91",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_6228",
+                  "term": "PMEL",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "YP-MEL",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_L217",
+                  "term": "PMEL",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "Primary Effusion Lymphoma",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_1000491",
+                  "term": "PMEL",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "MEL cell line",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0003971",
+                  "term": "PMEL",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "melorheostosis",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "MONDO_0007970",
+                  "term": "PMEL",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "progressive myoclonus epilepsy",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "MONDO_0020074",
+                  "term": "PMEL",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "Progressive myoclonic epilepsy",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "Orphanet_98261",
+                  "term": "PMEL",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "progressive multifocal leukoencephalopathy",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0007455",
+                  "term": "PMEL",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "posterior median eminence",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "UBERON_0002652",
+                  "term": "PMEL",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "melanocyte",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000148",
+                  "term": "melanocyte",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "skin of body",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002097",
+                  "term": "skin of body",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "melanoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000756",
+                  "term": "melanoma",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:07:45+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:04+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 26,
+        "geo": "GSM1422984",
+        "expected_factor": "H3K36AC",
+        "expected_ontologies": "PMEL",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1463938": {
+      "factor": "RNA Pol II",
+      "cell_line": "Jurkat",
+      "cell_type": "T cell",
+      "tissue": "N/A",
+      "disease": "T cell acute lymphoblastic leukemia",
+      "verified": true,
+      "verified_at": "2026-05-12T15:36:26+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:40:40+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "POLR2A",
+            "factor_type": "gene"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "Jurkat",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0002796",
+                  "term": "Jurkat",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "T cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000084",
+                  "term": "T cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "T-cell acute lymphoblastic leukemia",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000209",
+                  "term": "acute T cell leukemia",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:10:56+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:06+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 27,
+        "geo": "GSM1463938",
+        "expected_factor": "RNA Pol II",
+        "expected_ontologies": "T-ALL cell line",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1544111": {
+      "factor": "MBD2",
+      "cell_line": "HMEC-hTERT",
+      "cell_type": "mammary epithelial cell",
+      "tissue": "mammary",
+      "disease": "malignant transformation",
+      "verified": true,
+      "verified_at": "2026-05-12T15:40:45+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:41:15+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "MBD2",
+            "factor_type": "transcription_factor"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "hMSC-hTERT",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_A2JN",
+                  "term": "HMEC-hTERT",
+                  "ontology_type": "Cellosaurus"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "epithelial cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000066",
+                  "term": "epithelial cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "mammary gland",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0001911",
+                  "term": "mammary gland",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                },
+                {
+                  "official_term": "thoracic mammary gland",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0005200",
+                  "term": "mammary gland",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:11:21+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:08+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 28,
+        "geo": "GSM1544111",
+        "expected_factor": "MBD2",
+        "expected_ontologies": "HMEC-hTERT",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1550934": {
+      "factor": "H3K4ME3",
+      "cell_line": "GM18853",
+      "cell_type": "Lymphoblastoid Cell Line",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T15:42:09+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:41:28+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K4ME3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "GM18853",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_P470",
+                  "term": "GM18853",
+                  "ontology_type": "Cellosaurus"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "lymphoblastoid cell line",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0005292",
+                  "term": "lymphoblastoid cell line",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:11:27+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:13+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 29,
+        "geo": "GSM1550934",
+        "expected_factor": "H3K4ME3",
+        "expected_ontologies": "Lymphoblastoid Cell Line",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1572773": {
+      "factor": "control",
+      "cell_line": "OCI-Ly1",
+      "cell_type": "B-cell",
+      "tissue": "N/A",
+      "disease": "Diffuse large B-cell lymphoma",
+      "verified": true,
+      "verified_at": "2026-05-12T15:51:02+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:41:46+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "N/A",
+            "factor_type": "none",
+            "factor_status": "control_sample"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "OCI-Ly1",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_1879",
+                  "term": "OCI-Ly1",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "OCI-LY1",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0005907",
+                  "term": "OCI-Ly1",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "diffuse large B-cell lymphoma",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000403",
+                  "term": "diffuse large B-cell lymphoma cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "obsolete_lymphatic system",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0000870",
+                  "term": "lymph node",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "lymph node",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000029",
+                  "term": "lymph node",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "diffuse large B-cell lymphoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000403",
+                  "term": "diffuse large B-cell lymphoma",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:11:40+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:19+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 30,
+        "geo": "GSM1572773",
+        "expected_factor": "control",
+        "expected_ontologies": "OCI-Ly1",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1647627": {
+      "factor": "H3K4me3",
+      "cell_line": "A549",
+      "cell_type": "N/A",
+      "tissue": "N/A",
+      "disease": "lung carcinoma",
+      "verified": true,
+      "verified_at": "2026-05-12T15:52:15+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:42:23+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K4me3",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "A549",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0001086",
+                  "term": "A-549",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "lung cancer cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "BTO_0000551",
+                  "term": "lung carcinoma cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "lung neoplasm",
+                  "term_identity": "tissue",
+                  "ontology_accession": "MONDO_0021117",
+                  "term": "lung",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "lung",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002048",
+                  "term": "lung",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "lung carcinoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0001071",
+                  "term": "lung carcinoma",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:11:59+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:26+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 31,
+        "geo": "GSM1647627",
+        "expected_factor": "H3K4me3",
+        "expected_ontologies": "A549",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1655738": {
+      "factor": "control",
+      "cell_line": "N/A",
+      "cell_type": "HSPC",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T15:56:56+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:42:34+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "N/A",
+            "factor_type": "none",
+            "factor_status": "control_sample"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "hematopoietic stem cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "CL_0000037",
+                  "term": "hematopoietic stem cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "bone marrow",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002371",
+                  "term": "bone marrow",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:12:09+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:28+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 32,
+        "geo": "GSM1655738",
+        "expected_factor": "control",
+        "expected_ontologies": "HSPC",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1727080": {
+      "factor": "H2Bub",
+      "cell_line": "HCT116",
+      "cell_type": "colorectal cancer cell line",
+      "tissue": "colorectal",
+      "disease": "colorectal cancer",
+      "verified": true,
+      "verified_at": "2026-05-12T15:59:15+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:42:52+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H2BK120ub",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HCT116",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0002824",
+                  "term": "HCT 116",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "colorectal cancer cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "BTO_0001615",
+                  "term": "colorectal cancer cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "colon",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0001155",
+                  "term": "colon",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "colorectal carcinoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_1001951",
+                  "term": "colorectal cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "colorectal cancer",
+                  "term_identity": "disease",
+                  "ontology_accession": "MONDO_0005575",
+                  "term": "colorectal cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "obsolete_colorectal cancer",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0005842",
+                  "term": "colorectal cancer",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:12:12+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:31+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 33,
+        "geo": "GSM1727080",
+        "expected_factor": "H2Bub",
+        "expected_ontologies": "HCT116",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1817666": {
+      "factor": "CTCF",
+      "cell_line": "MCF7",
+      "cell_type": "N/A",
+      "tissue": "breast",
+      "disease": "breast cancer",
+      "verified": true,
+      "verified_at": "2026-05-12T16:04:10+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:43:30+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "CTCF",
+            "factor_type": "transcription_factor"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "MCF-7",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0001203",
+                  "term": "MCF-7",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "breast carcinoma",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000305",
+                  "term": "breast cancer cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast cancer",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "MONDO_0007254",
+                  "term": "breast cancer cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "obsolete_mammary gland",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0000854",
+                  "term": "breast",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000310",
+                  "term": "breast",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "breast carcinoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0000305",
+                  "term": "breast cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "breast cancer",
+                  "term_identity": "disease",
+                  "ontology_accession": "MONDO_0007254",
+                  "term": "breast cancer",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:12:30+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:33+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 35,
+        "geo": "GSM1817666",
+        "expected_factor": "CTCF",
+        "expected_ontologies": "MCF7",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1892611": {
+      "factor": "H3K4me2",
+      "cell_line": "N/A",
+      "cell_type": "N/A",
+      "tissue": "colonic mucosa",
+      "disease": "colorectal cancer",
+      "verified": true,
+      "verified_at": "2026-05-12T16:20:10+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:43:56+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K4me2",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "obsolete_colon mucosa",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0003038",
+                  "term": "colonic mucosa cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "colonic mucosa",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "UBERON_0000317",
+                  "term": "colonic mucosa cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "colonic mucosa",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0000317",
+                  "term": "colon mucosa",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "colorectal carcinoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_1001951",
+                  "term": "colorectal cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "colorectal cancer",
+                  "term_identity": "disease",
+                  "ontology_accession": "MONDO_0005575",
+                  "term": "colorectal cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "obsolete_colorectal cancer",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0005842",
+                  "term": "colorectal cancer",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:13:57+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:35+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 37,
+        "geo": "GSM1892611",
+        "expected_factor": "H3K4me2",
+        "expected_ontologies": "Primary colonic mucosa",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1901045": {
+      "factor": "H3K36me2",
+      "cell_line": "NCI-H1299",
+      "cell_type": "lung cancer cell",
+      "tissue": "lung",
+      "disease": "lung cancer",
+      "verified": true,
+      "verified_at": "2026-05-12T16:20:15+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:44:07+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K36me2",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "NCI-H1299",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0003043",
+                  "term": "NCI-H1299",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "lung cancer cell",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "BTO_0000551",
+                  "term": "lung carcinoma cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "lung neoplasm",
+                  "term_identity": "tissue",
+                  "ontology_accession": "MONDO_0021117",
+                  "term": "lung",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "lung",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002048",
+                  "term": "lung",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "lung carcinoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0001071",
+                  "term": "lung carcinoma",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:14:14+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:36+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 38,
+        "geo": "GSM1901045",
+        "expected_factor": "H3K36me2",
+        "expected_ontologies": "NCI-H1299",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM2026777": {
+      "factor": "YY1",
+      "cell_line": "HEK293",
+      "cell_type": "N/A",
+      "tissue": "N/A",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T16:22:18+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:44:30+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "YY1",
+            "factor_type": "transcription_factor",
+            "factor_status": "epitope_tagged"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HEK293",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0001182",
+                  "term": "HEK293",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "obsolete_pronephros",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0000927",
+                  "term": "embryonic kidney cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "pronephros",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "UBERON_0002120",
+                  "term": "embryonic kidney cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "kidney",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0002113",
+                  "term": "kidney",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:14:59+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:37+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 39,
+        "geo": "GSM2026777",
+        "expected_factor": "YY1",
+        "expected_ontologies": "HEK293",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1606429": {
+      "factor": "H3K27ac",
+      "cell_line": "N/A",
+      "cell_type": "duct",
+      "tissue": "pancreas",
+      "disease": "N/A",
+      "verified": true,
+      "verified_at": "2026-05-12T15:51:11+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:42:01+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "H3K27ac",
+            "factor_type": "histone_modification"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": "N/A",
+              "cell_type": [
+                {
+                  "official_term": "pancreatic duct",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "UBERON_0007329",
+                  "term": "pancreatic duct cell",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                },
+                {
+                  "official_term": "ventral pancreatic duct",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "UBERON_0001064",
+                  "term": "pancreatic duct cell",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "pancreatic neoplasm",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0003860",
+                  "term": "pancreas",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "pancreas",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0001264",
+                  "term": "pancreas",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                },
+                {
+                  "official_term": "first pancreatic bud",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_3011040",
+                  "term": "pancreas",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:11:48+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:39+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 40,
+        "geo": "GSM1606429",
+        "expected_factor": "H3K27ac",
+        "expected_ontologies": "pancreas",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM2188515": {
+      "factor": "control",
+      "cell_line": "L3.6",
+      "cell_type": "pancreatic cancer cells",
+      "tissue": "pancreas",
+      "disease": "pancreatic cancer",
+      "verified": true,
+      "verified_at": "2026-05-12T16:35:05+00:00",
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "processed_at": "2026-05-15T16:45:30+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "N/A",
+            "factor_type": "none",
+            "factor_status": "control_sample"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "BL-36",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_C146",
+                  "term": "L3.6",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "CL-36",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_D336",
+                  "term": "L3.6",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "L136",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_ZT76",
+                  "term": "L3.6",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "L361",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_0C37",
+                  "term": "L3.6",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "PL36",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "CVCL_JM35",
+                  "term": "L3.6",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "L-363",
+                  "term_identity": "cell_line",
+                  "ontology_accession": "EFO_0006450",
+                  "term": "L3.6",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "pancreatic carcinoma",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0002618",
+                  "term": "pancreatic cancer cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "pancreatic neoplasm",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_0003860",
+                  "term": "pancreatic cancer cell",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "Malignant Pancreatic Neoplasm",
+                  "term_identity": "cell_type",
+                  "ontology_accession": "EFO_1000359",
+                  "term": "pancreatic cancer cell",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "pancreatic neoplasm",
+                  "term_identity": "tissue",
+                  "ontology_accession": "EFO_0003860",
+                  "term": "pancreas",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "pancreas",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_0001264",
+                  "term": "pancreas",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                },
+                {
+                  "official_term": "first pancreatic bud",
+                  "term_identity": "tissue",
+                  "ontology_accession": "UBERON_3011040",
+                  "term": "pancreas",
+                  "ontology_type": "Uberon"
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "pancreatic carcinoma",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0002618",
+                  "term": "pancreatic cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "pancreatic neoplasm",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_0003860",
+                  "term": "pancreatic cancer",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "Malignant Pancreatic Neoplasm",
+                  "term_identity": "disease",
+                  "ontology_accession": "EFO_1000359",
+                  "term": "pancreatic cancer",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T19:16:42+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:23:41+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      },
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 41,
+        "geo": "GSM2188515",
+        "expected_factor": "control",
+        "expected_ontologies": "3.6 pancreatic cancer cells",
+        "duplicate_in_benchmark": false
+      }
+    },
+    "GSM1009641": {
+      "source_dataset": "chipGPT_benchmark_missing",
+      "factor": "control",
+      "cell_line": "Primary Human Umbilical Vein Endothelial Cells",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "factor",
+        "cell_line",
+        "cell_type",
+        "tissue",
+        "disease"
+      ],
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 17,
+        "geo": "GSM1009641",
+        "expected_factor": "control",
+        "expected_ontologies": "Primary Human Umbilical Vein Endothelial Cells",
+        "duplicate_in_benchmark": false
+      },
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "both",
+        "processed_at": "2026-05-15T22:08:22+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "N/A",
+            "factor_type": "none",
+            "factor_status": "control_sample"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HUVEC-C",
+                  "ontology_accession": "CVCL_2959",
+                  "term": "HUVEC",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "HUVEC cell",
+                  "ontology_accession": "EFO_0002451",
+                  "term": "HUVEC",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "endothelial cell",
+                  "ontology_accession": "CL_0000115",
+                  "term": "endothelial cell",
+                  "term_identity": "cell_type",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "umbilical vein",
+                  "ontology_accession": "UBERON_0002066",
+                  "term": "umbilical vein",
+                  "term_identity": "tissue",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": "N/A"
+            }
+          }
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:25:45+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1824424": {
+      "source_dataset": "chipGPT_benchmark_missing",
+      "factor": "dCas9",
+      "cell_line": "K562 cells",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "factor",
+        "cell_line",
+        "cell_type",
+        "tissue",
+        "disease"
+      ],
+      "chipgpt_benchmark": {
+        "source_file": "benchmark_chipGPT.xlsx",
+        "source_row": 36,
+        "geo": "GSM1824424",
+        "expected_factor": "dCas9",
+        "expected_ontologies": "K562 cells",
+        "duplicate_in_benchmark": false
+      },
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "both",
+        "processed_at": "2026-05-15T22:08:31+00:00",
+        "result": {
+          "factor": {
+            "extracted_factor": "CAS9",
+            "factor_type": "gene_editing_tool"
+          },
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "K562",
+                  "ontology_accession": "EFO_0002067",
+                  "term": "K-562",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "cell_type": [
+                {
+                  "official_term": "myeloid leukemia",
+                  "ontology_accession": "MONDO_0004643",
+                  "term": "myelogenous leukemia cell",
+                  "term_identity": "cell_type",
+                  "ontology_type": "EFO"
+                }
+              ],
+              "tissue": [
+                {
+                  "official_term": "blood",
+                  "ontology_accession": "UBERON_0000178",
+                  "term": "blood",
+                  "term_identity": "tissue",
+                  "ontology_type": [
+                    "EFO",
+                    "Uberon"
+                  ]
+                }
+              ],
+              "disease": [
+                {
+                  "official_term": "chronic myelogenous leukemia",
+                  "ontology_accession": "EFO_0000339",
+                  "term": "chronic myelogenous leukemia",
+                  "term_identity": "disease",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "chipgpt_manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T22:25:48+00:00",
+          "notes": "",
+          "extracted_factor_correct": true,
+          "extracted_cell_line_correct": true,
+          "extracted_cell_type_correct": true,
+          "extracted_tissue_correct": true,
+          "extracted_disease_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    }
+  }
+}

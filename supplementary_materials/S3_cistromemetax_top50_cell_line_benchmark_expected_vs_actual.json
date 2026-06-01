@@ -1,0 +1,2186 @@
+{
+  "metadata": {
+    "dataset": "top_50_cell_lines",
+    "source_xlsx": "Top_50_Cell_Lines_ChIPseq.xlsx",
+    "created_at": "2026-05-15T19:57:15+00:00",
+    "expected_field": "cell_line",
+    "record_count": 50,
+    "overlap_count_with_existing_output": 0,
+    "overlaps_mapped_from": "gsm_ids_output_gpt5.1.json",
+    "cistrome_metax_last_run_at": "2026-05-15T20:19:45+00:00",
+    "cistrome_metax_last_model": "openai:gpt-5.1",
+    "cistrome_metax_last_mode": "ontology"
+  },
+  "entries": {
+    "GSM1233887": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 2,
+      "category": "Fibroblast/Immortalized Normal",
+      "factor": "",
+      "cell_line": "GM12878",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:13:23+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "GM12878",
+                  "ontology_accession": "EFO_0002784",
+                  "term": "GM12878",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:33+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1003447": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 3,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "K562",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:13:30+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "K562",
+                  "ontology_accession": "EFO_0002067",
+                  "term": "K-562",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:34+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1104353": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 4,
+      "category": "Female Reproductive",
+      "factor": "",
+      "cell_line": "HeLa-S3",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:13:37+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HeLa-S3",
+                  "ontology_accession": "EFO_0002791",
+                  "term": "HeLa S3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:35+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1402782": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 5,
+      "category": "Liver",
+      "factor": "",
+      "cell_line": "HepG2",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:13:44+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HepG2",
+                  "ontology_accession": "EFO_0001187",
+                  "term": "HepG2",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:36+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1003555": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 6,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "HUVEC",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:13:52+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HUVEC-C",
+                  "ontology_accession": "CVCL_2959",
+                  "term": "HUVEC",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "HUVEC cell",
+                  "ontology_accession": "EFO_0002451",
+                  "term": "HUVEC",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:37+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1003453": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 7,
+      "category": "Lung",
+      "factor": "",
+      "cell_line": "A549",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:00+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "A549",
+                  "ontology_accession": "EFO_0001086",
+                  "term": "A549",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:38+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1000995": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 8,
+      "category": "Breast",
+      "factor": "",
+      "cell_line": "MCF-7",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:07+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "MCF-7",
+                  "ontology_accession": "EFO_0001203",
+                  "term": "MCF-7",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:39+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1003557": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 9,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "HMEC",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:14+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HMEC",
+                  "ontology_accession": "EFO_0001188",
+                  "term": "HMEC",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:40+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1003527": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 10,
+      "category": "Kidney",
+      "factor": "",
+      "cell_line": "NHEK",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:21+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "NHEK",
+                  "ontology_accession": "EFO_0002799",
+                  "term": "NHEK",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:41:41+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1007989": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 11,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "WI-38",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:28+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "WI-38",
+                  "ontology_accession": "CVCL_0579",
+                  "term": "WI-38",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:06+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM5282322": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 12,
+      "category": "Breast",
+      "factor": "",
+      "cell_line": "T47D",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:37+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "T-47D cell",
+                  "ontology_accession": "EFO_0001247",
+                  "term": "T47D",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:07+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1000999": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 13,
+      "category": "Breast",
+      "factor": "",
+      "cell_line": "MDA-MB-231",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:43+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "MDAMB231",
+                  "ontology_accession": "EFO_0001209",
+                  "term": "MDA-MB-231",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:07+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1325254": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 14,
+      "category": "Breast",
+      "factor": "",
+      "cell_line": "SK-BR-3",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:49+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "SKBR3",
+                  "ontology_accession": "EFO_0001236",
+                  "term": "SK-BR-3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:08+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1045363": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 15,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "Jurkat",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:14:56+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "Jurkat",
+                  "ontology_accession": "EFO_0002796",
+                  "term": "Jurkat",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:08+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1055775": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 16,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "HL-60",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:15:04+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HL-60",
+                  "ontology_accession": "EFO_0002793",
+                  "term": "HL-60",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:08+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1240268": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 17,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "THP-1",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:15:10+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "THP-1",
+                  "ontology_accession": "EFO_0001253",
+                  "term": "THP-1",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:09+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1122321": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 18,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "U937",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:15:17+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "U937",
+                  "ontology_accession": "EFO_0001257",
+                  "term": "U-937",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:09+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM3110582": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 19,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "RPMI-8226(human melanocyte)",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:15:27+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "RPI-8226",
+                  "ontology_accession": "CVCL_7353",
+                  "term": "RPI8226",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:10+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM8453353": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 20,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "MM.1S",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:15:38+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "MM.1S",
+                  "ontology_accession": "EFO_0005724",
+                  "term": "MM.1S",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:11+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM3498413": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 21,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "OCI-LY3",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:15:46+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "OCI-LY3",
+                  "ontology_accession": "EFO_0006710",
+                  "term": "OCI-Ly3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:12+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1227204": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 22,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "OCI-LY10",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:15:53+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "OCI-LY10",
+                  "ontology_accession": "EFO_0006708",
+                  "term": "OCI-Ly10",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:13+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1227210": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 23,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "SU-DHL-4",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:15:59+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "SU-DHL-4",
+                  "ontology_accession": "EFO_0006492",
+                  "term": "SU-DHL-4",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:13+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM2062415": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 24,
+      "category": "Liver",
+      "factor": "",
+      "cell_line": "Huh7",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:16:08+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HuH-7",
+                  "ontology_accession": "EFO_0005384",
+                  "term": "Huh-7",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:14+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM6634715": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 25,
+      "category": "Liver",
+      "factor": "",
+      "cell_line": "Hep3B",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:16:17+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "Hep3B",
+                  "ontology_accession": "EFO_0002205",
+                  "term": "Hep 3B",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:15+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM8553193": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 26,
+      "category": "Lung",
+      "factor": "",
+      "cell_line": "H1299",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:16:27+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "NCI-H1299",
+                  "ontology_accession": "EFO_0003043",
+                  "term": "NCI-H1299",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:18+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM2359451": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 27,
+      "category": "Lung",
+      "factor": "",
+      "cell_line": "PC-9",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:16:35+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "PC-9",
+                  "ontology_accession": "EFO_0002847",
+                  "term": "PC-9",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "proprotein convertase subtilisin/kexin type 9",
+                  "ontology_accession": "PR_000012440",
+                  "term": "PC-9",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:19+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1022652": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 28,
+      "category": "Colon/Rectal",
+      "factor": "",
+      "cell_line": "HCT116",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:16:41+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HCT116",
+                  "ontology_accession": "EFO_0002824",
+                  "term": "HCT 116",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:20+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM8329648": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 29,
+      "category": "Colon/Rectal",
+      "factor": "",
+      "cell_line": "SW480",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:16:50+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "SW480",
+                  "ontology_accession": "EFO_0002083",
+                  "term": "SW 480",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:21+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM8766946": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 30,
+      "category": "Colon/Rectal",
+      "factor": "",
+      "cell_line": "DLD-1",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:17:01+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "DLD1",
+                  "ontology_accession": "EFO_0006389",
+                  "term": "DLD-1",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:22+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1151769": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 31,
+      "category": "Kidney",
+      "factor": "",
+      "cell_line": "HEK293",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:17:09+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HEK293",
+                  "ontology_accession": "EFO_0001182",
+                  "term": "HEK293",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:22+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM8026661": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 32,
+      "category": "Kidney",
+      "factor": "",
+      "cell_line": "HEK293T",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:17:16+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HEK293-ET",
+                  "ontology_accession": "CVCL_6996",
+                  "term": "HEK293T",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "HEK-293ET",
+                  "ontology_accession": "EFO_0022563",
+                  "term": "HEK293T",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:23+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1296641": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 33,
+      "category": "Colon/Rectal",
+      "factor": "",
+      "cell_line": "HT-29",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:17:24+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HT-29",
+                  "ontology_accession": "EFO_0001193",
+                  "term": "HT-29",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:24+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1174716": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 34,
+      "category": "Brain/CNS",
+      "factor": "",
+      "cell_line": "SH-SY5Y",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:17:31+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "SH-SY5Y",
+                  "ontology_accession": "EFO_0002717",
+                  "term": "SH-SY5Y",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:26+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM8108915": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 35,
+      "category": "Brain/CNS",
+      "factor": "",
+      "cell_line": "SK-N-SH",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:17:38+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "SK-N-SH",
+                  "ontology_accession": "EFO_0003072",
+                  "term": "SK-N-SH",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:27+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM2664347": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 36,
+      "category": "Brain/CNS",
+      "factor": "",
+      "cell_line": "SK-N-BE(2)",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:17:50+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "neuroblastoma cell line",
+                  "ontology_accession": "EFO_0005214",
+                  "term": "SK-N-BE(2)-C neuroblastoma cell line",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:30+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM8966501": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 37,
+      "category": "Prostate",
+      "factor": "",
+      "cell_line": "LNCaP",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:17:56+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "LNCAP",
+                  "ontology_accession": "EFO_0002071",
+                  "term": "LNCaP",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:31+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1308235": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 38,
+      "category": "Prostate",
+      "factor": "",
+      "cell_line": "PC-3",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:18:04+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "HNC PC3",
+                  "ontology_accession": "CVCL_C8XA",
+                  "term": "PC-3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "PC-3 [Human lung carcinoma]",
+                  "ontology_accession": "CVCL_S982",
+                  "term": "PC-3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "SK-PC-3",
+                  "ontology_accession": "CVCL_4055",
+                  "term": "PC-3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "neuroendocrine convertase 1",
+                  "ontology_accession": "PR_000012433",
+                  "term": "PC-3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "PC-3",
+                  "ontology_accession": "EFO_0002074",
+                  "term": "PC-3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                },
+                {
+                  "official_term": "parvocellular oculomotor nucleus",
+                  "ontology_accession": "UBERON_0002141",
+                  "term": "PC-3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Uberon"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:33+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1412319": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 39,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "22Rv1",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:18:13+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "22Rv1",
+                  "ontology_accession": "EFO_0002095",
+                  "term": "22Rv1",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:34+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM4753178": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 40,
+      "category": "Prostate",
+      "factor": "",
+      "cell_line": "VCaP",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:18:20+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "VCaP",
+                  "ontology_accession": "EFO_0007752",
+                  "term": "VCaP",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:35+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1515414": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 41,
+      "category": "Skin",
+      "factor": "",
+      "cell_line": "A375",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:18:28+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "A375",
+                  "ontology_accession": "EFO_0002103",
+                  "term": "A-375",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:36+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1635579": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 42,
+      "category": "Female Reproductive",
+      "factor": "",
+      "cell_line": "Ishikawa",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:18:35+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "Ishikawa",
+                  "ontology_accession": "EFO_0005718",
+                  "term": "Ishikawa",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:37+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM9186590": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 43,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "U2OS",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:18:46+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "U2OS",
+                  "ontology_accession": "EFO_0002869",
+                  "term": "U2OS",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:38+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM5363940": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 44,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "A-673",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:18:55+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "A673",
+                  "ontology_accession": "EFO_0002106",
+                  "term": "A-673",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:39+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM2827344": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 45,
+      "category": "Fibroblast/Immortalized Normal",
+      "factor": "",
+      "cell_line": "IMR-90",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:19:01+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "IMR-90",
+                  "ontology_accession": "EFO_0001196",
+                  "term": "IMR-90",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:40+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM4395690": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 46,
+      "category": "Fibroblast/Immortalized Normal",
+      "factor": "",
+      "cell_line": "BJ",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:19:09+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "BJ",
+                  "ontology_accession": "EFO_0002779",
+                  "term": "BJ",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:41+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM2716711": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 47,
+      "category": "Blood/Lymph/Leukemia",
+      "factor": "",
+      "cell_line": "OCI-AML3",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:19:15+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "OCI-AML-3",
+                  "ontology_accession": "CVCL_1844",
+                  "term": "OCI-AML3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "OCI-AML3",
+                  "ontology_accession": "EFO_0006289",
+                  "term": "OCI-AML3",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:42+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1082308": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 48,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "KASUMI-1",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:19:22+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "Kasumi-1",
+                  "ontology_accession": "EFO_0006607",
+                  "term": "Kasumi-1",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:43+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM5737331": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 49,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "MOLM-13",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:19:30+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "MOLM-13",
+                  "ontology_accession": "EFO_0022694",
+                  "term": "MOLM-13",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:43+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM1465011": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 50,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "MV-4-11",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:19:37+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "MV-4-11B",
+                  "ontology_accession": "CVCL_C3HG",
+                  "term": "MV-4-11",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:44+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    },
+    "GSM7329552": {
+      "source_dataset": "top_50_cell_lines",
+      "source_row": 51,
+      "category": "Other/Solid Tumor",
+      "factor": "",
+      "cell_line": "NB4",
+      "cell_type": "",
+      "tissue": "",
+      "disease": "",
+      "expected_review_fields": [
+        "cell_line"
+      ],
+      "cistrome_metax": {
+        "status": "ok",
+        "flagged": false,
+        "model": "openai:gpt-5.1",
+        "mode": "ontology",
+        "processed_at": "2026-05-15T20:19:45+00:00",
+        "result": {
+          "ontology": {
+            "extracted_ontologies": {
+              "cell_line": [
+                {
+                  "official_term": "SJNB-4",
+                  "ontology_accession": "CVCL_8821",
+                  "term": "NB4",
+                  "term_identity": "cell_line",
+                  "ontology_type": "Cellosaurus"
+                },
+                {
+                  "official_term": "NB4",
+                  "ontology_accession": "EFO_0002798",
+                  "term": "NB4",
+                  "term_identity": "cell_line",
+                  "ontology_type": "EFO"
+                }
+              ]
+            }
+          }
+        },
+        "manual_review": {
+          "reviewed": true,
+          "reviewed_at": "2026-05-15T20:51:49+00:00",
+          "notes": "",
+          "extracted_cell_line_correct": true,
+          "all_extracted_fields_correct": true
+        }
+      }
+    }
+  }
+}
