@@ -1,16 +1,4 @@
 {
-  "metadata": {
-    "dataset": "top_100_factors",
-    "source_xlsx": "ChIP_seq_Top_100.xlsx",
-    "created_at": "2026-05-15T19:57:15+00:00",
-    "expected_field": "factor",
-    "record_count": 100,
-    "overlap_count_with_existing_output": 0,
-    "overlaps_mapped_from": "gsm_ids_output_gpt5.1.json",
-    "cistrome_metax_last_run_at": "2026-05-15T20:13:00+00:00",
-    "cistrome_metax_last_model": "openai:gpt-5.1",
-    "cistrome_metax_last_mode": "factor"
-  },
   "entries": {
     "GSM9648451": {
       "source_dataset": "top_100_factors",
