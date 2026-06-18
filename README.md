@@ -13,6 +13,7 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 ## Table of Contents
 
 - [About](#about)
+- [Citation](#citation)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [The Model](#the-model)
@@ -36,6 +37,30 @@ This presents a significant bottleneck: thousands of valuable ChIP-seq experimen
 CistromeMetaX streamlines the extraction of critical metadata from ChIP-seq experiments, including experimental factors, cell types, tissues, and target proteins from GEO (Gene Expression Omnibus) records. The default workflow takes a list of GSM/GSE accession strings and fetches the MINiML XML directly from NCBI GEO — no pre-downloaded files or mapping JSONs required. For pipelines with locally cached XMLs, the package also accepts pre-built mapping files. CistromeMetaX supports multiple LLM providers out of the box and validates its LLM outputs against established databases to ensure extracted cell types, tissues, cell lines, and target proteins are biologically valid and standardized.
 
 The tool is designed to integrate seamlessly with existing bioinformatics pipelines, providing highly accurate and consistent outputs suitable for resources like Cistrome and other ChIP-seq analysis platforms.
+
+---
+
+## Citation
+
+If you use CistromeMetaX/CistromeMeta in your work, please cite the Bioinformatics paper:
+
+> Nicholas Piccaro, Myles Brown, Clifford Meyer, CistromeMeta: A Large Language Model Powered Tool for Automated ChIP-seq Metadata Extraction, *Bioinformatics*, 2026;, btag380, https://doi.org/10.1093/bioinformatics/btag380
+
+**Paper:** [CistromeMeta: A Large Language Model Powered Tool for Automated ChIP-seq Metadata Extraction](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btag380/8707631)
+
+**BibTeX**
+
+```bibtex
+@article{piccaro2026cistromemeta,
+  author = {Piccaro, Nicholas and Brown, Myles and Meyer, Clifford},
+  title = {CistromeMeta: A Large Language Model Powered Tool for Automated ChIP-seq Metadata Extraction},
+  journal = {Bioinformatics},
+  year = {2026},
+  pages = {btag380},
+  doi = {10.1093/bioinformatics/btag380},
+  url = {https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btag380/8707631}
+}
+```
 
 ---
 
